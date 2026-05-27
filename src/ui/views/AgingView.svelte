@@ -131,8 +131,6 @@
 
             <div class="pos-card-acts" style="margin-top: 12px; display: flex; gap: 6px; flex-wrap: wrap;">
               <button class="pos-ptc-start-btn" on:click={() => handleSelectProject(p.id)}>Workspace</button>
-              <button on:click={() => onSelect(p.id, 'elastic')}>Elastic</button>
-              <button on:click={() => onSelect(p.id, 'deadlines')}>Deadlines</button>
               <button class="pos-del" on:click={() => handleDeleteProject(p.id)} title="Delete project">Delete</button>
             </div>
           </div>

@@ -1419,36 +1419,36 @@ var NewTaskModal = class extends import_obsidian2.Modal {
 // src/ui/views/AgingView.svelte
 function get_each_context(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[25] = list[i];
+  child_ctx[23] = list[i];
   const constants_0 = (
     /*tasks*/
-    child_ctx[5].filter(function func(...args) {
+    child_ctx[4].filter(function func(...args) {
       return (
         /*func*/
-        ctx[23](
+        ctx[21](
           /*p*/
-          child_ctx[25],
+          child_ctx[23],
           ...args
         )
       );
     })
   );
-  child_ctx[26] = constants_0;
+  child_ctx[24] = constants_0;
   const constants_1 = {
     running: (
       /*pTasks*/
-      child_ctx[26].filter((t) => t.status === "running").length
+      child_ctx[24].filter((t) => t.status === "running").length
     ),
     review: (
       /*pTasks*/
-      child_ctx[26].filter((t) => t.status === "review").length
+      child_ctx[24].filter((t) => t.status === "review").length
     ),
     total: (
       /*pTasks*/
-      child_ctx[26].length
+      child_ctx[24].length
     )
   };
-  child_ctx[27] = constants_1;
+  child_ctx[25] = constants_1;
   return child_ctx;
 }
 function create_else_block(ctx) {
@@ -1457,11 +1457,11 @@ function create_else_block(ctx) {
   let each_1_anchor;
   let each_value = ensure_array_like(
     /*activeProjects*/
-    ctx[2]
+    ctx[1]
   );
   const get_key = (ctx2) => (
     /*p*/
-    ctx2[25].id
+    ctx2[23].id
   );
   for (let i = 0; i < each_value.length; i += 1) {
     let child_ctx = get_each_context(ctx, each_value, i);
@@ -1484,11 +1484,11 @@ function create_else_block(ctx) {
       insert(target, each_1_anchor, anchor);
     },
     p(ctx2, dirty) {
-      if (dirty & /*getHue, activeProjects, range, minTime, handleDeleteProject, onSelect, handleSelectProject, tasks, now*/
-      895) {
+      if (dirty & /*getHue, activeProjects, range, minTime, handleDeleteProject, handleSelectProject, tasks, now*/
+      447) {
         each_value = ensure_array_like(
           /*activeProjects*/
-          ctx2[2]
+          ctx2[1]
         );
         each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx2, each_value, each_1_lookup, each_1_anchor.parentNode, destroy_block, create_each_block, each_1_anchor, get_each_context);
       }
@@ -1526,7 +1526,7 @@ function create_if_block_3(ctx) {
   let div;
   let t_value = (
     /*p*/
-    ctx[25].description + ""
+    ctx[23].description + ""
   );
   let t;
   return {
@@ -1541,8 +1541,8 @@ function create_if_block_3(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty & /*activeProjects*/
-      4 && t_value !== (t_value = /*p*/
-      ctx2[25].description + ""))
+      2 && t_value !== (t_value = /*p*/
+      ctx2[23].description + ""))
         set_data(t, t_value);
     },
     d(detaching) {
@@ -1556,7 +1556,7 @@ function create_if_block_2(ctx) {
   let span;
   let t0_value = (
     /*counts*/
-    ctx[27].running + ""
+    ctx[25].running + ""
   );
   let t0;
   let t1;
@@ -1579,8 +1579,8 @@ function create_if_block_2(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty & /*tasks, activeProjects*/
-      36 && t0_value !== (t0_value = /*counts*/
-      ctx2[27].running + ""))
+      18 && t0_value !== (t0_value = /*counts*/
+      ctx2[25].running + ""))
         set_data(t0, t0_value);
     },
     d(detaching) {
@@ -1594,7 +1594,7 @@ function create_if_block_1(ctx) {
   let span;
   let t0_value = (
     /*counts*/
-    ctx[27].review + ""
+    ctx[25].review + ""
   );
   let t0;
   let t1;
@@ -1611,8 +1611,8 @@ function create_if_block_1(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty & /*tasks, activeProjects*/
-      36 && t0_value !== (t0_value = /*counts*/
-      ctx2[27].review + ""))
+      18 && t0_value !== (t0_value = /*counts*/
+      ctx2[25].review + ""))
         set_data(t0, t0_value);
     },
     d(detaching) {
@@ -1627,7 +1627,7 @@ function create_each_block(key_1, ctx) {
   let div0;
   let t0_value = (
     /*p*/
-    ctx[25].name + ""
+    ctx[23].name + ""
   );
   let t0;
   let t1;
@@ -1636,9 +1636,9 @@ function create_each_block(key_1, ctx) {
   let t3;
   let t4_value = formatAge(
     /*p*/
-    ctx[25].createdAt,
+    ctx[23].createdAt,
     /*now*/
-    ctx[3]
+    ctx[2]
   ) + "";
   let t4;
   let t5;
@@ -1646,7 +1646,7 @@ function create_each_block(key_1, ctx) {
   let span;
   let t6_value = (
     /*counts*/
-    ctx[27].total + ""
+    ctx[25].total + ""
   );
   let t6;
   let t7;
@@ -1658,10 +1658,6 @@ function create_each_block(key_1, ctx) {
   let t12;
   let button1;
   let t14;
-  let button2;
-  let t16;
-  let button3;
-  let t18;
   let mounted;
   let dispose;
   function click_handler() {
@@ -1669,28 +1665,28 @@ function create_each_block(key_1, ctx) {
       /*click_handler*/
       ctx[18](
         /*p*/
-        ctx[25]
+        ctx[23]
       )
     );
   }
   let if_block0 = (
     /*p*/
-    ctx[25].description && create_if_block_3(ctx)
+    ctx[23].description && create_if_block_3(ctx)
   );
   let if_block1 = (
     /*counts*/
-    ctx[27].running > 0 && create_if_block_2(ctx)
+    ctx[25].running > 0 && create_if_block_2(ctx)
   );
   let if_block2 = (
     /*counts*/
-    ctx[27].review > 0 && create_if_block_1(ctx)
+    ctx[25].review > 0 && create_if_block_1(ctx)
   );
   function click_handler_1() {
     return (
       /*click_handler_1*/
       ctx[19](
         /*p*/
-        ctx[25]
+        ctx[23]
       )
     );
   }
@@ -1699,25 +1695,7 @@ function create_each_block(key_1, ctx) {
       /*click_handler_2*/
       ctx[20](
         /*p*/
-        ctx[25]
-      )
-    );
-  }
-  function click_handler_3() {
-    return (
-      /*click_handler_3*/
-      ctx[21](
-        /*p*/
-        ctx[25]
-      )
-    );
-  }
-  function click_handler_4() {
-    return (
-      /*click_handler_4*/
-      ctx[22](
-        /*p*/
-        ctx[25]
+        ctx[23]
       )
     );
   }
@@ -1752,14 +1730,8 @@ function create_each_block(key_1, ctx) {
       button0.textContent = "Workspace";
       t12 = space();
       button1 = element("button");
-      button1.textContent = "Elastic";
+      button1.textContent = "Delete";
       t14 = space();
-      button2 = element("button");
-      button2.textContent = "Deadlines";
-      t16 = space();
-      button3 = element("button");
-      button3.textContent = "Delete";
-      t18 = space();
       attr(div0, "class", "pos-card-name");
       set_style(div0, "cursor", "pointer");
       set_style(div0, "font-weight", "bold");
@@ -1767,8 +1739,8 @@ function create_each_block(key_1, ctx) {
       attr(div1, "class", "pos-age");
       attr(div2, "class", "pos-card-meta");
       attr(button0, "class", "pos-ptc-start-btn");
-      attr(button3, "class", "pos-del");
-      attr(button3, "title", "Delete project");
+      attr(button1, "class", "pos-del");
+      attr(button1, "title", "Delete project");
       attr(div3, "class", "pos-card-acts");
       set_style(div3, "margin-top", "12px");
       set_style(div3, "display", "flex");
@@ -1776,13 +1748,13 @@ function create_each_block(key_1, ctx) {
       set_style(div3, "flex-wrap", "wrap");
       attr(div4, "class", "pos-card pos-project-card");
       set_style(div4, "background-color", "hsl(" + /*getHue*/
-      ctx[6](
+      ctx[5](
         /*p*/
-        ctx[25].createdAt,
+        ctx[23].createdAt,
         /*range*/
-        ctx[4],
+        ctx[3],
         /*minTime*/
-        ctx[1]
+        ctx[0]
       ) + ", 70%, 90%)");
       this.first = div4;
     },
@@ -1813,18 +1785,12 @@ function create_each_block(key_1, ctx) {
       append(div3, button0);
       append(div3, t12);
       append(div3, button1);
-      append(div3, t14);
-      append(div3, button2);
-      append(div3, t16);
-      append(div3, button3);
-      append(div4, t18);
+      append(div4, t14);
       if (!mounted) {
         dispose = [
           listen(div0, "click", click_handler),
           listen(button0, "click", click_handler_1),
-          listen(button1, "click", click_handler_2),
-          listen(button2, "click", click_handler_3),
-          listen(button3, "click", click_handler_4)
+          listen(button1, "click", click_handler_2)
         ];
         mounted = true;
       }
@@ -1832,12 +1798,12 @@ function create_each_block(key_1, ctx) {
     p(new_ctx, dirty) {
       ctx = new_ctx;
       if (dirty & /*activeProjects*/
-      4 && t0_value !== (t0_value = /*p*/
-      ctx[25].name + ""))
+      2 && t0_value !== (t0_value = /*p*/
+      ctx[23].name + ""))
         set_data(t0, t0_value);
       if (
         /*p*/
-        ctx[25].description
+        ctx[23].description
       ) {
         if (if_block0) {
           if_block0.p(ctx, dirty);
@@ -1851,20 +1817,20 @@ function create_each_block(key_1, ctx) {
         if_block0 = null;
       }
       if (dirty & /*activeProjects, now*/
-      12 && t4_value !== (t4_value = formatAge(
+      6 && t4_value !== (t4_value = formatAge(
         /*p*/
-        ctx[25].createdAt,
+        ctx[23].createdAt,
         /*now*/
-        ctx[3]
+        ctx[2]
       ) + ""))
         set_data(t4, t4_value);
       if (dirty & /*tasks, activeProjects*/
-      36 && t6_value !== (t6_value = /*counts*/
-      ctx[27].total + ""))
+      18 && t6_value !== (t6_value = /*counts*/
+      ctx[25].total + ""))
         set_data(t6, t6_value);
       if (
         /*counts*/
-        ctx[27].running > 0
+        ctx[25].running > 0
       ) {
         if (if_block1) {
           if_block1.p(ctx, dirty);
@@ -1879,7 +1845,7 @@ function create_each_block(key_1, ctx) {
       }
       if (
         /*counts*/
-        ctx[27].review > 0
+        ctx[25].review > 0
       ) {
         if (if_block2) {
           if_block2.p(ctx, dirty);
@@ -1893,15 +1859,15 @@ function create_each_block(key_1, ctx) {
         if_block2 = null;
       }
       if (dirty & /*activeProjects, range, minTime*/
-      22) {
+      11) {
         set_style(div4, "background-color", "hsl(" + /*getHue*/
-        ctx[6](
+        ctx[5](
           /*p*/
-          ctx[25].createdAt,
+          ctx[23].createdAt,
           /*range*/
-          ctx[4],
+          ctx[3],
           /*minTime*/
-          ctx[1]
+          ctx[0]
         ) + ", 70%, 90%)");
       }
     },
@@ -1936,7 +1902,7 @@ function create_fragment(ctx) {
   function select_block_type(ctx2, dirty) {
     if (
       /*activeProjects*/
-      ctx2[2].length === 0
+      ctx2[1].length === 0
     )
       return create_if_block;
     return create_else_block;
@@ -1989,7 +1955,7 @@ function create_fragment(ctx) {
           button,
           "click",
           /*handleCreateProject*/
-          ctx[7]
+          ctx[6]
         );
         mounted = true;
       }
@@ -2039,7 +2005,7 @@ function instance($$self, $$props, $$invalidate) {
   onMount(() => {
     timer = window.setInterval(
       () => {
-        $$invalidate(3, now2 = Date.now());
+        $$invalidate(2, now2 = Date.now());
       },
       6e4
     );
@@ -2099,42 +2065,40 @@ function instance($$self, $$props, $$invalidate) {
   }
   const click_handler = (p) => handleSelectProject(p.id);
   const click_handler_1 = (p) => handleSelectProject(p.id);
-  const click_handler_2 = (p) => onSelect(p.id, "elastic");
-  const click_handler_3 = (p) => onSelect(p.id, "deadlines");
-  const click_handler_4 = (p) => handleDeleteProject(p.id);
+  const click_handler_2 = (p) => handleDeleteProject(p.id);
   const func = (p, t) => t.project === p.id;
   $$self.$$set = ($$props2) => {
     if ("app" in $$props2)
-      $$invalidate(10, app = $$props2.app);
+      $$invalidate(9, app = $$props2.app);
     if ("fileManager" in $$props2)
-      $$invalidate(11, fileManager = $$props2.fileManager);
+      $$invalidate(10, fileManager = $$props2.fileManager);
     if ("plugin" in $$props2)
-      $$invalidate(12, plugin = $$props2.plugin);
+      $$invalidate(11, plugin = $$props2.plugin);
     if ("isFullPage" in $$props2)
-      $$invalidate(13, isFullPage = $$props2.isFullPage);
+      $$invalidate(12, isFullPage = $$props2.isFullPage);
     if ("onSelect" in $$props2)
-      $$invalidate(0, onSelect = $$props2.onSelect);
+      $$invalidate(13, onSelect = $$props2.onSelect);
   };
   $$self.$$.update = () => {
     if ($$self.$$.dirty & /*$projectsStore*/
     131072) {
       $:
-        $$invalidate(2, activeProjects = $projectsStore.filter((p) => p.status === "active"));
+        $$invalidate(1, activeProjects = $projectsStore.filter((p) => p.status === "active"));
     }
     if ($$self.$$.dirty & /*$tasksStore*/
     65536) {
       $:
-        $$invalidate(5, tasks = $tasksStore);
+        $$invalidate(4, tasks = $tasksStore);
     }
     if ($$self.$$.dirty & /*activeProjects*/
-    4) {
+    2) {
       $:
         $$invalidate(15, allTimes = activeProjects.map((p) => new Date(p.createdAt).getTime()));
     }
     if ($$self.$$.dirty & /*allTimes*/
     32768) {
       $:
-        $$invalidate(1, minTime = Math.min(...allTimes));
+        $$invalidate(0, minTime = Math.min(...allTimes));
     }
     if ($$self.$$.dirty & /*allTimes*/
     32768) {
@@ -2142,13 +2106,12 @@ function instance($$self, $$props, $$invalidate) {
         $$invalidate(14, maxTime = Math.max(...allTimes));
     }
     if ($$self.$$.dirty & /*maxTime, minTime*/
-    16386) {
+    16385) {
       $:
-        $$invalidate(4, range = maxTime - minTime || 1);
+        $$invalidate(3, range = maxTime - minTime || 1);
     }
   };
   return [
-    onSelect,
     minTime,
     activeProjects,
     now2,
@@ -2162,6 +2125,7 @@ function instance($$self, $$props, $$invalidate) {
     fileManager,
     plugin,
     isFullPage,
+    onSelect,
     maxTime,
     allTimes,
     $tasksStore,
@@ -2169,8 +2133,6 @@ function instance($$self, $$props, $$invalidate) {
     click_handler,
     click_handler_1,
     click_handler_2,
-    click_handler_3,
-    click_handler_4,
     func
   ];
 }
@@ -2178,11 +2140,11 @@ var AgingView = class extends SvelteComponent {
   constructor(options) {
     super();
     init(this, options, instance, create_fragment, safe_not_equal, {
-      app: 10,
-      fileManager: 11,
-      plugin: 12,
-      isFullPage: 13,
-      onSelect: 0
+      app: 9,
+      fileManager: 10,
+      plugin: 11,
+      isFullPage: 12,
+      onSelect: 13
     });
   }
 };
@@ -2192,34 +2154,34 @@ var AgingView_default = AgingView;
 var import_obsidian4 = require("obsidian");
 function get_each_context2(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[72] = list[i];
-  child_ctx[74] = i;
+  child_ctx[71] = list[i];
+  child_ctx[73] = i;
   return child_ctx;
 }
 function get_each_context_1(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[72] = list[i];
-  child_ctx[74] = i;
+  child_ctx[71] = list[i];
+  child_ctx[73] = i;
   const constants_0 = (
     /*timeline*/
     child_ctx[6].find(function func(...args) {
       return (
         /*func*/
-        ctx[55](
+        ctx[54](
           /*task*/
-          child_ctx[72],
+          child_ctx[71],
           ...args
         )
       );
     })
   );
-  child_ctx[75] = constants_0;
+  child_ctx[74] = constants_0;
   return child_ctx;
 }
 function get_each_context_2(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[72] = list[i];
-  child_ctx[74] = i;
+  child_ctx[71] = list[i];
+  child_ctx[73] = i;
   return child_ctx;
 }
 function create_if_block_12(ctx) {
@@ -2243,7 +2205,7 @@ function create_if_block_11(ctx) {
   let div;
   let t_value = (
     /*task*/
-    ctx[72].description + ""
+    ctx[71].description + ""
   );
   let t;
   return {
@@ -2259,7 +2221,7 @@ function create_if_block_11(ctx) {
     p(ctx2, dirty) {
       if (dirty[0] & /*backlog*/
       16384 && t_value !== (t_value = /*task*/
-      ctx2[72].description + ""))
+      ctx2[71].description + ""))
         set_data(t, t_value);
     },
     d(detaching) {
@@ -2276,7 +2238,7 @@ function create_each_block_2(key_1, ctx) {
   let div0;
   let t1_value = (
     /*task*/
-    ctx[72].name + ""
+    ctx[71].name + ""
   );
   let t1;
   let t2;
@@ -2285,62 +2247,51 @@ function create_each_block_2(key_1, ctx) {
   let button0;
   let t5;
   let button1;
-  let t7;
-  let button2;
   let mounted;
   let dispose;
   let if_block0 = (
     /*dragOverStatus*/
     ctx[10] === "backlog" && /*dragOverIndex*/
     ctx[11] === /*i*/
-    ctx[74] && create_if_block_12(ctx)
+    ctx[73] && create_if_block_12(ctx)
   );
   function click_handler_3() {
     return (
       /*click_handler_3*/
-      ctx[38](
+      ctx[40](
         /*task*/
-        ctx[72]
+        ctx[71]
       )
     );
   }
   let if_block1 = (
     /*task*/
-    ctx[72].description && create_if_block_11(ctx)
+    ctx[71].description && create_if_block_11(ctx)
   );
   function click_handler_4() {
     return (
       /*click_handler_4*/
-      ctx[39](
+      ctx[41](
         /*task*/
-        ctx[72]
+        ctx[71]
       )
     );
   }
   function click_handler_5() {
     return (
       /*click_handler_5*/
-      ctx[40](
+      ctx[42](
         /*task*/
-        ctx[72]
-      )
-    );
-  }
-  function click_handler_6() {
-    return (
-      /*click_handler_6*/
-      ctx[41](
-        /*task*/
-        ctx[72]
+        ctx[71]
       )
     );
   }
   function dragstart_handler(...args) {
     return (
       /*dragstart_handler*/
-      ctx[42](
+      ctx[43](
         /*task*/
-        ctx[72],
+        ctx[71],
         ...args
       )
     );
@@ -2362,15 +2313,12 @@ function create_each_block_2(key_1, ctx) {
       t3 = space();
       div1 = element("div");
       button0 = element("button");
-      button0.textContent = "Start";
+      button0.textContent = "Edit";
       t5 = space();
       button1 = element("button");
-      button1.textContent = "Edit";
-      t7 = space();
-      button2 = element("button");
-      button2.textContent = "Delete";
+      button1.textContent = "Delete";
       attr(div0, "class", "pos-card-name");
-      attr(button2, "class", "pos-del");
+      attr(button1, "class", "pos-del");
       attr(div1, "class", "pos-card-acts");
       attr(div2, "class", "pos-card");
       attr(div2, "draggable", "true");
@@ -2379,7 +2327,7 @@ function create_each_block_2(key_1, ctx) {
         "pos-dragging-source",
         /*dragId*/
         ctx[9] === /*task*/
-        ctx[72].id
+        ctx[71].id
       );
       this.first = first;
     },
@@ -2399,14 +2347,11 @@ function create_each_block_2(key_1, ctx) {
       append(div1, button0);
       append(div1, t5);
       append(div1, button1);
-      append(div1, t7);
-      append(div1, button2);
       if (!mounted) {
         dispose = [
           listen(div0, "click", click_handler_3),
           listen(button0, "click", click_handler_4),
           listen(button1, "click", click_handler_5),
-          listen(button2, "click", click_handler_6),
           listen(div2, "dragstart", dragstart_handler)
         ];
         mounted = true;
@@ -2418,7 +2363,7 @@ function create_each_block_2(key_1, ctx) {
         /*dragOverStatus*/
         ctx[10] === "backlog" && /*dragOverIndex*/
         ctx[11] === /*i*/
-        ctx[74]
+        ctx[73]
       ) {
         if (if_block0) {
         } else {
@@ -2432,11 +2377,11 @@ function create_each_block_2(key_1, ctx) {
       }
       if (dirty[0] & /*backlog*/
       16384 && t1_value !== (t1_value = /*task*/
-      ctx[72].name + ""))
+      ctx[71].name + ""))
         set_data(t1, t1_value);
       if (
         /*task*/
-        ctx[72].description
+        ctx[71].description
       ) {
         if (if_block1) {
           if_block1.p(ctx, dirty);
@@ -2456,7 +2401,7 @@ function create_each_block_2(key_1, ctx) {
           "pos-dragging-source",
           /*dragId*/
           ctx[9] === /*task*/
-          ctx[72].id
+          ctx[71].id
         );
       }
     },
@@ -2513,7 +2458,7 @@ function create_if_block_8(ctx) {
   let div;
   let t_value = (
     /*task*/
-    ctx[72].description + ""
+    ctx[71].description + ""
   );
   let t;
   return {
@@ -2529,7 +2474,7 @@ function create_if_block_8(ctx) {
     p(ctx2, dirty) {
       if (dirty[0] & /*running*/
       32 && t_value !== (t_value = /*task*/
-      ctx2[72].description + ""))
+      ctx2[71].description + ""))
         set_data(t, t_value);
     },
     d(detaching) {
@@ -2544,7 +2489,7 @@ function create_if_block_7(ctx) {
   let t0;
   let t1_value = (
     /*task*/
-    ctx[72].fixedDuration + ""
+    ctx[71].fixedDuration + ""
   );
   let t1;
   let t2;
@@ -2564,7 +2509,7 @@ function create_if_block_7(ctx) {
     p(ctx2, dirty) {
       if (dirty[0] & /*running*/
       32 && t1_value !== (t1_value = /*task*/
-      ctx2[72].fixedDuration + ""))
+      ctx2[71].fixedDuration + ""))
         set_data(t1, t1_value);
     },
     d(detaching) {
@@ -2578,13 +2523,13 @@ function create_if_block_6(ctx) {
   let span;
   let t0_value = fmtTime(
     /*ti*/
-    ctx[75].endTime
+    ctx[74].endTime
   ) + "";
   let t0;
   let t1;
   let t2_value = fmtDur(Math.round(
     /*ti*/
-    ctx[75].calculatedDuration
+    ctx[74].calculatedDuration
   )) + "";
   let t2;
   let t3;
@@ -2607,13 +2552,13 @@ function create_if_block_6(ctx) {
       if (dirty[0] & /*timeline, running*/
       96 && t0_value !== (t0_value = fmtTime(
         /*ti*/
-        ctx2[75].endTime
+        ctx2[74].endTime
       ) + ""))
         set_data(t0, t0_value);
       if (dirty[0] & /*timeline, running*/
       96 && t2_value !== (t2_value = fmtDur(Math.round(
         /*ti*/
-        ctx2[75].calculatedDuration
+        ctx2[74].calculatedDuration
       )) + ""))
         set_data(t2, t2_value);
     },
@@ -2632,9 +2577,9 @@ function create_if_block_5(ctx) {
   function change_handler_1(...args) {
     return (
       /*change_handler_1*/
-      ctx[51](
+      ctx[50](
         /*task*/
-        ctx[72],
+        ctx[71],
         ...args
       )
     );
@@ -2646,7 +2591,7 @@ function create_if_block_5(ctx) {
       attr(input, "min", "1");
       attr(input, "class", "pos-fixed-input");
       input.value = input_value_value = /*task*/
-      ctx[72].fixedDuration || 30;
+      ctx[71].fixedDuration || 30;
     },
     m(target, anchor) {
       insert(target, input, anchor);
@@ -2654,7 +2599,19 @@ function create_if_block_5(ctx) {
         dispose = [
           listen(input, "click", stop_propagation(
             /*click_handler_1*/
+            ctx[32]
+          )),
+          listen(input, "keydown", stop_propagation(
+            /*keydown_handler*/
             ctx[33]
+          )),
+          listen(input, "keypress", stop_propagation(
+            /*keypress_handler*/
+            ctx[34]
+          )),
+          listen(input, "keyup", stop_propagation(
+            /*keyup_handler*/
+            ctx[35]
           )),
           listen(input, "change", change_handler_1)
         ];
@@ -2665,7 +2622,7 @@ function create_if_block_5(ctx) {
       ctx = new_ctx;
       if (dirty[0] & /*running*/
       32 && input_value_value !== (input_value_value = /*task*/
-      ctx[72].fixedDuration || 30) && input.value !== input_value_value) {
+      ctx[71].fixedDuration || 30) && input.value !== input_value_value) {
         input.value = input_value_value;
       }
     },
@@ -2685,7 +2642,7 @@ function create_each_block_1(key_1, ctx) {
   let div0;
   let t1_value = (
     /*task*/
-    ctx[72].name + ""
+    ctx[71].name + ""
   );
   let t1;
   let t2;
@@ -2694,136 +2651,114 @@ function create_each_block_1(key_1, ctx) {
   let t4;
   let t5;
   let div2;
+  let span1;
   let button0;
   let t7;
-  let button1;
-  let t9;
-  let span1;
-  let button2;
-  let t11;
   let span0;
-  let t12_value = (
+  let t8_value = (
     /*task*/
-    ctx[72].weight + ""
+    ctx[71].weight + ""
   );
-  let t12;
-  let t13;
-  let button3;
-  let t15;
+  let t8;
+  let t9;
+  let button1;
+  let t11;
   let label;
   let input;
   let input_checked_value;
-  let t16;
+  let t12;
   let span2;
-  let t18;
-  let t19;
-  let button4;
-  let t21;
-  let button5;
+  let t14;
+  let t15;
+  let button2;
+  let t17;
+  let button3;
   let mounted;
   let dispose;
   let if_block0 = (
     /*dragOverStatus*/
     ctx[10] === "running" && /*dragOverIndex*/
     ctx[11] === /*i*/
-    ctx[74] && create_if_block_9(ctx)
+    ctx[73] && create_if_block_9(ctx)
   );
-  function click_handler_7() {
+  function click_handler_6() {
     return (
-      /*click_handler_7*/
-      ctx[45](
+      /*click_handler_6*/
+      ctx[46](
         /*task*/
-        ctx[72]
+        ctx[71]
       )
     );
   }
   let if_block1 = (
     /*task*/
-    ctx[72].description && create_if_block_8(ctx)
+    ctx[71].description && create_if_block_8(ctx)
   );
   let if_block2 = (
     /*task*/
-    ctx[72].isFixedDuration && /*task*/
-    ctx[72].fixedDuration && create_if_block_7(ctx)
+    ctx[71].isFixedDuration && /*task*/
+    ctx[71].fixedDuration && create_if_block_7(ctx)
   );
   let if_block3 = (
     /*ti*/
-    ctx[75] && create_if_block_6(ctx)
+    ctx[74] && create_if_block_6(ctx)
   );
+  function click_handler_7() {
+    return (
+      /*click_handler_7*/
+      ctx[47](
+        /*task*/
+        ctx[71]
+      )
+    );
+  }
   function click_handler_8() {
     return (
       /*click_handler_8*/
-      ctx[46](
-        /*task*/
-        ctx[72]
-      )
-    );
-  }
-  function click_handler_9() {
-    return (
-      /*click_handler_9*/
-      ctx[47](
-        /*task*/
-        ctx[72]
-      )
-    );
-  }
-  function click_handler_10() {
-    return (
-      /*click_handler_10*/
       ctx[48](
         /*task*/
-        ctx[72]
-      )
-    );
-  }
-  function click_handler_11() {
-    return (
-      /*click_handler_11*/
-      ctx[49](
-        /*task*/
-        ctx[72]
+        ctx[71]
       )
     );
   }
   function change_handler(...args) {
     return (
       /*change_handler*/
-      ctx[50](
+      ctx[49](
         /*task*/
-        ctx[72],
+        ctx[71],
         ...args
       )
     );
   }
   let if_block4 = (
     /*task*/
-    ctx[72].isFixedDuration && create_if_block_5(ctx)
+    ctx[71].isFixedDuration && create_if_block_5(ctx)
   );
-  function click_handler_12() {
+  function click_handler_9() {
     return (
-      /*click_handler_12*/
-      ctx[52](
+      /*click_handler_9*/
+      ctx[51](
         /*task*/
-        ctx[72]
+        ctx[71]
       )
     );
   }
-  function click_handler_13() {
+  function click_handler_10() {
     return (
-      /*click_handler_13*/
-      ctx[53](
+      /*click_handler_10*/
+      ctx[52](
         /*task*/
-        ctx[72]
+        ctx[71]
       )
     );
   }
   function dragstart_handler_1(...args) {
     return (
       /*dragstart_handler_1*/
-      ctx[54](
+      ctx[53](
         /*task*/
-        ctx[72],
+        ctx[71],
         ...args
       )
     );
@@ -2851,44 +2786,38 @@ function create_each_block_1(key_1, ctx) {
         if_block3.c();
       t5 = space();
       div2 = element("div");
-      button0 = element("button");
-      button0.textContent = "Done";
-      t7 = space();
-      button1 = element("button");
-      button1.textContent = "Backlog";
-      t9 = space();
       span1 = element("span");
-      button2 = element("button");
-      button2.textContent = "\u2212";
-      t11 = space();
+      button0 = element("button");
+      button0.textContent = "\u2212";
+      t7 = space();
       span0 = element("span");
-      t12 = text(t12_value);
-      t13 = space();
-      button3 = element("button");
-      button3.textContent = "+";
-      t15 = space();
+      t8 = text(t8_value);
+      t9 = space();
+      button1 = element("button");
+      button1.textContent = "+";
+      t11 = space();
       label = element("label");
       input = element("input");
-      t16 = space();
+      t12 = space();
       span2 = element("span");
       span2.textContent = "Fixed";
-      t18 = space();
+      t14 = space();
       if (if_block4)
         if_block4.c();
-      t19 = space();
-      button4 = element("button");
-      button4.textContent = "Edit";
-      t21 = space();
-      button5 = element("button");
-      button5.textContent = "Delete";
+      t15 = space();
+      button2 = element("button");
+      button2.textContent = "Edit";
+      t17 = space();
+      button3 = element("button");
+      button3.textContent = "Delete";
       attr(div0, "class", "pos-card-name");
       attr(div1, "class", "pos-card-meta");
       attr(span1, "class", "pos-wg");
       attr(input, "type", "checkbox");
       input.checked = input_checked_value = /*task*/
-      ctx[72].isFixedDuration;
+      ctx[71].isFixedDuration;
       attr(label, "class", "pos-fixed");
-      attr(button5, "class", "pos-del");
+      attr(button3, "class", "pos-del");
       attr(div2, "class", "pos-card-acts");
       attr(div3, "class", "pos-card");
       set_style(
@@ -2897,12 +2826,12 @@ function create_each_block_1(key_1, ctx) {
         /*taskHeights*/
         ctx[13][
           /*task*/
-          ctx[72].id
+          ctx[71].id
         ] ? (
           /*taskHeights*/
           ctx[13][
             /*task*/
-            ctx[72].id
+            ctx[71].id
           ] + "px"
         ) : "auto"
       );
@@ -2912,7 +2841,7 @@ function create_each_block_1(key_1, ctx) {
         "pos-dragging-source",
         /*dragId*/
         ctx[9] === /*task*/
-        ctx[72].id
+        ctx[71].id
       );
       this.first = first;
     },
@@ -2936,43 +2865,37 @@ function create_each_block_1(key_1, ctx) {
         if_block3.m(div1, null);
       append(div3, t5);
       append(div3, div2);
-      append(div2, button0);
-      append(div2, t7);
-      append(div2, button1);
-      append(div2, t9);
       append(div2, span1);
-      append(span1, button2);
-      append(span1, t11);
+      append(span1, button0);
+      append(span1, t7);
       append(span1, span0);
-      append(span0, t12);
-      append(span1, t13);
-      append(span1, button3);
-      append(div2, t15);
+      append(span0, t8);
+      append(span1, t9);
+      append(span1, button1);
+      append(div2, t11);
       append(div2, label);
       append(label, input);
-      append(label, t16);
+      append(label, t12);
       append(label, span2);
-      append(div2, t18);
+      append(div2, t14);
       if (if_block4)
         if_block4.m(div2, null);
-      append(div2, t19);
-      append(div2, button4);
-      append(div2, t21);
-      append(div2, button5);
+      append(div2, t15);
+      append(div2, button2);
+      append(div2, t17);
+      append(div2, button3);
       if (!mounted) {
         dispose = [
-          listen(div0, "click", click_handler_7),
-          listen(button0, "click", click_handler_8),
-          listen(button1, "click", click_handler_9),
-          listen(button2, "click", click_handler_10),
-          listen(button3, "click", click_handler_11),
+          listen(div0, "click", click_handler_6),
+          listen(button0, "click", click_handler_7),
+          listen(button1, "click", click_handler_8),
           listen(input, "change", change_handler),
           listen(label, "click", stop_propagation(
             /*click_handler*/
-            ctx[34]
+            ctx[36]
           )),
-          listen(button4, "click", click_handler_12),
-          listen(button5, "click", click_handler_13),
+          listen(button2, "click", click_handler_9),
+          listen(button3, "click", click_handler_10),
           listen(div3, "dragstart", dragstart_handler_1)
         ];
         mounted = true;
@@ -2984,7 +2907,7 @@ function create_each_block_1(key_1, ctx) {
         /*dragOverStatus*/
         ctx[10] === "running" && /*dragOverIndex*/
         ctx[11] === /*i*/
-        ctx[74]
+        ctx[73]
       ) {
         if (if_block0) {
         } else {
@@ -2998,11 +2921,11 @@ function create_each_block_1(key_1, ctx) {
       }
       if (dirty[0] & /*running*/
       32 && t1_value !== (t1_value = /*task*/
-      ctx[72].name + ""))
+      ctx[71].name + ""))
         set_data(t1, t1_value);
       if (
         /*task*/
-        ctx[72].description
+        ctx[71].description
       ) {
         if (if_block1) {
           if_block1.p(ctx, dirty);
@@ -3017,8 +2940,8 @@ function create_each_block_1(key_1, ctx) {
       }
       if (
         /*task*/
-        ctx[72].isFixedDuration && /*task*/
-        ctx[72].fixedDuration
+        ctx[71].isFixedDuration && /*task*/
+        ctx[71].fixedDuration
       ) {
         if (if_block2) {
           if_block2.p(ctx, dirty);
@@ -3033,7 +2956,7 @@ function create_each_block_1(key_1, ctx) {
       }
       if (
         /*ti*/
-        ctx[75]
+        ctx[74]
       ) {
         if (if_block3) {
           if_block3.p(ctx, dirty);
@@ -3047,24 +2970,24 @@ function create_each_block_1(key_1, ctx) {
         if_block3 = null;
       }
       if (dirty[0] & /*running*/
-      32 && t12_value !== (t12_value = /*task*/
-      ctx[72].weight + ""))
-        set_data(t12, t12_value);
+      32 && t8_value !== (t8_value = /*task*/
+      ctx[71].weight + ""))
+        set_data(t8, t8_value);
       if (dirty[0] & /*running*/
       32 && input_checked_value !== (input_checked_value = /*task*/
-      ctx[72].isFixedDuration)) {
+      ctx[71].isFixedDuration)) {
         input.checked = input_checked_value;
       }
       if (
         /*task*/
-        ctx[72].isFixedDuration
+        ctx[71].isFixedDuration
       ) {
         if (if_block4) {
           if_block4.p(ctx, dirty);
         } else {
           if_block4 = create_if_block_5(ctx);
           if_block4.c();
-          if_block4.m(div2, t19);
+          if_block4.m(div2, t15);
         }
       } else if (if_block4) {
         if_block4.d(1);
@@ -3078,12 +3001,12 @@ function create_each_block_1(key_1, ctx) {
           /*taskHeights*/
           ctx[13][
             /*task*/
-            ctx[72].id
+            ctx[71].id
           ] ? (
             /*taskHeights*/
             ctx[13][
               /*task*/
-              ctx[72].id
+              ctx[71].id
             ] + "px"
           ) : "auto"
         );
@@ -3095,7 +3018,7 @@ function create_each_block_1(key_1, ctx) {
           "pos-dragging-source",
           /*dragId*/
           ctx[9] === /*task*/
-          ctx[72].id
+          ctx[71].id
         );
       }
     },
@@ -3220,7 +3143,7 @@ function create_each_block2(key_1, ctx) {
   let div0;
   let t1_value = (
     /*task*/
-    ctx[72].name + ""
+    ctx[71].name + ""
   );
   let t1;
   let t2;
@@ -3228,58 +3151,47 @@ function create_each_block2(key_1, ctx) {
   let button0;
   let t4;
   let button1;
-  let t6;
-  let button2;
   let mounted;
   let dispose;
   let if_block = (
     /*dragOverStatus*/
     ctx[10] === "review" && /*dragOverIndex*/
     ctx[11] === /*i*/
-    ctx[74] && create_if_block_22(ctx)
+    ctx[73] && create_if_block_22(ctx)
   );
-  function click_handler_14() {
+  function click_handler_11() {
     return (
-      /*click_handler_14*/
+      /*click_handler_11*/
+      ctx[58](
+        /*task*/
+        ctx[71]
+      )
+    );
+  }
+  function click_handler_12() {
+    return (
+      /*click_handler_12*/
       ctx[59](
         /*task*/
-        ctx[72]
+        ctx[71]
       )
     );
   }
-  function click_handler_15() {
+  function click_handler_13() {
     return (
-      /*click_handler_15*/
+      /*click_handler_13*/
       ctx[60](
         /*task*/
-        ctx[72]
-      )
-    );
-  }
-  function click_handler_16() {
-    return (
-      /*click_handler_16*/
-      ctx[61](
-        /*task*/
-        ctx[72]
-      )
-    );
-  }
-  function click_handler_17() {
-    return (
-      /*click_handler_17*/
-      ctx[62](
-        /*task*/
-        ctx[72]
+        ctx[71]
       )
     );
   }
   function dragstart_handler_2(...args) {
     return (
       /*dragstart_handler_2*/
-      ctx[63](
+      ctx[61](
         /*task*/
-        ctx[72],
+        ctx[71],
         ...args
       )
     );
@@ -3298,15 +3210,12 @@ function create_each_block2(key_1, ctx) {
       t2 = space();
       div1 = element("div");
       button0 = element("button");
-      button0.textContent = "Restore";
+      button0.textContent = "Edit";
       t4 = space();
       button1 = element("button");
-      button1.textContent = "Edit";
-      t6 = space();
-      button2 = element("button");
-      button2.textContent = "Delete";
+      button1.textContent = "Delete";
       attr(div0, "class", "pos-card-name");
-      attr(button2, "class", "pos-del");
+      attr(button1, "class", "pos-del");
       attr(div1, "class", "pos-card-acts");
       attr(div2, "class", "pos-card pos-completed");
       attr(div2, "draggable", "true");
@@ -3315,7 +3224,7 @@ function create_each_block2(key_1, ctx) {
         "pos-dragging-source",
         /*dragId*/
         ctx[9] === /*task*/
-        ctx[72].id
+        ctx[71].id
       );
       this.first = first;
     },
@@ -3332,14 +3241,11 @@ function create_each_block2(key_1, ctx) {
       append(div1, button0);
       append(div1, t4);
       append(div1, button1);
-      append(div1, t6);
-      append(div1, button2);
       if (!mounted) {
         dispose = [
-          listen(div0, "click", click_handler_14),
-          listen(button0, "click", click_handler_15),
-          listen(button1, "click", click_handler_16),
-          listen(button2, "click", click_handler_17),
+          listen(div0, "click", click_handler_11),
+          listen(button0, "click", click_handler_12),
+          listen(button1, "click", click_handler_13),
           listen(div2, "dragstart", dragstart_handler_2)
         ];
         mounted = true;
@@ -3351,7 +3257,7 @@ function create_each_block2(key_1, ctx) {
         /*dragOverStatus*/
         ctx[10] === "review" && /*dragOverIndex*/
         ctx[11] === /*i*/
-        ctx[74]
+        ctx[73]
       ) {
         if (if_block) {
         } else {
@@ -3365,7 +3271,7 @@ function create_each_block2(key_1, ctx) {
       }
       if (dirty[0] & /*review*/
       4096 && t1_value !== (t1_value = /*task*/
-      ctx[72].name + ""))
+      ctx[71].name + ""))
         set_data(t1, t1_value);
       if (dirty[0] & /*dragId, review*/
       4608) {
@@ -3374,7 +3280,7 @@ function create_each_block2(key_1, ctx) {
           "pos-dragging-source",
           /*dragId*/
           ctx[9] === /*task*/
-          ctx[72].id
+          ctx[71].id
         );
       }
     },
@@ -3436,13 +3342,13 @@ function create_if_block2(ctx) {
             button0,
             "click",
             /*confirmRestoreAll*/
-            ctx[22]
+            ctx[21]
           ),
           listen(
             button1,
             "click",
             /*confirmDeleteAll*/
-            ctx[23]
+            ctx[22]
           )
         ];
         mounted = true;
@@ -3536,7 +3442,7 @@ function create_fragment2(ctx) {
   );
   const get_key = (ctx2) => (
     /*task*/
-    ctx2[72].id
+    ctx2[71].id
   );
   for (let i = 0; i < each_value_2.length; i += 1) {
     let child_ctx = get_each_context_2(ctx, each_value_2, i);
@@ -3555,7 +3461,7 @@ function create_fragment2(ctx) {
   );
   const get_key_1 = (ctx2) => (
     /*task*/
-    ctx2[72].id
+    ctx2[71].id
   );
   for (let i = 0; i < each_value_1.length; i += 1) {
     let child_ctx = get_each_context_1(ctx, each_value_1, i);
@@ -3578,7 +3484,7 @@ function create_fragment2(ctx) {
   );
   const get_key_2 = (ctx2) => (
     /*task*/
-    ctx2[72].id
+    ctx2[71].id
   );
   for (let i = 0; i < each_value.length; i += 1) {
     let child_ctx = get_each_context2(ctx, each_value, i);
@@ -3687,7 +3593,7 @@ function create_fragment2(ctx) {
       attr(div7, "class", "pos-list-wrapper");
       add_render_callback(() => (
         /*div7_elementresize_handler*/
-        ctx[56].call(div7)
+        ctx[55].call(div7)
       ));
       attr(div8, "class", "pos-col");
       attr(h42, "class", "pos-col-title");
@@ -3761,7 +3667,7 @@ function create_fragment2(ctx) {
       div7_resize_listener = add_iframe_resize_listener(
         div7,
         /*div7_elementresize_handler*/
-        ctx[56].bind(div7)
+        ctx[55].bind(div7)
       );
       append(div12, t20);
       append(div12, div11);
@@ -3789,25 +3695,25 @@ function create_fragment2(ctx) {
             input0,
             "input",
             /*input0_input_handler*/
-            ctx[35]
+            ctx[37]
           ),
           listen(
             input1,
             "input",
             /*input1_input_handler*/
-            ctx[36]
+            ctx[38]
           ),
           listen(
             button0,
             "click",
             /*click_handler_2*/
-            ctx[37]
+            ctx[39]
           ),
           listen(
             button1,
             "click",
             /*toggleLock*/
-            ctx[24]
+            ctx[23]
           ),
           listen(
             button2,
@@ -3819,37 +3725,37 @@ function create_fragment2(ctx) {
             div4,
             "dragover",
             /*dragover_handler*/
-            ctx[43]
+            ctx[44]
           ),
           listen(
             div4,
             "drop",
             /*drop_handler*/
-            ctx[44]
+            ctx[45]
           ),
           listen(
             div7,
             "dragover",
             /*dragover_handler_1*/
-            ctx[57]
+            ctx[56]
           ),
           listen(
             div7,
             "drop",
             /*drop_handler_1*/
-            ctx[58]
+            ctx[57]
           ),
           listen(
             div10,
             "dragover",
             /*dragover_handler_2*/
-            ctx[64]
+            ctx[62]
           ),
           listen(
             div10,
             "drop",
             /*drop_handler_2*/
-            ctx[65]
+            ctx[63]
           )
         ];
         mounted = true;
@@ -3889,8 +3795,8 @@ function create_fragment2(ctx) {
       16384 && t7_value !== (t7_value = /*backlog*/
       ctx2[14].length + ""))
         set_data(t7, t7_value);
-      if (dirty[0] & /*dragId, backlog, handleDragStart, deleteTask, editTask, updateStatus, openTaskFile, dragOverStatus, dragOverIndex*/
-      36130304) {
+      if (dirty[0] & /*dragId, backlog, handleDragStart, deleteTask, editTask, openTaskFile, dragOverStatus, dragOverIndex*/
+      18042368) {
         each_value_2 = ensure_array_like(
           /*backlog*/
           ctx2[14]
@@ -3917,8 +3823,8 @@ function create_fragment2(ctx) {
       32 && t15_value !== (t15_value = /*running*/
       ctx2[5].length + ""))
         set_data(t15, t15_value);
-      if (dirty[0] & /*taskHeights, running, dragId, handleDragStart, deleteTask, editTask, setFixed, toggleFixed, fileManager, updateStatus, timeline, openTaskFile, dragOverStatus, dragOverIndex*/
-      37695073) {
+      if (dirty[0] & /*taskHeights, running, dragId, handleDragStart, deleteTask, editTask, setFixed, toggleFixed, fileManager, timeline, openTaskFile, dragOverStatus, dragOverIndex*/
+      18820705) {
         each_value_1 = ensure_array_like(
           /*running*/
           ctx2[5]
@@ -3960,8 +3866,8 @@ function create_fragment2(ctx) {
       4096 && t22_value !== (t22_value = /*review*/
       ctx2[12].length + ""))
         set_data(t22, t22_value);
-      if (dirty[0] & /*dragId, review, handleDragStart, deleteTask, editTask, updateStatus, openTaskFile, dragOverStatus, dragOverIndex*/
-      36118016) {
+      if (dirty[0] & /*dragId, review, handleDragStart, deleteTask, editTask, openTaskFile, dragOverStatus, dragOverIndex*/
+      18030080) {
         each_value = ensure_array_like(
           /*review*/
           ctx2[12]
@@ -4041,7 +3947,7 @@ function instance2($$self, $$props, $$invalidate) {
   let timeline;
   let taskHeights;
   let $tasksStore;
-  component_subscribe($$self, tasksStore, ($$value) => $$invalidate(32, $tasksStore = $$value));
+  component_subscribe($$self, tasksStore, ($$value) => $$invalidate(31, $tasksStore = $$value));
   let { app } = $$props;
   let { fileManager } = $$props;
   let { projectId } = $$props;
@@ -4148,12 +4054,12 @@ function instance2($$self, $$props, $$invalidate) {
       $$invalidate(3, isLocked = false);
       lockAt = null;
       lockDeadline = null;
-      $$invalidate(30, lockedTimeline = []);
+      $$invalidate(29, lockedTimeline = []);
     } else {
       const dl = /* @__PURE__ */ new Date(`${dDate}T${dTime}`);
       lockAt = (/* @__PURE__ */ new Date()).toISOString();
       lockDeadline = dl.toISOString();
-      $$invalidate(30, lockedTimeline = calculateLiquidTimeline(running, /* @__PURE__ */ new Date(), dl));
+      $$invalidate(29, lockedTimeline = calculateLiquidTimeline(running, /* @__PURE__ */ new Date(), dl));
       $$invalidate(3, isLocked = true);
       updateLockProgress();
     }
@@ -4246,6 +4152,15 @@ function instance2($$self, $$props, $$invalidate) {
   function click_handler_1(event) {
     bubble.call(this, $$self, event);
   }
+  function keydown_handler(event) {
+    bubble.call(this, $$self, event);
+  }
+  function keypress_handler(event) {
+    bubble.call(this, $$self, event);
+  }
+  function keyup_handler(event) {
+    bubble.call(this, $$self, event);
+  }
   function click_handler(event) {
     bubble.call(this, $$self, event);
   }
@@ -4263,21 +4178,18 @@ function instance2($$self, $$props, $$invalidate) {
     $$invalidate(1, dDate);
   };
   const click_handler_3 = (task) => openTaskFile(task.id);
-  const click_handler_4 = (task) => updateStatus(task, "running");
-  const click_handler_5 = (task) => editTask(task);
-  const click_handler_6 = (task) => deleteTask(task.id);
+  const click_handler_4 = (task) => editTask(task);
+  const click_handler_5 = (task) => deleteTask(task.id);
   const dragstart_handler = (task, e) => handleDragStart(e, task.id);
   const dragover_handler = (e) => handleDragOver(e, "backlog");
   const drop_handler = (e) => handleDrop(e, "backlog");
-  const click_handler_7 = (task) => openTaskFile(task.id);
-  const click_handler_8 = (task) => updateStatus(task, "review");
-  const click_handler_9 = (task) => updateStatus(task, "backlog");
-  const click_handler_10 = (task) => fileManager.updateTask(task.id, { weight: Math.max(1, task.weight - 1) });
-  const click_handler_11 = (task) => fileManager.updateTask(task.id, { weight: task.weight + 1 });
+  const click_handler_6 = (task) => openTaskFile(task.id);
+  const click_handler_7 = (task) => fileManager.updateTask(task.id, { weight: Math.max(1, task.weight - 1) });
+  const click_handler_8 = (task) => fileManager.updateTask(task.id, { weight: task.weight + 1 });
   const change_handler = (task, e) => toggleFixed(task, e.currentTarget.checked);
   const change_handler_1 = (task, e) => setFixed(task, Number(e.currentTarget.value));
-  const click_handler_12 = (task) => editTask(task);
-  const click_handler_13 = (task) => deleteTask(task.id);
+  const click_handler_9 = (task) => editTask(task);
+  const click_handler_10 = (task) => deleteTask(task.id);
   const dragstart_handler_1 = (task, e) => handleDragStart(e, task.id);
   const func = (task, t) => t.id === task.id;
   function div7_elementresize_handler() {
@@ -4286,45 +4198,44 @@ function instance2($$self, $$props, $$invalidate) {
   }
   const dragover_handler_1 = (e) => handleDragOver(e, "running");
   const drop_handler_1 = (e) => handleDrop(e, "running");
-  const click_handler_14 = (task) => openTaskFile(task.id);
-  const click_handler_15 = (task) => updateStatus(task, "running");
-  const click_handler_16 = (task) => editTask(task);
-  const click_handler_17 = (task) => deleteTask(task.id);
+  const click_handler_11 = (task) => openTaskFile(task.id);
+  const click_handler_12 = (task) => editTask(task);
+  const click_handler_13 = (task) => deleteTask(task.id);
   const dragstart_handler_2 = (task, e) => handleDragStart(e, task.id);
   const dragover_handler_2 = (e) => handleDragOver(e, "review");
   const drop_handler_2 = (e) => handleDrop(e, "review");
   $$self.$$set = ($$props2) => {
     if ("app" in $$props2)
-      $$invalidate(28, app = $$props2.app);
+      $$invalidate(27, app = $$props2.app);
     if ("fileManager" in $$props2)
       $$invalidate(0, fileManager = $$props2.fileManager);
     if ("projectId" in $$props2)
-      $$invalidate(29, projectId = $$props2.projectId);
+      $$invalidate(28, projectId = $$props2.projectId);
   };
   $$self.$$.update = () => {
     if ($$self.$$.dirty[0] & /*projectId*/
-    536870912 | $$self.$$.dirty[1] & /*$tasksStore*/
-    2) {
-      $:
-        $$invalidate(31, projectTasks = getProjectTasks($tasksStore, projectId));
-    }
-    if ($$self.$$.dirty[1] & /*projectTasks*/
+    268435456 | $$self.$$.dirty[1] & /*$tasksStore*/
     1) {
+      $:
+        $$invalidate(30, projectTasks = getProjectTasks($tasksStore, projectId));
+    }
+    if ($$self.$$.dirty[0] & /*projectTasks*/
+    1073741824) {
       $:
         $$invalidate(14, backlog = projectTasks.filter((t) => t.status === "backlog"));
     }
-    if ($$self.$$.dirty[1] & /*projectTasks*/
-    1) {
+    if ($$self.$$.dirty[0] & /*projectTasks*/
+    1073741824) {
       $:
         $$invalidate(5, running = projectTasks.filter((t) => t.status === "running"));
     }
-    if ($$self.$$.dirty[1] & /*projectTasks*/
-    1) {
+    if ($$self.$$.dirty[0] & /*projectTasks*/
+    1073741824) {
       $:
         $$invalidate(12, review = projectTasks.filter((t) => t.status === "review"));
     }
     if ($$self.$$.dirty[0] & /*isLocked, lockedTimeline, running, dDate, dTime*/
-    1073741870) {
+    536870958) {
       $:
         $$invalidate(6, timeline = isLocked ? lockedTimeline : calculateLiquidTimeline(running, /* @__PURE__ */ new Date(), /* @__PURE__ */ new Date(`${dDate}T${dTime}`)));
     }
@@ -4373,7 +4284,6 @@ function instance2($$self, $$props, $$invalidate) {
     createTask,
     editTask,
     openTaskFile,
-    updateStatus,
     toggleFixed,
     setFixed,
     deleteTask,
@@ -4389,6 +4299,9 @@ function instance2($$self, $$props, $$invalidate) {
     projectTasks,
     $tasksStore,
     click_handler_1,
+    keydown_handler,
+    keypress_handler,
+    keyup_handler,
     click_handler,
     input0_input_handler,
     input1_input_handler,
@@ -4396,28 +4309,24 @@ function instance2($$self, $$props, $$invalidate) {
     click_handler_3,
     click_handler_4,
     click_handler_5,
-    click_handler_6,
     dragstart_handler,
     dragover_handler,
     drop_handler,
+    click_handler_6,
     click_handler_7,
     click_handler_8,
-    click_handler_9,
-    click_handler_10,
-    click_handler_11,
     change_handler,
     change_handler_1,
-    click_handler_12,
-    click_handler_13,
+    click_handler_9,
+    click_handler_10,
     dragstart_handler_1,
     func,
     div7_elementresize_handler,
     dragover_handler_1,
     drop_handler_1,
-    click_handler_14,
-    click_handler_15,
-    click_handler_16,
-    click_handler_17,
+    click_handler_11,
+    click_handler_12,
+    click_handler_13,
     dragstart_handler_2,
     dragover_handler_2,
     drop_handler_2
@@ -4426,7 +4335,7 @@ function instance2($$self, $$props, $$invalidate) {
 var ElasticView = class extends SvelteComponent {
   constructor(options) {
     super();
-    init(this, options, instance2, create_fragment2, safe_not_equal, { app: 28, fileManager: 0, projectId: 29 }, null, [-1, -1, -1]);
+    init(this, options, instance2, create_fragment2, safe_not_equal, { app: 27, fileManager: 0, projectId: 28 }, null, [-1, -1, -1]);
   }
 };
 var ElasticView_default = ElasticView;
@@ -8831,7 +8740,7 @@ function get_else_ctx(ctx) {
     child_ctx[8].filter((t) => t.project === /*selectedProject*/
     child_ctx[4].id).sort((a, b) => a.orderIndex - b.orderIndex)
   );
-  child_ctx[20] = constants_0;
+  child_ctx[22] = constants_0;
   return child_ctx;
 }
 function create_else_block4(ctx) {
@@ -8989,25 +8898,25 @@ function create_else_block4(ctx) {
             button0,
             "click",
             /*click_handler*/
-            ctx[14]
+            ctx[16]
           ),
           listen(
             button1,
             "click",
             /*click_handler_1*/
-            ctx[15]
+            ctx[17]
           ),
           listen(
             button2,
             "click",
             /*click_handler_2*/
-            ctx[16]
+            ctx[18]
           ),
           listen(
             button3,
             "click",
             /*click_handler_3*/
-            ctx[17]
+            ctx[19]
           )
         ];
         mounted = true;
@@ -9121,7 +9030,7 @@ function create_if_block7(ctx) {
       isFullPage: true,
       onSelect: (
         /*func*/
-        ctx[13]
+        ctx[15]
       )
     }
   });
@@ -9150,7 +9059,7 @@ function create_if_block7(ctx) {
       if (dirty & /*selectedProjectId*/
       1)
         projectshub_changes.onSelect = /*func*/
-        ctx2[13];
+        ctx2[15];
       projectshub.$set(projectshub_changes);
     },
     i(local) {
@@ -9343,14 +9252,20 @@ function create_if_block_17(ctx) {
             textarea,
             "input",
             /*textarea_input_handler*/
-            ctx[18]
+            ctx[20]
           ),
-          listen(
-            textarea,
-            "keydown",
+          listen(textarea, "keydown", stop_propagation(
             /*handleKeyDown*/
             ctx[10]
-          )
+          )),
+          listen(textarea, "keypress", stop_propagation(
+            /*keypress_handler*/
+            ctx[13]
+          )),
+          listen(textarea, "keyup", stop_propagation(
+            /*keyup_handler*/
+            ctx[14]
+          ))
         ];
         mounted = true;
       }
@@ -9395,7 +9310,7 @@ function create_else_block_2(ctx) {
       ),
       projectTasks: (
         /*projectTasks*/
-        ctx[20]
+        ctx[22]
       )
     }
   });
@@ -9424,7 +9339,7 @@ function create_else_block_2(ctx) {
       if (dirty & /*$tasksStore, selectedProject*/
       272)
         projecttaskgrid_changes.projectTasks = /*projectTasks*/
-        ctx2[20];
+        ctx2[22];
       projecttaskgrid.$set(projecttaskgrid_changes);
     },
     i(local) {
@@ -9461,7 +9376,7 @@ function create_if_block_26(ctx) {
       ),
       projectTasks: (
         /*projectTasks*/
-        ctx[20]
+        ctx[22]
       )
     }
   });
@@ -9490,7 +9405,7 @@ function create_if_block_26(ctx) {
       if (dirty & /*$tasksStore, selectedProject*/
       272)
         projecttaskboard_changes.projectTasks = /*projectTasks*/
-        ctx2[20];
+        ctx2[22];
       projecttaskboard.$set(projecttaskboard_changes);
     },
     i(local) {
@@ -9609,6 +9524,12 @@ function instance7($$self, $$props, $$invalidate) {
       handleSaveProject();
     }
   }
+  function keypress_handler(event) {
+    bubble.call(this, $$self, event);
+  }
+  function keyup_handler(event) {
+    bubble.call(this, $$self, event);
+  }
   const func = (id, m) => {
     $$invalidate(0, selectedProjectId = id);
   };
@@ -9670,6 +9591,8 @@ function instance7($$self, $$props, $$invalidate) {
     handleKeyDown,
     activeProjects,
     $projectsStore,
+    keypress_handler,
+    keyup_handler,
     func,
     click_handler,
     click_handler_1,

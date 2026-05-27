@@ -134,7 +134,9 @@
             <textarea 
               class="pos-markdown-textarea" 
               bind:value={projectContent} 
-              on:keydown={handleKeyDown} 
+              on:keydown|stopPropagation={handleKeyDown} 
+              on:keypress|stopPropagation
+              on:keyup|stopPropagation
               placeholder="Write your project details, research notes, and action plans here using standard markdown..."
               spellcheck="false"
             />

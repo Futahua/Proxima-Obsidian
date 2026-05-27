@@ -287,7 +287,6 @@
             <div class="pos-card-name" on:click={() => openTaskFile(task.id)}>{task.name}</div>
             {#if task.description}<div class="pos-card-desc">{task.description}</div>{/if}
             <div class="pos-card-acts">
-              <button on:click={() => updateStatus(task, 'running')}>Start</button>
               <button on:click={() => editTask(task)}>Edit</button>
               <button class="pos-del" on:click={() => deleteTask(task.id)}>Delete</button>
             </div>
@@ -332,9 +331,6 @@
               {#if ti}<span>{fmtTime(ti.endTime)} ({fmtDur(Math.round(ti.calculatedDuration))})</span>{/if}
             </div>
             <div class="pos-card-acts">
-              <button on:click={() => updateStatus(task, 'review')}>Done</button>
-              <button on:click={() => updateStatus(task, 'backlog')}>Backlog</button>
-              
               <span class="pos-wg">
                 <button on:click={() => fileManager.updateTask(task.id, { weight: Math.max(1, task.weight - 1) })}>−</button>
                 <span>{task.weight}</span>
@@ -352,6 +348,9 @@
                   class="pos-fixed-input" 
                   value={task.fixedDuration || 30} 
                   on:click|stopPropagation
+                  on:keydown|stopPropagation
+                  on:keypress|stopPropagation
+                  on:keyup|stopPropagation
                   on:change={(e) => setFixed(task, Number(e.currentTarget.value))} 
                 />
               {/if}
@@ -384,7 +383,6 @@
           <div class="pos-card pos-completed" class:pos-dragging-source={dragId === task.id} draggable="true" on:dragstart={(e) => handleDragStart(e, task.id)}>
             <div class="pos-card-name" on:click={() => openTaskFile(task.id)}>{task.name}</div>
             <div class="pos-card-acts">
-              <button on:click={() => updateStatus(task, 'running')}>Restore</button>
               <button on:click={() => editTask(task)}>Edit</button>
               <button class="pos-del" on:click={() => deleteTask(task.id)}>Delete</button>
             </div>
