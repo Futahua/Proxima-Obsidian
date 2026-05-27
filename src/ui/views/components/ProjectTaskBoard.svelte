@@ -165,7 +165,6 @@
               </div>
             </div>
             <div class="pos-ptc-acts">
-              <button class="pos-ptc-add-btn" on:click={() => updateStatus(task, 'backlog')}>Activate</button>
               <button on:click={() => editTask(task)}>Edit</button>
               <button class="pos-del" on:click={() => deleteTask(task.id)}>Delete</button>
             </div>
@@ -200,7 +199,6 @@
               </div>
             </div>
             <div class="pos-ptc-acts">
-              <button class="pos-ptc-start-btn" on:click={() => updateStatus(task, 'running')}>Start</button>
               <button on:click={() => editTask(task)}>Edit</button>
               <button class="pos-del" on:click={() => deleteTask(task.id)}>Delete</button>
             </div>
@@ -235,9 +233,6 @@
               </div>
             </div>
             <div class="pos-ptc-acts">
-              <button on:click={() => updateStatus(task, 'review')}>Done</button>
-              <button on:click={() => updateStatus(task, 'backlog')}>Backlog</button>
-              
               <span class="pos-wg">
                 <button on:click={() => fileManager.updateTask(task.id, { weight: Math.max(1, task.weight - 1) })}>−</button>
                 <span>{task.weight}</span>
@@ -284,7 +279,6 @@
               </div>
             </div>
             <div class="pos-ptc-acts">
-              <button on:click={() => updateStatus(task, 'running')}>Restore</button>
               <button on:click={() => editTask(task)}>Edit</button>
               <button class="pos-del" on:click={() => deleteTask(task.id)}>Delete</button>
             </div>

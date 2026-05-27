@@ -4803,26 +4803,26 @@ var import_obsidian6 = require("obsidian");
 var import_obsidian4 = require("obsidian");
 function get_each_context4(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[60] = list[i];
-  child_ctx[62] = i;
+  child_ctx[55] = list[i];
+  child_ctx[57] = i;
   return child_ctx;
 }
 function get_each_context_13(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[60] = list[i];
-  child_ctx[62] = i;
+  child_ctx[55] = list[i];
+  child_ctx[57] = i;
   return child_ctx;
 }
 function get_each_context_22(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[60] = list[i];
-  child_ctx[62] = i;
+  child_ctx[55] = list[i];
+  child_ctx[57] = i;
   return child_ctx;
 }
 function get_each_context_3(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[60] = list[i];
-  child_ctx[62] = i;
+  child_ctx[55] = list[i];
+  child_ctx[57] = i;
   return child_ctx;
 }
 function create_if_block_132(ctx) {
@@ -4846,7 +4846,7 @@ function create_if_block_122(ctx) {
   let div;
   let t_value = (
     /*task*/
-    ctx[60].description + ""
+    ctx[55].description + ""
   );
   let t;
   return {
@@ -4862,7 +4862,7 @@ function create_if_block_122(ctx) {
     p(ctx2, dirty) {
       if (dirty[0] & /*planned*/
       128 && t_value !== (t_value = /*task*/
-      ctx2[60].description + ""))
+      ctx2[55].description + ""))
         set_data(t, t_value);
     },
     d(detaching) {
@@ -4884,7 +4884,7 @@ function create_each_block_3(key_1, ctx) {
   let div0;
   let t2_value = (
     /*task*/
-    ctx[60].name + ""
+    ctx[55].name + ""
   );
   let t2;
   let t3;
@@ -4894,7 +4894,7 @@ function create_each_block_3(key_1, ctx) {
   let t5;
   let t6_value = (
     /*task*/
-    ctx[60].weight + ""
+    ctx[55].weight + ""
   );
   let t6;
   let t7;
@@ -4902,22 +4902,20 @@ function create_each_block_3(key_1, ctx) {
   let button0;
   let t9;
   let button1;
-  let t11;
-  let button2;
   let mounted;
   let dispose;
   let if_block0 = (
     /*dragOverStatus*/
     ctx[2] === "planned" && /*dragOverIndex*/
     ctx[3] === /*i*/
-    ctx[62] && create_if_block_132(ctx)
+    ctx[57] && create_if_block_132(ctx)
   );
   function change_handler() {
     return (
       /*change_handler*/
       ctx[23](
         /*task*/
-        ctx[60]
+        ctx[55]
       )
     );
   }
@@ -4926,20 +4924,20 @@ function create_each_block_3(key_1, ctx) {
       /*click_handler_2*/
       ctx[24](
         /*task*/
-        ctx[60]
+        ctx[55]
       )
     );
   }
   let if_block1 = (
     /*task*/
-    ctx[60].description && create_if_block_122(ctx)
+    ctx[55].description && create_if_block_122(ctx)
   );
   function click_handler_3() {
     return (
       /*click_handler_3*/
       ctx[25](
         /*task*/
-        ctx[60]
+        ctx[55]
       )
     );
   }
@@ -4948,25 +4946,16 @@ function create_each_block_3(key_1, ctx) {
       /*click_handler_4*/
       ctx[26](
         /*task*/
-        ctx[60]
-      )
-    );
-  }
-  function click_handler_5() {
-    return (
-      /*click_handler_5*/
-      ctx[27](
-        /*task*/
-        ctx[60]
+        ctx[55]
       )
     );
   }
   function dragstart_handler(...args) {
     return (
       /*dragstart_handler*/
-      ctx[28](
+      ctx[27](
         /*task*/
-        ctx[60],
+        ctx[55],
         ...args
       )
     );
@@ -4997,13 +4986,10 @@ function create_each_block_3(key_1, ctx) {
       t7 = space();
       div4 = element("div");
       button0 = element("button");
-      button0.textContent = "Activate";
+      button0.textContent = "Edit";
       t9 = space();
       button1 = element("button");
-      button1.textContent = "Edit";
-      t11 = space();
-      button2 = element("button");
-      button2.textContent = "Delete";
+      button1.textContent = "Delete";
       attr(input, "type", "checkbox");
       input.checked = input_checked_value = false;
       attr(input, "class", "pos-task-checkbox");
@@ -5011,8 +4997,7 @@ function create_each_block_3(key_1, ctx) {
       attr(div1, "class", "pos-ptc-meta");
       attr(div2, "class", "pos-ptc-body");
       attr(div3, "class", "pos-ptc-header");
-      attr(button0, "class", "pos-ptc-add-btn");
-      attr(button2, "class", "pos-del");
+      attr(button1, "class", "pos-del");
       attr(div4, "class", "pos-ptc-acts");
       attr(div5, "class", "pos-card pos-board-card");
       attr(div5, "draggable", "true");
@@ -5021,7 +5006,7 @@ function create_each_block_3(key_1, ctx) {
         "pos-dragging-source",
         /*dragId*/
         ctx[1] === /*task*/
-        ctx[60].id
+        ctx[55].id
       );
       this.first = first;
     },
@@ -5050,15 +5035,12 @@ function create_each_block_3(key_1, ctx) {
       append(div4, button0);
       append(div4, t9);
       append(div4, button1);
-      append(div4, t11);
-      append(div4, button2);
       if (!mounted) {
         dispose = [
           listen(input, "change", change_handler),
           listen(div0, "click", click_handler_2),
           listen(button0, "click", click_handler_3),
           listen(button1, "click", click_handler_4),
-          listen(button2, "click", click_handler_5),
           listen(div5, "dragstart", dragstart_handler)
         ];
         mounted = true;
@@ -5070,7 +5052,7 @@ function create_each_block_3(key_1, ctx) {
         /*dragOverStatus*/
         ctx[2] === "planned" && /*dragOverIndex*/
         ctx[3] === /*i*/
-        ctx[62]
+        ctx[57]
       ) {
         if (if_block0) {
         } else {
@@ -5084,11 +5066,11 @@ function create_each_block_3(key_1, ctx) {
       }
       if (dirty[0] & /*planned*/
       128 && t2_value !== (t2_value = /*task*/
-      ctx[60].name + ""))
+      ctx[55].name + ""))
         set_data(t2, t2_value);
       if (
         /*task*/
-        ctx[60].description
+        ctx[55].description
       ) {
         if (if_block1) {
           if_block1.p(ctx, dirty);
@@ -5103,7 +5085,7 @@ function create_each_block_3(key_1, ctx) {
       }
       if (dirty[0] & /*planned*/
       128 && t6_value !== (t6_value = /*task*/
-      ctx[60].weight + ""))
+      ctx[55].weight + ""))
         set_data(t6, t6_value);
       if (dirty[0] & /*dragId, planned*/
       130) {
@@ -5112,7 +5094,7 @@ function create_each_block_3(key_1, ctx) {
           "pos-dragging-source",
           /*dragId*/
           ctx[1] === /*task*/
-          ctx[60].id
+          ctx[55].id
         );
       }
     },
@@ -5169,7 +5151,7 @@ function create_if_block_92(ctx) {
   let div;
   let t_value = (
     /*task*/
-    ctx[60].description + ""
+    ctx[55].description + ""
   );
   let t;
   return {
@@ -5185,7 +5167,7 @@ function create_if_block_92(ctx) {
     p(ctx2, dirty) {
       if (dirty[0] & /*backlog*/
       64 && t_value !== (t_value = /*task*/
-      ctx2[60].description + ""))
+      ctx2[55].description + ""))
         set_data(t, t_value);
     },
     d(detaching) {
@@ -5207,7 +5189,7 @@ function create_each_block_22(key_1, ctx) {
   let div0;
   let t2_value = (
     /*task*/
-    ctx[60].name + ""
+    ctx[55].name + ""
   );
   let t2;
   let t3;
@@ -5217,7 +5199,7 @@ function create_each_block_22(key_1, ctx) {
   let t5;
   let t6_value = (
     /*task*/
-    ctx[60].weight + ""
+    ctx[55].weight + ""
   );
   let t6;
   let t7;
@@ -5225,71 +5207,60 @@ function create_each_block_22(key_1, ctx) {
   let button0;
   let t9;
   let button1;
-  let t11;
-  let button2;
   let mounted;
   let dispose;
   let if_block0 = (
     /*dragOverStatus*/
     ctx[2] === "backlog" && /*dragOverIndex*/
     ctx[3] === /*i*/
-    ctx[62] && create_if_block_102(ctx)
+    ctx[57] && create_if_block_102(ctx)
   );
   function change_handler_1() {
     return (
       /*change_handler_1*/
-      ctx[32](
+      ctx[31](
         /*task*/
-        ctx[60]
+        ctx[55]
       )
     );
   }
-  function click_handler_7() {
+  function click_handler_6() {
     return (
-      /*click_handler_7*/
-      ctx[33](
+      /*click_handler_6*/
+      ctx[32](
         /*task*/
-        ctx[60]
+        ctx[55]
       )
     );
   }
   let if_block1 = (
     /*task*/
-    ctx[60].description && create_if_block_92(ctx)
+    ctx[55].description && create_if_block_92(ctx)
   );
+  function click_handler_7() {
+    return (
+      /*click_handler_7*/
+      ctx[33](
+        /*task*/
+        ctx[55]
+      )
+    );
+  }
   function click_handler_8() {
     return (
       /*click_handler_8*/
       ctx[34](
         /*task*/
-        ctx[60]
-      )
-    );
-  }
-  function click_handler_9() {
-    return (
-      /*click_handler_9*/
-      ctx[35](
-        /*task*/
-        ctx[60]
-      )
-    );
-  }
-  function click_handler_10() {
-    return (
-      /*click_handler_10*/
-      ctx[36](
-        /*task*/
-        ctx[60]
+        ctx[55]
       )
     );
   }
   function dragstart_handler_1(...args) {
     return (
       /*dragstart_handler_1*/
-      ctx[37](
+      ctx[35](
         /*task*/
-        ctx[60],
+        ctx[55],
         ...args
       )
     );
@@ -5320,13 +5291,10 @@ function create_each_block_22(key_1, ctx) {
       t7 = space();
       div4 = element("div");
       button0 = element("button");
-      button0.textContent = "Start";
+      button0.textContent = "Edit";
       t9 = space();
       button1 = element("button");
-      button1.textContent = "Edit";
-      t11 = space();
-      button2 = element("button");
-      button2.textContent = "Delete";
+      button1.textContent = "Delete";
       attr(input, "type", "checkbox");
       input.checked = input_checked_value = true;
       attr(input, "class", "pos-task-checkbox");
@@ -5334,8 +5302,7 @@ function create_each_block_22(key_1, ctx) {
       attr(div1, "class", "pos-ptc-meta");
       attr(div2, "class", "pos-ptc-body");
       attr(div3, "class", "pos-ptc-header");
-      attr(button0, "class", "pos-ptc-start-btn");
-      attr(button2, "class", "pos-del");
+      attr(button1, "class", "pos-del");
       attr(div4, "class", "pos-ptc-acts");
       attr(div5, "class", "pos-card pos-board-card");
       attr(div5, "draggable", "true");
@@ -5344,7 +5311,7 @@ function create_each_block_22(key_1, ctx) {
         "pos-dragging-source",
         /*dragId*/
         ctx[1] === /*task*/
-        ctx[60].id
+        ctx[55].id
       );
       this.first = first;
     },
@@ -5373,15 +5340,12 @@ function create_each_block_22(key_1, ctx) {
       append(div4, button0);
       append(div4, t9);
       append(div4, button1);
-      append(div4, t11);
-      append(div4, button2);
       if (!mounted) {
         dispose = [
           listen(input, "change", change_handler_1),
-          listen(div0, "click", click_handler_7),
-          listen(button0, "click", click_handler_8),
-          listen(button1, "click", click_handler_9),
-          listen(button2, "click", click_handler_10),
+          listen(div0, "click", click_handler_6),
+          listen(button0, "click", click_handler_7),
+          listen(button1, "click", click_handler_8),
           listen(div5, "dragstart", dragstart_handler_1)
         ];
         mounted = true;
@@ -5393,7 +5357,7 @@ function create_each_block_22(key_1, ctx) {
         /*dragOverStatus*/
         ctx[2] === "backlog" && /*dragOverIndex*/
         ctx[3] === /*i*/
-        ctx[62]
+        ctx[57]
       ) {
         if (if_block0) {
         } else {
@@ -5407,11 +5371,11 @@ function create_each_block_22(key_1, ctx) {
       }
       if (dirty[0] & /*backlog*/
       64 && t2_value !== (t2_value = /*task*/
-      ctx[60].name + ""))
+      ctx[55].name + ""))
         set_data(t2, t2_value);
       if (
         /*task*/
-        ctx[60].description
+        ctx[55].description
       ) {
         if (if_block1) {
           if_block1.p(ctx, dirty);
@@ -5426,7 +5390,7 @@ function create_each_block_22(key_1, ctx) {
       }
       if (dirty[0] & /*backlog*/
       64 && t6_value !== (t6_value = /*task*/
-      ctx[60].weight + ""))
+      ctx[55].weight + ""))
         set_data(t6, t6_value);
       if (dirty[0] & /*dragId, backlog*/
       66) {
@@ -5435,7 +5399,7 @@ function create_each_block_22(key_1, ctx) {
           "pos-dragging-source",
           /*dragId*/
           ctx[1] === /*task*/
-          ctx[60].id
+          ctx[55].id
         );
       }
     },
@@ -5492,7 +5456,7 @@ function create_if_block_62(ctx) {
   let div;
   let t_value = (
     /*task*/
-    ctx[60].description + ""
+    ctx[55].description + ""
   );
   let t;
   return {
@@ -5508,7 +5472,7 @@ function create_if_block_62(ctx) {
     p(ctx2, dirty) {
       if (dirty[0] & /*running*/
       32 && t_value !== (t_value = /*task*/
-      ctx2[60].description + ""))
+      ctx2[55].description + ""))
         set_data(t, t_value);
     },
     d(detaching) {
@@ -5523,7 +5487,7 @@ function create_if_block_52(ctx) {
   let t0;
   let t1_value = (
     /*task*/
-    ctx[60].fixedDuration + ""
+    ctx[55].fixedDuration + ""
   );
   let t1;
   let t2;
@@ -5543,7 +5507,7 @@ function create_if_block_52(ctx) {
     p(ctx2, dirty) {
       if (dirty[0] & /*running*/
       32 && t1_value !== (t1_value = /*task*/
-      ctx2[60].fixedDuration + ""))
+      ctx2[55].fixedDuration + ""))
         set_data(t1, t1_value);
     },
     d(detaching) {
@@ -5561,9 +5525,9 @@ function create_if_block_42(ctx) {
   function change_handler_3(...args) {
     return (
       /*change_handler_3*/
-      ctx[47](
+      ctx[43](
         /*task*/
-        ctx[60],
+        ctx[55],
         ...args
       )
     );
@@ -5575,7 +5539,7 @@ function create_if_block_42(ctx) {
       attr(input, "min", "1");
       attr(input, "class", "pos-fixed-input");
       input.value = input_value_value = /*task*/
-      ctx[60].fixedDuration || 30;
+      ctx[55].fixedDuration || 30;
     },
     m(target, anchor) {
       insert(target, input, anchor);
@@ -5594,7 +5558,7 @@ function create_if_block_42(ctx) {
       ctx = new_ctx;
       if (dirty[0] & /*running*/
       32 && input_value_value !== (input_value_value = /*task*/
-      ctx[60].fixedDuration || 30) && input.value !== input_value_value) {
+      ctx[55].fixedDuration || 30) && input.value !== input_value_value) {
         input.value = input_value_value;
       }
     },
@@ -5616,7 +5580,7 @@ function create_each_block_13(key_1, ctx) {
   let div0;
   let t1_value = (
     /*task*/
-    ctx[60].name + ""
+    ctx[55].name + ""
   );
   let t1;
   let t2;
@@ -5626,138 +5590,116 @@ function create_each_block_13(key_1, ctx) {
   let t4;
   let t5_value = (
     /*task*/
-    ctx[60].weight + ""
+    ctx[55].weight + ""
   );
   let t5;
   let t6;
   let t7;
   let div4;
+  let span2;
   let button0;
   let t9;
-  let button1;
-  let t11;
-  let span2;
-  let button2;
-  let t13;
   let span1;
-  let t14_value = (
+  let t10_value = (
     /*task*/
-    ctx[60].weight + ""
+    ctx[55].weight + ""
   );
-  let t14;
-  let t15;
-  let button3;
-  let t17;
+  let t10;
+  let t11;
+  let button1;
+  let t13;
   let label;
   let input;
   let input_checked_value;
-  let t18;
+  let t14;
   let span3;
-  let t20;
-  let t21;
-  let button4;
-  let t23;
-  let button5;
+  let t16;
+  let t17;
+  let button2;
+  let t19;
+  let button3;
   let mounted;
   let dispose;
   let if_block0 = (
     /*dragOverStatus*/
     ctx[2] === "running" && /*dragOverIndex*/
     ctx[3] === /*i*/
-    ctx[62] && create_if_block_72(ctx)
+    ctx[57] && create_if_block_72(ctx)
   );
-  function click_handler_12() {
+  function click_handler_10() {
     return (
-      /*click_handler_12*/
-      ctx[41](
+      /*click_handler_10*/
+      ctx[39](
         /*task*/
-        ctx[60]
+        ctx[55]
       )
     );
   }
   let if_block1 = (
     /*task*/
-    ctx[60].description && create_if_block_62(ctx)
+    ctx[55].description && create_if_block_62(ctx)
   );
   let if_block2 = (
     /*task*/
-    ctx[60].isFixedDuration && /*task*/
-    ctx[60].fixedDuration && create_if_block_52(ctx)
+    ctx[55].isFixedDuration && /*task*/
+    ctx[55].fixedDuration && create_if_block_52(ctx)
   );
-  function click_handler_13() {
+  function click_handler_11() {
     return (
-      /*click_handler_13*/
-      ctx[42](
+      /*click_handler_11*/
+      ctx[40](
         /*task*/
-        ctx[60]
+        ctx[55]
       )
     );
   }
-  function click_handler_14() {
+  function click_handler_12() {
     return (
-      /*click_handler_14*/
-      ctx[43](
+      /*click_handler_12*/
+      ctx[41](
         /*task*/
-        ctx[60]
-      )
-    );
-  }
-  function click_handler_15() {
-    return (
-      /*click_handler_15*/
-      ctx[44](
-        /*task*/
-        ctx[60]
-      )
-    );
-  }
-  function click_handler_16() {
-    return (
-      /*click_handler_16*/
-      ctx[45](
-        /*task*/
-        ctx[60]
+        ctx[55]
       )
     );
   }
   function change_handler_2(...args) {
     return (
       /*change_handler_2*/
-      ctx[46](
+      ctx[42](
         /*task*/
-        ctx[60],
+        ctx[55],
         ...args
       )
     );
   }
   let if_block3 = (
     /*task*/
-    ctx[60].isFixedDuration && create_if_block_42(ctx)
+    ctx[55].isFixedDuration && create_if_block_42(ctx)
   );
-  function click_handler_17() {
+  function click_handler_13() {
     return (
-      /*click_handler_17*/
-      ctx[48](
+      /*click_handler_13*/
+      ctx[44](
         /*task*/
-        ctx[60]
+        ctx[55]
       )
     );
   }
-  function click_handler_18() {
+  function click_handler_14() {
     return (
-      /*click_handler_18*/
-      ctx[49](
+      /*click_handler_14*/
+      ctx[45](
         /*task*/
-        ctx[60]
+        ctx[55]
       )
     );
   }
   function dragstart_handler_2(...args) {
     return (
       /*dragstart_handler_2*/
-      ctx[50](
+      ctx[46](
         /*task*/
-        ctx[60],
+        ctx[55],
         ...args
       )
     );
@@ -5788,36 +5730,30 @@ function create_each_block_13(key_1, ctx) {
         if_block2.c();
       t7 = space();
       div4 = element("div");
-      button0 = element("button");
-      button0.textContent = "Done";
-      t9 = space();
-      button1 = element("button");
-      button1.textContent = "Backlog";
-      t11 = space();
       span2 = element("span");
-      button2 = element("button");
-      button2.textContent = "\u2212";
-      t13 = space();
+      button0 = element("button");
+      button0.textContent = "\u2212";
+      t9 = space();
       span1 = element("span");
-      t14 = text(t14_value);
-      t15 = space();
-      button3 = element("button");
-      button3.textContent = "+";
-      t17 = space();
+      t10 = text(t10_value);
+      t11 = space();
+      button1 = element("button");
+      button1.textContent = "+";
+      t13 = space();
       label = element("label");
       input = element("input");
-      t18 = space();
+      t14 = space();
       span3 = element("span");
       span3.textContent = "Fixed";
-      t20 = space();
+      t16 = space();
       if (if_block3)
         if_block3.c();
-      t21 = space();
-      button4 = element("button");
-      button4.textContent = "Edit";
-      t23 = space();
-      button5 = element("button");
-      button5.textContent = "Delete";
+      t17 = space();
+      button2 = element("button");
+      button2.textContent = "Edit";
+      t19 = space();
+      button3 = element("button");
+      button3.textContent = "Delete";
       attr(div0, "class", "pos-card-name");
       attr(div1, "class", "pos-ptc-meta");
       attr(div2, "class", "pos-ptc-body");
@@ -5825,9 +5761,9 @@ function create_each_block_13(key_1, ctx) {
       attr(span2, "class", "pos-wg");
       attr(input, "type", "checkbox");
       input.checked = input_checked_value = /*task*/
-      ctx[60].isFixedDuration;
+      ctx[55].isFixedDuration;
       attr(label, "class", "pos-fixed");
-      attr(button5, "class", "pos-del");
+      attr(button3, "class", "pos-del");
       attr(div4, "class", "pos-ptc-acts");
       attr(div5, "class", "pos-card pos-board-card");
       attr(div5, "draggable", "true");
@@ -5836,7 +5772,7 @@ function create_each_block_13(key_1, ctx) {
         "pos-dragging-source",
         /*dragId*/
         ctx[1] === /*task*/
-        ctx[60].id
+        ctx[55].id
       );
       this.first = first;
     },
@@ -5863,43 +5799,37 @@ function create_each_block_13(key_1, ctx) {
         if_block2.m(div1, null);
       append(div5, t7);
       append(div5, div4);
-      append(div4, button0);
-      append(div4, t9);
-      append(div4, button1);
-      append(div4, t11);
       append(div4, span2);
-      append(span2, button2);
-      append(span2, t13);
+      append(span2, button0);
+      append(span2, t9);
       append(span2, span1);
-      append(span1, t14);
-      append(span2, t15);
-      append(span2, button3);
-      append(div4, t17);
+      append(span1, t10);
+      append(span2, t11);
+      append(span2, button1);
+      append(div4, t13);
       append(div4, label);
       append(label, input);
-      append(label, t18);
+      append(label, t14);
       append(label, span3);
-      append(div4, t20);
+      append(div4, t16);
       if (if_block3)
         if_block3.m(div4, null);
-      append(div4, t21);
-      append(div4, button4);
-      append(div4, t23);
-      append(div4, button5);
+      append(div4, t17);
+      append(div4, button2);
+      append(div4, t19);
+      append(div4, button3);
       if (!mounted) {
         dispose = [
-          listen(div0, "click", click_handler_12),
-          listen(button0, "click", click_handler_13),
-          listen(button1, "click", click_handler_14),
-          listen(button2, "click", click_handler_15),
-          listen(button3, "click", click_handler_16),
+          listen(div0, "click", click_handler_10),
+          listen(button0, "click", click_handler_11),
+          listen(button1, "click", click_handler_12),
           listen(input, "change", change_handler_2),
           listen(label, "click", stop_propagation(
             /*click_handler*/
             ctx[22]
           )),
-          listen(button4, "click", click_handler_17),
-          listen(button5, "click", click_handler_18),
+          listen(button2, "click", click_handler_13),
+          listen(button3, "click", click_handler_14),
           listen(div5, "dragstart", dragstart_handler_2)
         ];
         mounted = true;
@@ -5911,7 +5841,7 @@ function create_each_block_13(key_1, ctx) {
         /*dragOverStatus*/
         ctx[2] === "running" && /*dragOverIndex*/
         ctx[3] === /*i*/
-        ctx[62]
+        ctx[57]
       ) {
         if (if_block0) {
         } else {
@@ -5925,11 +5855,11 @@ function create_each_block_13(key_1, ctx) {
       }
       if (dirty[0] & /*running*/
       32 && t1_value !== (t1_value = /*task*/
-      ctx[60].name + ""))
+      ctx[55].name + ""))
         set_data(t1, t1_value);
       if (
         /*task*/
-        ctx[60].description
+        ctx[55].description
       ) {
         if (if_block1) {
           if_block1.p(ctx, dirty);
@@ -5944,12 +5874,12 @@ function create_each_block_13(key_1, ctx) {
       }
       if (dirty[0] & /*running*/
       32 && t5_value !== (t5_value = /*task*/
-      ctx[60].weight + ""))
+      ctx[55].weight + ""))
         set_data(t5, t5_value);
       if (
         /*task*/
-        ctx[60].isFixedDuration && /*task*/
-        ctx[60].fixedDuration
+        ctx[55].isFixedDuration && /*task*/
+        ctx[55].fixedDuration
       ) {
         if (if_block2) {
           if_block2.p(ctx, dirty);
@@ -5963,24 +5893,24 @@ function create_each_block_13(key_1, ctx) {
         if_block2 = null;
       }
       if (dirty[0] & /*running*/
-      32 && t14_value !== (t14_value = /*task*/
-      ctx[60].weight + ""))
-        set_data(t14, t14_value);
+      32 && t10_value !== (t10_value = /*task*/
+      ctx[55].weight + ""))
+        set_data(t10, t10_value);
       if (dirty[0] & /*running*/
       32 && input_checked_value !== (input_checked_value = /*task*/
-      ctx[60].isFixedDuration)) {
+      ctx[55].isFixedDuration)) {
         input.checked = input_checked_value;
       }
       if (
         /*task*/
-        ctx[60].isFixedDuration
+        ctx[55].isFixedDuration
       ) {
         if (if_block3) {
           if_block3.p(ctx, dirty);
         } else {
           if_block3 = create_if_block_42(ctx);
           if_block3.c();
-          if_block3.m(div4, t21);
+          if_block3.m(div4, t17);
         }
       } else if (if_block3) {
         if_block3.d(1);
@@ -5993,7 +5923,7 @@ function create_each_block_13(key_1, ctx) {
           "pos-dragging-source",
           /*dragId*/
           ctx[1] === /*task*/
-          ctx[60].id
+          ctx[55].id
         );
       }
     },
@@ -6054,7 +5984,7 @@ function create_if_block_14(ctx) {
   let div;
   let t_value = (
     /*task*/
-    ctx[60].description + ""
+    ctx[55].description + ""
   );
   let t;
   return {
@@ -6070,7 +6000,7 @@ function create_if_block_14(ctx) {
     p(ctx2, dirty) {
       if (dirty[0] & /*review*/
       16 && t_value !== (t_value = /*task*/
-      ctx2[60].description + ""))
+      ctx2[55].description + ""))
         set_data(t, t_value);
     },
     d(detaching) {
@@ -6089,7 +6019,7 @@ function create_each_block4(key_1, ctx) {
   let div0;
   let t1_value = (
     /*task*/
-    ctx[60].name + ""
+    ctx[55].name + ""
   );
   let t1;
   let t2;
@@ -6099,7 +6029,7 @@ function create_each_block4(key_1, ctx) {
   let t4;
   let t5_value = (
     /*task*/
-    ctx[60].weight + ""
+    ctx[55].weight + ""
   );
   let t5;
   let t6;
@@ -6107,62 +6037,51 @@ function create_each_block4(key_1, ctx) {
   let button0;
   let t8;
   let button1;
-  let t10;
-  let button2;
   let mounted;
   let dispose;
   let if_block0 = (
     /*dragOverStatus*/
     ctx[2] === "review" && /*dragOverIndex*/
     ctx[3] === /*i*/
-    ctx[62] && create_if_block_23(ctx)
+    ctx[57] && create_if_block_23(ctx)
   );
-  function click_handler_19() {
+  function click_handler_15() {
     return (
-      /*click_handler_19*/
-      ctx[53](
+      /*click_handler_15*/
+      ctx[49](
         /*task*/
-        ctx[60]
+        ctx[55]
       )
     );
   }
   let if_block1 = (
     /*task*/
-    ctx[60].description && create_if_block_14(ctx)
+    ctx[55].description && create_if_block_14(ctx)
   );
-  function click_handler_20() {
+  function click_handler_16() {
     return (
-      /*click_handler_20*/
-      ctx[54](
+      /*click_handler_16*/
+      ctx[50](
         /*task*/
-        ctx[60]
+        ctx[55]
       )
     );
   }
-  function click_handler_21() {
+  function click_handler_17() {
     return (
-      /*click_handler_21*/
-      ctx[55](
+      /*click_handler_17*/
+      ctx[51](
         /*task*/
-        ctx[60]
-      )
-    );
-  }
-  function click_handler_22() {
-    return (
-      /*click_handler_22*/
-      ctx[56](
-        /*task*/
-        ctx[60]
+        ctx[55]
       )
     );
   }
   function dragstart_handler_3(...args) {
     return (
       /*dragstart_handler_3*/
-      ctx[57](
+      ctx[52](
         /*task*/
-        ctx[60],
+        ctx[55],
         ...args
       )
     );
@@ -6191,18 +6110,15 @@ function create_each_block4(key_1, ctx) {
       t6 = space();
       div4 = element("div");
       button0 = element("button");
-      button0.textContent = "Restore";
+      button0.textContent = "Edit";
       t8 = space();
       button1 = element("button");
-      button1.textContent = "Edit";
-      t10 = space();
-      button2 = element("button");
-      button2.textContent = "Delete";
+      button1.textContent = "Delete";
       attr(div0, "class", "pos-card-name");
       attr(div1, "class", "pos-ptc-meta");
       attr(div2, "class", "pos-ptc-body");
       attr(div3, "class", "pos-ptc-header");
-      attr(button2, "class", "pos-del");
+      attr(button1, "class", "pos-del");
       attr(div4, "class", "pos-ptc-acts");
       attr(div5, "class", "pos-card pos-board-card pos-completed");
       attr(div5, "draggable", "true");
@@ -6211,7 +6127,7 @@ function create_each_block4(key_1, ctx) {
         "pos-dragging-source",
         /*dragId*/
         ctx[1] === /*task*/
-        ctx[60].id
+        ctx[55].id
       );
       this.first = first;
     },
@@ -6238,14 +6154,11 @@ function create_each_block4(key_1, ctx) {
       append(div4, button0);
       append(div4, t8);
       append(div4, button1);
-      append(div4, t10);
-      append(div4, button2);
       if (!mounted) {
         dispose = [
-          listen(div0, "click", click_handler_19),
-          listen(button0, "click", click_handler_20),
-          listen(button1, "click", click_handler_21),
-          listen(button2, "click", click_handler_22),
+          listen(div0, "click", click_handler_15),
+          listen(button0, "click", click_handler_16),
+          listen(button1, "click", click_handler_17),
           listen(div5, "dragstart", dragstart_handler_3)
         ];
         mounted = true;
@@ -6257,7 +6170,7 @@ function create_each_block4(key_1, ctx) {
         /*dragOverStatus*/
         ctx[2] === "review" && /*dragOverIndex*/
         ctx[3] === /*i*/
-        ctx[62]
+        ctx[57]
       ) {
         if (if_block0) {
         } else {
@@ -6271,11 +6184,11 @@ function create_each_block4(key_1, ctx) {
       }
       if (dirty[0] & /*review*/
       16 && t1_value !== (t1_value = /*task*/
-      ctx[60].name + ""))
+      ctx[55].name + ""))
         set_data(t1, t1_value);
       if (
         /*task*/
-        ctx[60].description
+        ctx[55].description
       ) {
         if (if_block1) {
           if_block1.p(ctx, dirty);
@@ -6290,7 +6203,7 @@ function create_each_block4(key_1, ctx) {
       }
       if (dirty[0] & /*review*/
       16 && t5_value !== (t5_value = /*task*/
-      ctx[60].weight + ""))
+      ctx[55].weight + ""))
         set_data(t5, t5_value);
       if (dirty[0] & /*dragId, review*/
       18) {
@@ -6299,7 +6212,7 @@ function create_each_block4(key_1, ctx) {
           "pos-dragging-source",
           /*dragId*/
           ctx[1] === /*task*/
-          ctx[60].id
+          ctx[55].id
         );
       }
     },
@@ -6412,7 +6325,7 @@ function create_fragment4(ctx) {
   );
   const get_key = (ctx2) => (
     /*task*/
-    ctx2[60].id
+    ctx2[55].id
   );
   for (let i = 0; i < each_value_3.length; i += 1) {
     let child_ctx = get_each_context_3(ctx, each_value_3, i);
@@ -6431,7 +6344,7 @@ function create_fragment4(ctx) {
   );
   const get_key_1 = (ctx2) => (
     /*task*/
-    ctx2[60].id
+    ctx2[55].id
   );
   for (let i = 0; i < each_value_2.length; i += 1) {
     let child_ctx = get_each_context_22(ctx, each_value_2, i);
@@ -6450,7 +6363,7 @@ function create_fragment4(ctx) {
   );
   const get_key_2 = (ctx2) => (
     /*task*/
-    ctx2[60].id
+    ctx2[55].id
   );
   for (let i = 0; i < each_value_1.length; i += 1) {
     let child_ctx = get_each_context_13(ctx, each_value_1, i);
@@ -6469,7 +6382,7 @@ function create_fragment4(ctx) {
   );
   const get_key_3 = (ctx2) => (
     /*task*/
-    ctx2[60].id
+    ctx2[55].id
   );
   for (let i = 0; i < each_value.length; i += 1) {
     let child_ctx = get_each_context4(ctx, each_value, i);
@@ -6648,62 +6561,62 @@ function create_fragment4(ctx) {
           listen(
             button0,
             "click",
-            /*click_handler_6*/
-            ctx[29]
+            /*click_handler_5*/
+            ctx[28]
           ),
           listen(
             div1,
             "dragover",
             /*dragover_handler*/
-            ctx[30]
+            ctx[29]
           ),
           listen(
             div1,
             "drop",
             /*drop_handler*/
-            ctx[31]
+            ctx[30]
           ),
           listen(
             button1,
             "click",
-            /*click_handler_11*/
-            ctx[38]
+            /*click_handler_9*/
+            ctx[36]
           ),
           listen(
             div4,
             "dragover",
             /*dragover_handler_1*/
-            ctx[39]
+            ctx[37]
           ),
           listen(
             div4,
             "drop",
             /*drop_handler_1*/
-            ctx[40]
+            ctx[38]
           ),
           listen(
             div7,
             "dragover",
             /*dragover_handler_2*/
-            ctx[51]
+            ctx[47]
           ),
           listen(
             div7,
             "drop",
             /*drop_handler_2*/
-            ctx[52]
+            ctx[48]
           ),
           listen(
             div10,
             "dragover",
             /*dragover_handler_3*/
-            ctx[58]
+            ctx[53]
           ),
           listen(
             div10,
             "drop",
             /*drop_handler_3*/
-            ctx[59]
+            ctx[54]
           )
         ];
         mounted = true;
@@ -6714,7 +6627,7 @@ function create_fragment4(ctx) {
       128 && t1_value !== (t1_value = /*planned*/
       ctx2[7].length + ""))
         set_data(t1, t1_value);
-      if (dirty[0] & /*dragId, planned, handleDragStart, deleteTask, editTask, updateStatus, openTaskFile, dragOverStatus, dragOverIndex*/
+      if (dirty[0] & /*dragId, planned, handleDragStart, deleteTask, editTask, openTaskFile, updateStatus, dragOverStatus, dragOverIndex*/
       160142) {
         each_value_3 = ensure_array_like(
           /*planned*/
@@ -6742,7 +6655,7 @@ function create_fragment4(ctx) {
       64 && t9_value !== (t9_value = /*backlog*/
       ctx2[6].length + ""))
         set_data(t9, t9_value);
-      if (dirty[0] & /*dragId, backlog, handleDragStart, deleteTask, editTask, updateStatus, openTaskFile, dragOverStatus, dragOverIndex*/
+      if (dirty[0] & /*dragId, backlog, handleDragStart, deleteTask, editTask, openTaskFile, updateStatus, dragOverStatus, dragOverIndex*/
       160078) {
         each_value_2 = ensure_array_like(
           /*backlog*/
@@ -6770,8 +6683,8 @@ function create_fragment4(ctx) {
       32 && t17_value !== (t17_value = /*running*/
       ctx2[5].length + ""))
         set_data(t17, t17_value);
-      if (dirty[0] & /*dragId, running, handleDragStart, deleteTask, editTask, setFixed, toggleFixed, fileManager, updateStatus, openTaskFile, dragOverStatus, dragOverIndex*/
-      258351) {
+      if (dirty[0] & /*dragId, running, handleDragStart, deleteTask, editTask, setFixed, toggleFixed, fileManager, openTaskFile, dragOverStatus, dragOverIndex*/
+      241967) {
         each_value_1 = ensure_array_like(
           /*running*/
           ctx2[5]
@@ -6798,8 +6711,8 @@ function create_fragment4(ctx) {
       16 && t23_value !== (t23_value = /*review*/
       ctx2[4].length + ""))
         set_data(t23, t23_value);
-      if (dirty[0] & /*dragId, review, handleDragStart, deleteTask, editTask, updateStatus, openTaskFile, dragOverStatus, dragOverIndex*/
-      160030) {
+      if (dirty[0] & /*dragId, review, handleDragStart, deleteTask, editTask, openTaskFile, dragOverStatus, dragOverIndex*/
+      143646) {
         each_value = ensure_array_like(
           /*review*/
           ctx2[4]
@@ -6991,38 +6904,33 @@ function instance4($$self, $$props, $$invalidate) {
   }
   const change_handler = (task) => updateStatus(task, "backlog");
   const click_handler_2 = (task) => openTaskFile(task.id);
-  const click_handler_3 = (task) => updateStatus(task, "backlog");
-  const click_handler_4 = (task) => editTask(task);
-  const click_handler_5 = (task) => deleteTask(task.id);
+  const click_handler_3 = (task) => editTask(task);
+  const click_handler_4 = (task) => deleteTask(task.id);
   const dragstart_handler = (task, e) => handleDragStart(e, task.id);
-  const click_handler_6 = () => createPlannedTask("planned");
+  const click_handler_5 = () => createPlannedTask("planned");
   const dragover_handler = (e) => handleDragOver(e, "planned");
   const drop_handler = (e) => handleDrop(e, "planned");
   const change_handler_1 = (task) => updateStatus(task, "planned");
-  const click_handler_7 = (task) => openTaskFile(task.id);
-  const click_handler_8 = (task) => updateStatus(task, "running");
-  const click_handler_9 = (task) => editTask(task);
-  const click_handler_10 = (task) => deleteTask(task.id);
+  const click_handler_6 = (task) => openTaskFile(task.id);
+  const click_handler_7 = (task) => editTask(task);
+  const click_handler_8 = (task) => deleteTask(task.id);
   const dragstart_handler_1 = (task, e) => handleDragStart(e, task.id);
-  const click_handler_11 = () => createPlannedTask("backlog");
+  const click_handler_9 = () => createPlannedTask("backlog");
   const dragover_handler_1 = (e) => handleDragOver(e, "backlog");
   const drop_handler_1 = (e) => handleDrop(e, "backlog");
-  const click_handler_12 = (task) => openTaskFile(task.id);
-  const click_handler_13 = (task) => updateStatus(task, "review");
-  const click_handler_14 = (task) => updateStatus(task, "backlog");
-  const click_handler_15 = (task) => fileManager.updateTask(task.id, { weight: Math.max(1, task.weight - 1) });
-  const click_handler_16 = (task) => fileManager.updateTask(task.id, { weight: task.weight + 1 });
+  const click_handler_10 = (task) => openTaskFile(task.id);
+  const click_handler_11 = (task) => fileManager.updateTask(task.id, { weight: Math.max(1, task.weight - 1) });
+  const click_handler_12 = (task) => fileManager.updateTask(task.id, { weight: task.weight + 1 });
   const change_handler_2 = (task, e) => toggleFixed(task, e.currentTarget.checked);
   const change_handler_3 = (task, e) => setFixed(task, Number(e.currentTarget.value));
-  const click_handler_17 = (task) => editTask(task);
-  const click_handler_18 = (task) => deleteTask(task.id);
+  const click_handler_13 = (task) => editTask(task);
+  const click_handler_14 = (task) => deleteTask(task.id);
   const dragstart_handler_2 = (task, e) => handleDragStart(e, task.id);
   const dragover_handler_2 = (e) => handleDragOver(e, "running");
   const drop_handler_2 = (e) => handleDrop(e, "running");
-  const click_handler_19 = (task) => openTaskFile(task.id);
-  const click_handler_20 = (task) => updateStatus(task, "running");
-  const click_handler_21 = (task) => editTask(task);
-  const click_handler_22 = (task) => deleteTask(task.id);
+  const click_handler_15 = (task) => openTaskFile(task.id);
+  const click_handler_16 = (task) => editTask(task);
+  const click_handler_17 = (task) => deleteTask(task.id);
   const dragstart_handler_3 = (task, e) => handleDragStart(e, task.id);
   const dragover_handler_3 = (e) => handleDragOver(e, "review");
   const drop_handler_3 = (e) => handleDrop(e, "review");
@@ -7086,36 +6994,31 @@ function instance4($$self, $$props, $$invalidate) {
     click_handler_2,
     click_handler_3,
     click_handler_4,
-    click_handler_5,
     dragstart_handler,
-    click_handler_6,
+    click_handler_5,
     dragover_handler,
     drop_handler,
     change_handler_1,
+    click_handler_6,
     click_handler_7,
     click_handler_8,
-    click_handler_9,
-    click_handler_10,
     dragstart_handler_1,
-    click_handler_11,
+    click_handler_9,
     dragover_handler_1,
     drop_handler_1,
+    click_handler_10,
+    click_handler_11,
     click_handler_12,
-    click_handler_13,
-    click_handler_14,
-    click_handler_15,
-    click_handler_16,
     change_handler_2,
     change_handler_3,
-    click_handler_17,
-    click_handler_18,
+    click_handler_13,
+    click_handler_14,
     dragstart_handler_2,
     dragover_handler_2,
     drop_handler_2,
-    click_handler_19,
-    click_handler_20,
-    click_handler_21,
-    click_handler_22,
+    click_handler_15,
+    click_handler_16,
+    click_handler_17,
     dragstart_handler_3,
     dragover_handler_3,
     drop_handler_3
@@ -7137,7 +7040,7 @@ var ProjectTaskBoard = class extends SvelteComponent {
         projectTasks: 20
       },
       null,
-      [-1, -1, -1]
+      [-1, -1]
     );
   }
 };

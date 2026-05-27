@@ -1447,4 +1447,29 @@
   margin-bottom: 20px;
 }
 
+/* ── Checkbox Misalignment Safeguard (Overrides Obsidian Themes absolute positioning) ── */
+.pos-view input[type="checkbox"],
+.pos-grid-workspace input[type="checkbox"],
+.pos-board-workspace input[type="checkbox"],
+.pos-project-full-workspace input[type="checkbox"],
+.pos-tasks-sidebar input[type="checkbox"] {
+  position: static !important;
+  margin: 0 auto !important;
+  transform: none !important;
+  display: inline-block !important;
+  cursor: pointer !important;
+  width: 15px !important;
+  height: 15px !important;
+  vertical-align: middle !important;
+  box-shadow: none !important;
+}
+
+/* ── Grid Checkbox Alignment Reset ── */
+.pos-th-check, .pos-td-check {
+  display: table-cell !important;
+  text-align: center !important;
+  vertical-align: middle !important;
+  padding: 10px 8px !important;
+}
+
 
