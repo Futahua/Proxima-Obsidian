@@ -1,245 +1,121 @@
 <script lang="ts">
-  import { onMount, onDestroy } from 'svelte';
   import { App as ObsidianApp, Notice } from 'obsidian';
   import type { FileManager } from '../../data/FileManager';
   import { projectsStore, tasksStore } from '../../stores/data';
-  import { formatAge } from '../../utils';
-  import { NewProjectModal } from '../../modals/Modals';
+  import type { ProjectData } from '../../types';
 
   export let app;
   export let fileManager: FileManager;
   export let plugin;
+  export let isFullPage = false;
   export let onSelect: (id: string, view: 'elastic' | 'deadlines') => void;
 
   $: activeProjects = $projectsStore.filter(p => p.status === 'active');
   $: tasks = $tasksStore;
 
-  let timer: number;
-  let now = Date.now();
+  let newProjectName = '';
 
-  // Notion-like Modular Config States (Persistent)
-  let showDesc = true;
-  let showAge = true;
-  let showStats = true;
-  let showHeatmap = true;
-  let sortBy: 'name' | 'createdAt' | 'tasks' | 'activeTasks' = 'createdAt';
-  let sortOrder: 'asc' | 'desc' = 'desc';
-  let searchQuery = '';
-
-  onMount(() => {
-    timer = window.setInterval(() => { now = Date.now(); }, 60000); // refresh age strings every minute
+  async function handleCreateProject() {
+    const name = newProjectName.trim();
+    if (!name) return;
+    const id = `proj-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`;
+    const fm = { 
+      type: 'project', 
+      name, 
+      description: '', 
+      createdAt: new Date().toISOString(), 
+      status: 'active' 
+    };
+    const content = '---\n' + Object.entries(fm).map(([k,v]) => `${k}: ${v}`).join('\n') + '\n---\n';
+    await app.vault.create(`projects/${id}.md`, content);
+    newProjectName = '';
+    await fileManager.loadAll();
     
-    // Load config from localStorage
-    try {
-      const saved = localStorage.getItem('pos-dashboard-config');
-      if (saved) {
-        const config = JSON.parse(saved);
-        showDesc = config.showDesc !== undefined ? config.showDesc : true;
-        showAge = config.showAge !== undefined ? config.showAge : true;
-        showStats = config.showStats !== undefined ? config.showStats : true;
-        showHeatmap = config.showHeatmap !== undefined ? config.showHeatmap : true;
-        sortBy = config.sortBy || 'createdAt';
-        sortOrder = config.sortOrder || 'desc';
-      }
-    } catch (e) {
-      console.error('Failed to load dashboard configuration:', e);
+    if (isFullPage) {
+      onSelect(id, 'elastic'); // Open project reactively in central tab
+    } else {
+      plugin.activateWorkspaceView(id); // Launch central tab from sidebar list
     }
-  });
-
-  onDestroy(() => {
-    window.clearInterval(timer);
-  });
-
-  function saveConfig() {
-    try {
-      localStorage.setItem('pos-dashboard-config', JSON.stringify({
-        showDesc, showAge, showStats, showHeatmap, sortBy, sortOrder
-      }));
-    } catch (e) {
-      console.error('Failed to save dashboard configuration:', e);
-    }
+    new Notice('Project created successfully!');
   }
 
-  function getHue(createdAt: string, range: number, minTime: number) {
-    const tMs = new Date(createdAt).getTime();
-    const ratio = range > 1 ? (tMs - minTime) / range : 0;
-    // 0 is red (oldest), 120 is green (newest)
-    return 120 * ratio;
-  }
-
-  function createProject() {
-    new NewProjectModal(app, async (name, desc) => {
-      const id = `proj-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`;
-      const fm = { 
-        type: 'project', 
-        name, 
-        description: desc, 
-        createdAt: new Date().toISOString(), 
-        status: 'active' 
-      };
-      const content = '---\n' + Object.entries(fm).map(([k,v]) => `${k}: ${v}`).join('\n') + '\n---\n';
-      await app.vault.create(`projects/${id}.md`, content);
-      await fileManager.loadAll(); // Reload everything
-      new Notice('Project created successfully!');
-    }).open();
-  }
-
-  async function archiveProject(id: string) {
-    if (confirm('Archive this project?')) {
+  async function handleDeleteProject(id: string) {
+    if (confirm('Delete project and its Markdown file? Tasks remain but will be uncategorized.')) {
       const file = app.vault.getAbstractFileByPath(`projects/${id}.md`);
       if (file) {
-        let c = await app.vault.read(file as any);
-        c = c.replace(/status:\s*active/, 'status: archived');
-        if (!c.includes('status:')) c = c.replace(/---/, '---\nstatus: archived');
-        await app.vault.modify(file as any, c);
+        await app.vault.delete(file);
+        
+        // Unlink all tasks belonging to this project
+        const linked = tasks.filter(t => t.project === id);
+        for (const t of linked) {
+          await fileManager.updateTask(t.id, { project: null });
+        }
+        
         await fileManager.loadAll();
-        new Notice('Project archived.');
+        new Notice('Project deleted.');
       }
     }
   }
 
-  function handleOpenWorkspace(projectId: string) {
-    plugin.activateWorkspaceView(projectId);
-  }
-
-  $: allTimes = activeProjects.map(p => new Date(p.createdAt).getTime());
-  $: minTime = Math.min(...allTimes);
-  $: maxTime = Math.max(...allTimes);
-  $: range = maxTime - minTime || 1;
-
-  // Reactive task counts per project
-  $: projectCounts = $projectsStore.reduce((acc, p) => {
-    const pTasks = tasks.filter(t => t.project === p.id);
-    acc[p.id] = {
-      running: pTasks.filter(t => t.status === 'running').length,
-      review: pTasks.filter(t => t.status === 'review').length,
-      total: pTasks.length
-    };
-    return acc;
-  }, {} as Record<string, { running: number; review: number; total: number }>);
-
-  // Search filter
-  $: filteredProjects = activeProjects.filter(p => 
-    p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    (p.description && p.description.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
-
-  // Reactive sorting
-  $: sortedProjects = [...filteredProjects].sort((a, b) => {
-    let valA: any;
-    let valB: any;
-
-    if (sortBy === 'name') {
-      valA = a.name.toLowerCase();
-      valB = b.name.toLowerCase();
-    } else if (sortBy === 'createdAt') {
-      valA = new Date(a.createdAt).getTime();
-      valB = new Date(b.createdAt).getTime();
-    } else if (sortBy === 'tasks') {
-      valA = projectCounts[a.id]?.total || 0;
-      valB = projectCounts[b.id]?.total || 0;
-    } else if (sortBy === 'activeTasks') {
-      valA = projectCounts[a.id]?.running || 0;
-      valB = projectCounts[b.id]?.running || 0;
+  function handleSelectProject(id: string) {
+    if (isFullPage) {
+      onSelect(id, 'elastic');
+    } else {
+      plugin.activateWorkspaceView(id);
     }
-
-    if (valA < valB) return sortOrder === 'asc' ? -1 : 1;
-    if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
-    return 0;
-  });
+  }
 </script>
 
-<!-- MODULAR TOOLBAR -->
-<div class="pos-dashboard-toolbar">
-  <div class="pos-dt-search-row">
-    <input 
-      type="text" 
-      placeholder="Search projects..." 
-      bind:value={searchQuery} 
-      class="pos-dt-search-input" 
-    />
-    <button class="pos-newtask-btn" on:click={createProject}>+ New Project</button>
-  </div>
-  
-  <div class="pos-dt-controls">
-    <!-- Notion Property Toggles -->
-    <div class="pos-dt-group">
-      <span class="pos-dt-label">Properties:</span>
-      <label class="pos-dt-toggle">
-        <input type="checkbox" bind:checked={showDesc} on:change={saveConfig} />
-        <span>Description</span>
-      </label>
-      <label class="pos-dt-toggle">
-        <input type="checkbox" bind:checked={showAge} on:change={saveConfig} />
-        <span>Age</span>
-      </label>
-      <label class="pos-dt-toggle">
-        <input type="checkbox" bind:checked={showStats} on:change={saveConfig} />
-        <span>Stats</span>
-      </label>
-      <label class="pos-dt-toggle">
-        <input type="checkbox" bind:checked={showHeatmap} on:change={saveConfig} />
-        <span>Heatmap</span>
-      </label>
-    </div>
+<div class="pos-projects-selection-layout">
+  <div class="pos-projects-central-pane">
+    <h2 class="pos-workspace-title">Projects Hub</h2>
+    <p class="pos-subtitle">Select or create a workspace to manage project notes and tasks modularly in a central tab.</p>
     
-    <!-- Sorting -->
-    <div class="pos-dt-group">
-      <span class="pos-dt-label">Sort:</span>
-      <select bind:value={sortBy} on:change={saveConfig} class="pos-dt-select">
-        <option value="name">Name</option>
-        <option value="createdAt">Date Created</option>
-        <option value="tasks">Total Tasks</option>
-        <option value="activeTasks">Active Tasks</option>
-      </select>
-      <button 
-        class="pos-dt-order-btn" 
-        on:click={() => { sortOrder = sortOrder === 'asc' ? 'desc' : 'asc'; saveConfig(); }}
-        title="Toggle sort direction"
-      >
-        {sortOrder === 'asc' ? '▲' : '▼'}
-      </button>
+    <form on:submit|preventDefault={handleCreateProject} class="pos-create-project-form">
+      <input 
+        type="text" 
+        placeholder="Enter new project name..." 
+        bind:value={newProjectName} 
+        class="pos-modal-input pos-newproject-input" 
+      />
+      <button type="submit" class="pos-modal-primary pos-createproject-btn">+ Create Project</button>
+    </form>
+
+    <div class="pos-project-list-cards">
+      {#if activeProjects.length === 0}
+        <p class="pos-empty">No projects yet. Type a name above to build your first project workspace!</p>
+      {:else}
+        {#each activeProjects as p (p.id)}
+          {@const pTasksCount = tasks.filter(t => t.project === p.id).length}
+          {@const pActiveCount = tasks.filter(t => t.project === p.id && t.status !== 'planned' && t.status !== 'review').length}
+          <div class="pos-project-workspace-card">
+            <div class="pos-pwc-info" on:click={() => handleSelectProject(p.id)}>
+              <div class="pos-pwc-name">{p.name}</div>
+              <div class="pos-pwc-meta">
+                <span>{pTasksCount} total tasks</span>
+                {#if pActiveCount > 0}
+                  <span class="pos-pwc-active-badge">{pActiveCount} active</span>
+                {/if}
+              </div>
+            </div>
+            <div class="pos-pwc-actions">
+              <button 
+                class="pos-modal-primary pos-open-ws-btn" 
+                on:click={() => handleSelectProject(p.id)}
+              >
+                Open Workspace
+              </button>
+              <button 
+                class="pos-del pos-del-project-btn" 
+                on:click={() => handleDeleteProject(p.id)}
+                title="Delete project"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        {/each}
+      {/if}
     </div>
   </div>
 </div>
-
-{#if sortedProjects.length === 0}
-  <p class="pos-empty">No projects match your filters or dashboard parameters.</p>
-{:else}
-  <div class="pos-project-list">
-    {#each sortedProjects as project (project.id)}
-      {@const counts = projectCounts[project.id] || { running: 0, review: 0, total: 0 }}
-      <div 
-        class="pos-card pos-project-card" 
-        style={showHeatmap ? `border-left: 4px solid hsl(${getHue(project.createdAt, range, minTime)}, 75%, 50%) !important;` : ''}
-      >
-        <div class="pos-card-name" on:click={() => handleOpenWorkspace(project.id)}>{project.name}</div>
-        
-        {#if showDesc && project.description}
-          <div class="pos-card-desc">{project.description}</div>
-        {/if}
-        
-        {#if showAge}
-          <div class="pos-age">Age: {formatAge(project.createdAt, now)}</div>
-        {/if}
-        
-        {#if showStats}
-          <div class="pos-card-meta">
-            <span>{counts.total} tasks</span>
-            {#if counts.running > 0}
-              <span class="pos-pwc-active-badge" style="font-size: 1em; padding: 1px 6px;">{counts.running} active</span>
-            {/if}
-            {#if counts.review > 0}<span>{counts.review} completed</span>{/if}
-          </div>
-        {/if}
-
-        <div class="pos-card-acts" style="margin-top: 10px;">
-          <button class="pos-ptc-start-btn" on:click={() => handleOpenWorkspace(project.id)}>Workspace</button>
-          <button on:click={() => onSelect(project.id, 'elastic')}>Elastic</button>
-          <button on:click={() => onSelect(project.id, 'deadlines')}>Deadlines</button>
-          <button class="pos-del" on:click={() => archiveProject(project.id)}>Archive</button>
-        </div>
-      </div>
-    {/each}
-  </div>
-{/if}

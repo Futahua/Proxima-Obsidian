@@ -165,6 +165,12 @@ function listen(node, event, handler, options) {
   node.addEventListener(event, handler, options);
   return () => node.removeEventListener(event, handler, options);
 }
+function prevent_default(fn) {
+  return function(event) {
+    event.preventDefault();
+    return fn.call(this, event);
+  };
+}
 function stop_propagation(fn) {
   return function(event) {
     event.stopPropagation();
@@ -1139,7 +1145,552 @@ if (typeof window !== "undefined")
   (window.__svelte || (window.__svelte = { v: /* @__PURE__ */ new Set() })).v.add(PUBLIC_VERSION);
 
 // src/ui/views/AgingView.svelte
-var import_obsidian3 = require("obsidian");
+var import_obsidian2 = require("obsidian");
+function get_each_context(ctx, list, i) {
+  const child_ctx = ctx.slice();
+  child_ctx[19] = list[i];
+  const constants_0 = (
+    /*tasks*/
+    child_ctx[1].filter(function func(...args) {
+      return (
+        /*func*/
+        ctx[17](
+          /*p*/
+          child_ctx[19],
+          ...args
+        )
+      );
+    }).length
+  );
+  child_ctx[20] = constants_0;
+  const constants_1 = (
+    /*tasks*/
+    child_ctx[1].filter(function func_1(...args) {
+      return (
+        /*func_1*/
+        ctx[18](
+          /*p*/
+          child_ctx[19],
+          ...args
+        )
+      );
+    }).length
+  );
+  child_ctx[21] = constants_1;
+  return child_ctx;
+}
+function create_else_block(ctx) {
+  let each_blocks = [];
+  let each_1_lookup = /* @__PURE__ */ new Map();
+  let each_1_anchor;
+  let each_value = ensure_array_like(
+    /*activeProjects*/
+    ctx[2]
+  );
+  const get_key = (ctx2) => (
+    /*p*/
+    ctx2[19].id
+  );
+  for (let i = 0; i < each_value.length; i += 1) {
+    let child_ctx = get_each_context(ctx, each_value, i);
+    let key = get_key(child_ctx);
+    each_1_lookup.set(key, each_blocks[i] = create_each_block(key, child_ctx));
+  }
+  return {
+    c() {
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        each_blocks[i].c();
+      }
+      each_1_anchor = empty();
+    },
+    m(target, anchor) {
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        if (each_blocks[i]) {
+          each_blocks[i].m(target, anchor);
+        }
+      }
+      insert(target, each_1_anchor, anchor);
+    },
+    p(ctx2, dirty) {
+      if (dirty & /*handleDeleteProject, activeProjects, handleSelectProject, tasks*/
+      54) {
+        each_value = ensure_array_like(
+          /*activeProjects*/
+          ctx2[2]
+        );
+        each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx2, each_value, each_1_lookup, each_1_anchor.parentNode, destroy_block, create_each_block, each_1_anchor, get_each_context);
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(each_1_anchor);
+      }
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        each_blocks[i].d(detaching);
+      }
+    }
+  };
+}
+function create_if_block(ctx) {
+  let p_1;
+  return {
+    c() {
+      p_1 = element("p");
+      p_1.textContent = "No projects yet. Type a name above to build your first project workspace!";
+      attr(p_1, "class", "pos-empty");
+    },
+    m(target, anchor) {
+      insert(target, p_1, anchor);
+    },
+    p: noop,
+    d(detaching) {
+      if (detaching) {
+        detach(p_1);
+      }
+    }
+  };
+}
+function create_if_block_1(ctx) {
+  let span;
+  let t0_value = (
+    /*pActiveCount*/
+    ctx[21] + ""
+  );
+  let t0;
+  let t1;
+  return {
+    c() {
+      span = element("span");
+      t0 = text(t0_value);
+      t1 = text(" active");
+      attr(span, "class", "pos-pwc-active-badge");
+    },
+    m(target, anchor) {
+      insert(target, span, anchor);
+      append(span, t0);
+      append(span, t1);
+    },
+    p(ctx2, dirty) {
+      if (dirty & /*tasks, activeProjects*/
+      6 && t0_value !== (t0_value = /*pActiveCount*/
+      ctx2[21] + ""))
+        set_data(t0, t0_value);
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(span);
+      }
+    }
+  };
+}
+function create_each_block(key_1, ctx) {
+  let div4;
+  let div2;
+  let div0;
+  let t0_value = (
+    /*p*/
+    ctx[19].name + ""
+  );
+  let t0;
+  let t1;
+  let div1;
+  let span;
+  let t2_value = (
+    /*pTasksCount*/
+    ctx[20] + ""
+  );
+  let t2;
+  let t3;
+  let t4;
+  let t5;
+  let div3;
+  let button0;
+  let t7;
+  let button1;
+  let t9;
+  let mounted;
+  let dispose;
+  let if_block = (
+    /*pActiveCount*/
+    ctx[21] > 0 && create_if_block_1(ctx)
+  );
+  function click_handler() {
+    return (
+      /*click_handler*/
+      ctx[14](
+        /*p*/
+        ctx[19]
+      )
+    );
+  }
+  function click_handler_1() {
+    return (
+      /*click_handler_1*/
+      ctx[15](
+        /*p*/
+        ctx[19]
+      )
+    );
+  }
+  function click_handler_2() {
+    return (
+      /*click_handler_2*/
+      ctx[16](
+        /*p*/
+        ctx[19]
+      )
+    );
+  }
+  return {
+    key: key_1,
+    first: null,
+    c() {
+      div4 = element("div");
+      div2 = element("div");
+      div0 = element("div");
+      t0 = text(t0_value);
+      t1 = space();
+      div1 = element("div");
+      span = element("span");
+      t2 = text(t2_value);
+      t3 = text(" total tasks");
+      t4 = space();
+      if (if_block)
+        if_block.c();
+      t5 = space();
+      div3 = element("div");
+      button0 = element("button");
+      button0.textContent = "Open Workspace";
+      t7 = space();
+      button1 = element("button");
+      button1.textContent = "Delete";
+      t9 = space();
+      attr(div0, "class", "pos-pwc-name");
+      attr(div1, "class", "pos-pwc-meta");
+      attr(div2, "class", "pos-pwc-info");
+      attr(button0, "class", "pos-modal-primary pos-open-ws-btn");
+      attr(button1, "class", "pos-del pos-del-project-btn");
+      attr(button1, "title", "Delete project");
+      attr(div3, "class", "pos-pwc-actions");
+      attr(div4, "class", "pos-project-workspace-card");
+      this.first = div4;
+    },
+    m(target, anchor) {
+      insert(target, div4, anchor);
+      append(div4, div2);
+      append(div2, div0);
+      append(div0, t0);
+      append(div2, t1);
+      append(div2, div1);
+      append(div1, span);
+      append(span, t2);
+      append(span, t3);
+      append(div1, t4);
+      if (if_block)
+        if_block.m(div1, null);
+      append(div4, t5);
+      append(div4, div3);
+      append(div3, button0);
+      append(div3, t7);
+      append(div3, button1);
+      append(div4, t9);
+      if (!mounted) {
+        dispose = [
+          listen(div2, "click", click_handler),
+          listen(button0, "click", click_handler_1),
+          listen(button1, "click", click_handler_2)
+        ];
+        mounted = true;
+      }
+    },
+    p(new_ctx, dirty) {
+      ctx = new_ctx;
+      if (dirty & /*activeProjects*/
+      4 && t0_value !== (t0_value = /*p*/
+      ctx[19].name + ""))
+        set_data(t0, t0_value);
+      if (dirty & /*tasks, activeProjects*/
+      6 && t2_value !== (t2_value = /*pTasksCount*/
+      ctx[20] + ""))
+        set_data(t2, t2_value);
+      if (
+        /*pActiveCount*/
+        ctx[21] > 0
+      ) {
+        if (if_block) {
+          if_block.p(ctx, dirty);
+        } else {
+          if_block = create_if_block_1(ctx);
+          if_block.c();
+          if_block.m(div1, null);
+        }
+      } else if (if_block) {
+        if_block.d(1);
+        if_block = null;
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div4);
+      }
+      if (if_block)
+        if_block.d();
+      mounted = false;
+      run_all(dispose);
+    }
+  };
+}
+function create_fragment(ctx) {
+  let div2;
+  let div1;
+  let h2;
+  let t1;
+  let p_1;
+  let t3;
+  let form;
+  let input;
+  let t4;
+  let button;
+  let t6;
+  let div0;
+  let mounted;
+  let dispose;
+  function select_block_type(ctx2, dirty) {
+    if (
+      /*activeProjects*/
+      ctx2[2].length === 0
+    )
+      return create_if_block;
+    return create_else_block;
+  }
+  let current_block_type = select_block_type(ctx, -1);
+  let if_block = current_block_type(ctx);
+  return {
+    c() {
+      div2 = element("div");
+      div1 = element("div");
+      h2 = element("h2");
+      h2.textContent = "Projects Hub";
+      t1 = space();
+      p_1 = element("p");
+      p_1.textContent = "Select or create a workspace to manage project notes and tasks modularly in a central tab.";
+      t3 = space();
+      form = element("form");
+      input = element("input");
+      t4 = space();
+      button = element("button");
+      button.textContent = "+ Create Project";
+      t6 = space();
+      div0 = element("div");
+      if_block.c();
+      attr(h2, "class", "pos-workspace-title");
+      attr(p_1, "class", "pos-subtitle");
+      attr(input, "type", "text");
+      attr(input, "placeholder", "Enter new project name...");
+      attr(input, "class", "pos-modal-input pos-newproject-input");
+      attr(button, "type", "submit");
+      attr(button, "class", "pos-modal-primary pos-createproject-btn");
+      attr(form, "class", "pos-create-project-form");
+      attr(div0, "class", "pos-project-list-cards");
+      attr(div1, "class", "pos-projects-central-pane");
+      attr(div2, "class", "pos-projects-selection-layout");
+    },
+    m(target, anchor) {
+      insert(target, div2, anchor);
+      append(div2, div1);
+      append(div1, h2);
+      append(div1, t1);
+      append(div1, p_1);
+      append(div1, t3);
+      append(div1, form);
+      append(form, input);
+      set_input_value(
+        input,
+        /*newProjectName*/
+        ctx[0]
+      );
+      append(form, t4);
+      append(form, button);
+      append(div1, t6);
+      append(div1, div0);
+      if_block.m(div0, null);
+      if (!mounted) {
+        dispose = [
+          listen(
+            input,
+            "input",
+            /*input_input_handler*/
+            ctx[13]
+          ),
+          listen(form, "submit", prevent_default(
+            /*handleCreateProject*/
+            ctx[3]
+          ))
+        ];
+        mounted = true;
+      }
+    },
+    p(ctx2, [dirty]) {
+      if (dirty & /*newProjectName*/
+      1 && input.value !== /*newProjectName*/
+      ctx2[0]) {
+        set_input_value(
+          input,
+          /*newProjectName*/
+          ctx2[0]
+        );
+      }
+      if (current_block_type === (current_block_type = select_block_type(ctx2, dirty)) && if_block) {
+        if_block.p(ctx2, dirty);
+      } else {
+        if_block.d(1);
+        if_block = current_block_type(ctx2);
+        if (if_block) {
+          if_block.c();
+          if_block.m(div0, null);
+        }
+      }
+    },
+    i: noop,
+    o: noop,
+    d(detaching) {
+      if (detaching) {
+        detach(div2);
+      }
+      if_block.d();
+      mounted = false;
+      run_all(dispose);
+    }
+  };
+}
+function instance($$self, $$props, $$invalidate) {
+  let activeProjects;
+  let tasks;
+  let $tasksStore;
+  let $projectsStore;
+  component_subscribe($$self, tasksStore, ($$value) => $$invalidate(11, $tasksStore = $$value));
+  component_subscribe($$self, projectsStore, ($$value) => $$invalidate(12, $projectsStore = $$value));
+  let { app } = $$props;
+  let { fileManager } = $$props;
+  let { plugin } = $$props;
+  let { isFullPage = false } = $$props;
+  let { onSelect } = $$props;
+  let newProjectName = "";
+  async function handleCreateProject() {
+    const name = newProjectName.trim();
+    if (!name)
+      return;
+    const id = `proj-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`;
+    const fm = {
+      type: "project",
+      name,
+      description: "",
+      createdAt: (/* @__PURE__ */ new Date()).toISOString(),
+      status: "active"
+    };
+    const content = "---\n" + Object.entries(fm).map(([k, v]) => `${k}: ${v}`).join("\n") + "\n---\n";
+    await app.vault.create(`projects/${id}.md`, content);
+    $$invalidate(0, newProjectName = "");
+    await fileManager.loadAll();
+    if (isFullPage) {
+      onSelect(id, "elastic");
+    } else {
+      plugin.activateWorkspaceView(id);
+    }
+    new import_obsidian2.Notice("Project created successfully!");
+  }
+  async function handleDeleteProject(id) {
+    if (confirm("Delete project and its Markdown file? Tasks remain but will be uncategorized.")) {
+      const file = app.vault.getAbstractFileByPath(`projects/${id}.md`);
+      if (file) {
+        await app.vault.delete(file);
+        const linked = tasks.filter((t) => t.project === id);
+        for (const t of linked) {
+          await fileManager.updateTask(t.id, { project: null });
+        }
+        await fileManager.loadAll();
+        new import_obsidian2.Notice("Project deleted.");
+      }
+    }
+  }
+  function handleSelectProject(id) {
+    if (isFullPage) {
+      onSelect(id, "elastic");
+    } else {
+      plugin.activateWorkspaceView(id);
+    }
+  }
+  function input_input_handler() {
+    newProjectName = this.value;
+    $$invalidate(0, newProjectName);
+  }
+  const click_handler = (p) => handleSelectProject(p.id);
+  const click_handler_1 = (p) => handleSelectProject(p.id);
+  const click_handler_2 = (p) => handleDeleteProject(p.id);
+  const func = (p, t) => t.project === p.id;
+  const func_1 = (p, t) => t.project === p.id && t.status !== "planned" && t.status !== "review";
+  $$self.$$set = ($$props2) => {
+    if ("app" in $$props2)
+      $$invalidate(6, app = $$props2.app);
+    if ("fileManager" in $$props2)
+      $$invalidate(7, fileManager = $$props2.fileManager);
+    if ("plugin" in $$props2)
+      $$invalidate(8, plugin = $$props2.plugin);
+    if ("isFullPage" in $$props2)
+      $$invalidate(9, isFullPage = $$props2.isFullPage);
+    if ("onSelect" in $$props2)
+      $$invalidate(10, onSelect = $$props2.onSelect);
+  };
+  $$self.$$.update = () => {
+    if ($$self.$$.dirty & /*$projectsStore*/
+    4096) {
+      $:
+        $$invalidate(2, activeProjects = $projectsStore.filter((p) => p.status === "active"));
+    }
+    if ($$self.$$.dirty & /*$tasksStore*/
+    2048) {
+      $:
+        $$invalidate(1, tasks = $tasksStore);
+    }
+  };
+  return [
+    newProjectName,
+    tasks,
+    activeProjects,
+    handleCreateProject,
+    handleDeleteProject,
+    handleSelectProject,
+    app,
+    fileManager,
+    plugin,
+    isFullPage,
+    onSelect,
+    $tasksStore,
+    $projectsStore,
+    input_input_handler,
+    click_handler,
+    click_handler_1,
+    click_handler_2,
+    func,
+    func_1
+  ];
+}
+var AgingView = class extends SvelteComponent {
+  constructor(options) {
+    super();
+    init(this, options, instance, create_fragment, safe_not_equal, {
+      app: 6,
+      fileManager: 7,
+      plugin: 8,
+      isFullPage: 9,
+      onSelect: 10
+    });
+  }
+};
+var AgingView_default = AgingView;
+
+// src/ui/views/ElasticView.svelte
+var import_obsidian4 = require("obsidian");
 
 // src/utils.ts
 function calculateLiquidTimeline(tasks, startTime, deadline) {
@@ -1178,22 +1729,6 @@ function calculateLiquidTimeline(tasks, startTime, deadline) {
     cur = end.getTime();
   }
   return tl;
-}
-function formatAge(createdAtIso, now2 = Date.now()) {
-  const diff = now2 - new Date(createdAtIso).getTime();
-  const mins = Math.floor(diff / 6e4);
-  if (mins < 1)
-    return "just now";
-  if (mins < 60)
-    return `${mins}m ago`;
-  const hours = Math.floor(mins / 60);
-  if (hours < 24)
-    return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  if (days < 30)
-    return `${days}d ago`;
-  const months = Math.floor(days / 30);
-  return `${months}mo ago`;
 }
 function formatCountdown(diffMs) {
   const isPast = diffMs < 0;
@@ -1239,8 +1774,8 @@ function fmtDur(m) {
 }
 
 // src/modals/Modals.ts
-var import_obsidian2 = require("obsidian");
-var EditTaskModal = class extends import_obsidian2.Modal {
+var import_obsidian3 = require("obsidian");
+var EditTaskModal = class extends import_obsidian3.Modal {
   constructor(app, task, onSave) {
     super(app);
     this.task = task;
@@ -1302,7 +1837,7 @@ var EditTaskModal = class extends import_obsidian2.Modal {
     br.createEl("button", { text: "Save", cls: "pos-modal-primary" }).addEventListener("click", () => {
       const name = inp.value.trim();
       if (!name) {
-        new import_obsidian2.Notice("Task name is required");
+        new import_obsidian3.Notice("Task name is required");
         return;
       }
       const updates = {
@@ -1328,7 +1863,7 @@ var EditTaskModal = class extends import_obsidian2.Modal {
     this.contentEl.empty();
   }
 };
-var ConfirmModal = class extends import_obsidian2.Modal {
+var ConfirmModal = class extends import_obsidian3.Modal {
   constructor(app, title, message, onConfirm) {
     super(app);
     this.title = title;
@@ -1351,41 +1886,7 @@ var ConfirmModal = class extends import_obsidian2.Modal {
     this.contentEl.empty();
   }
 };
-var NewProjectModal = class extends import_obsidian2.Modal {
-  constructor(app, onCreate) {
-    super(app);
-    this.onCreate = onCreate;
-  }
-  onOpen() {
-    const { contentEl } = this;
-    contentEl.empty();
-    contentEl.createEl("h3", { text: "Create New Project" });
-    const inp = contentEl.createEl("input", {
-      type: "text",
-      placeholder: "Project name",
-      cls: "pos-modal-input"
-    });
-    const desc = contentEl.createEl("textarea", {
-      placeholder: "Description (optional)",
-      cls: "pos-modal-textarea"
-    });
-    const br = contentEl.createEl("div", { cls: "pos-modal-buttons" });
-    br.createEl("button", { text: "Cancel" }).addEventListener("click", () => this.close());
-    br.createEl("button", { text: "Create", cls: "pos-modal-primary" }).addEventListener("click", () => {
-      const name = inp.value.trim();
-      if (!name) {
-        new import_obsidian2.Notice("Project name is required");
-        return;
-      }
-      this.onCreate(name, desc.value.trim());
-      this.close();
-    });
-  }
-  onClose() {
-    this.contentEl.empty();
-  }
-};
-var NewTaskModal = class extends import_obsidian2.Modal {
+var NewTaskModal = class extends import_obsidian3.Modal {
   constructor(app, onCreate) {
     super(app);
     this.onCreate = onCreate;
@@ -1404,7 +1905,7 @@ var NewTaskModal = class extends import_obsidian2.Modal {
     br.createEl("button", { text: "Create", cls: "pos-modal-primary" }).addEventListener("click", () => {
       const name = inp.value.trim();
       if (!name) {
-        new import_obsidian2.Notice("Task name is required");
+        new import_obsidian3.Notice("Task name is required");
         return;
       }
       this.onCreate(name);
@@ -1416,1233 +1917,7 @@ var NewTaskModal = class extends import_obsidian2.Modal {
   }
 };
 
-// src/ui/views/AgingView.svelte
-function get_each_context(ctx, list, i) {
-  const child_ctx = ctx.slice();
-  child_ctx[41] = list[i];
-  const constants_0 = (
-    /*projectCounts*/
-    child_ctx[4][
-      /*project*/
-      child_ctx[41].id
-    ] || { running: 0, review: 0, total: 0 }
-  );
-  child_ctx[42] = constants_0;
-  return child_ctx;
-}
-function create_else_block(ctx) {
-  let div;
-  let each_blocks = [];
-  let each_1_lookup = /* @__PURE__ */ new Map();
-  let each_value = ensure_array_like(
-    /*sortedProjects*/
-    ctx[11]
-  );
-  const get_key = (ctx2) => (
-    /*project*/
-    ctx2[41].id
-  );
-  for (let i = 0; i < each_value.length; i += 1) {
-    let child_ctx = get_each_context(ctx, each_value, i);
-    let key = get_key(child_ctx);
-    each_1_lookup.set(key, each_blocks[i] = create_each_block(key, child_ctx));
-  }
-  return {
-    c() {
-      div = element("div");
-      for (let i = 0; i < each_blocks.length; i += 1) {
-        each_blocks[i].c();
-      }
-      attr(div, "class", "pos-project-list");
-    },
-    m(target, anchor) {
-      insert(target, div, anchor);
-      for (let i = 0; i < each_blocks.length; i += 1) {
-        if (each_blocks[i]) {
-          each_blocks[i].m(div, null);
-        }
-      }
-    },
-    p(ctx2, dirty) {
-      if (dirty[0] & /*showHeatmap, getHue, sortedProjects, range, minTime, archiveProject, onSelect, handleOpenWorkspace, projectCounts, showStats, now, showAge, showDesc*/
-      221169) {
-        each_value = ensure_array_like(
-          /*sortedProjects*/
-          ctx2[11]
-        );
-        each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx2, each_value, each_1_lookup, div, destroy_block, create_each_block, null, get_each_context);
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(div);
-      }
-      for (let i = 0; i < each_blocks.length; i += 1) {
-        each_blocks[i].d();
-      }
-    }
-  };
-}
-function create_if_block(ctx) {
-  let p;
-  return {
-    c() {
-      p = element("p");
-      p.textContent = "No projects match your filters or dashboard parameters.";
-      attr(p, "class", "pos-empty");
-    },
-    m(target, anchor) {
-      insert(target, p, anchor);
-    },
-    p: noop,
-    d(detaching) {
-      if (detaching) {
-        detach(p);
-      }
-    }
-  };
-}
-function create_if_block_5(ctx) {
-  let div;
-  let t_value = (
-    /*project*/
-    ctx[41].description + ""
-  );
-  let t;
-  return {
-    c() {
-      div = element("div");
-      t = text(t_value);
-      attr(div, "class", "pos-card-desc");
-    },
-    m(target, anchor) {
-      insert(target, div, anchor);
-      append(div, t);
-    },
-    p(ctx2, dirty) {
-      if (dirty[0] & /*sortedProjects*/
-      2048 && t_value !== (t_value = /*project*/
-      ctx2[41].description + ""))
-        set_data(t, t_value);
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(div);
-      }
-    }
-  };
-}
-function create_if_block_4(ctx) {
-  let div;
-  let t0;
-  let t1_value = formatAge(
-    /*project*/
-    ctx[41].createdAt,
-    /*now*/
-    ctx[6]
-  ) + "";
-  let t1;
-  return {
-    c() {
-      div = element("div");
-      t0 = text("Age: ");
-      t1 = text(t1_value);
-      attr(div, "class", "pos-age");
-    },
-    m(target, anchor) {
-      insert(target, div, anchor);
-      append(div, t0);
-      append(div, t1);
-    },
-    p(ctx2, dirty) {
-      if (dirty[0] & /*sortedProjects, now*/
-      2112 && t1_value !== (t1_value = formatAge(
-        /*project*/
-        ctx2[41].createdAt,
-        /*now*/
-        ctx2[6]
-      ) + ""))
-        set_data(t1, t1_value);
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(div);
-      }
-    }
-  };
-}
-function create_if_block_1(ctx) {
-  let div;
-  let span;
-  let t0_value = (
-    /*counts*/
-    ctx[42].total + ""
-  );
-  let t0;
-  let t1;
-  let t2;
-  let t3;
-  let if_block0 = (
-    /*counts*/
-    ctx[42].running > 0 && create_if_block_3(ctx)
-  );
-  let if_block1 = (
-    /*counts*/
-    ctx[42].review > 0 && create_if_block_2(ctx)
-  );
-  return {
-    c() {
-      div = element("div");
-      span = element("span");
-      t0 = text(t0_value);
-      t1 = text(" tasks");
-      t2 = space();
-      if (if_block0)
-        if_block0.c();
-      t3 = space();
-      if (if_block1)
-        if_block1.c();
-      attr(div, "class", "pos-card-meta");
-    },
-    m(target, anchor) {
-      insert(target, div, anchor);
-      append(div, span);
-      append(span, t0);
-      append(span, t1);
-      append(div, t2);
-      if (if_block0)
-        if_block0.m(div, null);
-      append(div, t3);
-      if (if_block1)
-        if_block1.m(div, null);
-    },
-    p(ctx2, dirty) {
-      if (dirty[0] & /*projectCounts, sortedProjects*/
-      2064 && t0_value !== (t0_value = /*counts*/
-      ctx2[42].total + ""))
-        set_data(t0, t0_value);
-      if (
-        /*counts*/
-        ctx2[42].running > 0
-      ) {
-        if (if_block0) {
-          if_block0.p(ctx2, dirty);
-        } else {
-          if_block0 = create_if_block_3(ctx2);
-          if_block0.c();
-          if_block0.m(div, t3);
-        }
-      } else if (if_block0) {
-        if_block0.d(1);
-        if_block0 = null;
-      }
-      if (
-        /*counts*/
-        ctx2[42].review > 0
-      ) {
-        if (if_block1) {
-          if_block1.p(ctx2, dirty);
-        } else {
-          if_block1 = create_if_block_2(ctx2);
-          if_block1.c();
-          if_block1.m(div, null);
-        }
-      } else if (if_block1) {
-        if_block1.d(1);
-        if_block1 = null;
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(div);
-      }
-      if (if_block0)
-        if_block0.d();
-      if (if_block1)
-        if_block1.d();
-    }
-  };
-}
-function create_if_block_3(ctx) {
-  let span;
-  let t0_value = (
-    /*counts*/
-    ctx[42].running + ""
-  );
-  let t0;
-  let t1;
-  return {
-    c() {
-      span = element("span");
-      t0 = text(t0_value);
-      t1 = text(" active");
-      attr(span, "class", "pos-pwc-active-badge");
-      set_style(span, "font-size", "1em");
-      set_style(span, "padding", "1px 6px");
-    },
-    m(target, anchor) {
-      insert(target, span, anchor);
-      append(span, t0);
-      append(span, t1);
-    },
-    p(ctx2, dirty) {
-      if (dirty[0] & /*projectCounts, sortedProjects*/
-      2064 && t0_value !== (t0_value = /*counts*/
-      ctx2[42].running + ""))
-        set_data(t0, t0_value);
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(span);
-      }
-    }
-  };
-}
-function create_if_block_2(ctx) {
-  let span;
-  let t0_value = (
-    /*counts*/
-    ctx[42].review + ""
-  );
-  let t0;
-  let t1;
-  return {
-    c() {
-      span = element("span");
-      t0 = text(t0_value);
-      t1 = text(" completed");
-    },
-    m(target, anchor) {
-      insert(target, span, anchor);
-      append(span, t0);
-      append(span, t1);
-    },
-    p(ctx2, dirty) {
-      if (dirty[0] & /*projectCounts, sortedProjects*/
-      2064 && t0_value !== (t0_value = /*counts*/
-      ctx2[42].review + ""))
-        set_data(t0, t0_value);
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(span);
-      }
-    }
-  };
-}
-function create_each_block(key_1, ctx) {
-  let div2;
-  let div0;
-  let t0_value = (
-    /*project*/
-    ctx[41].name + ""
-  );
-  let t0;
-  let t1;
-  let t2;
-  let t3;
-  let t4;
-  let div1;
-  let button0;
-  let t6;
-  let button1;
-  let t8;
-  let button2;
-  let t10;
-  let button3;
-  let t12;
-  let div2_style_value;
-  let mounted;
-  let dispose;
-  function click_handler_1() {
-    return (
-      /*click_handler_1*/
-      ctx[35](
-        /*project*/
-        ctx[41]
-      )
-    );
-  }
-  let if_block0 = (
-    /*showDesc*/
-    ctx[7] && /*project*/
-    ctx[41].description && create_if_block_5(ctx)
-  );
-  let if_block1 = (
-    /*showAge*/
-    ctx[8] && create_if_block_4(ctx)
-  );
-  let if_block2 = (
-    /*showStats*/
-    ctx[9] && create_if_block_1(ctx)
-  );
-  function click_handler_2() {
-    return (
-      /*click_handler_2*/
-      ctx[36](
-        /*project*/
-        ctx[41]
-      )
-    );
-  }
-  function click_handler_3() {
-    return (
-      /*click_handler_3*/
-      ctx[37](
-        /*project*/
-        ctx[41]
-      )
-    );
-  }
-  function click_handler_4() {
-    return (
-      /*click_handler_4*/
-      ctx[38](
-        /*project*/
-        ctx[41]
-      )
-    );
-  }
-  function click_handler_5() {
-    return (
-      /*click_handler_5*/
-      ctx[39](
-        /*project*/
-        ctx[41]
-      )
-    );
-  }
-  return {
-    key: key_1,
-    first: null,
-    c() {
-      div2 = element("div");
-      div0 = element("div");
-      t0 = text(t0_value);
-      t1 = space();
-      if (if_block0)
-        if_block0.c();
-      t2 = space();
-      if (if_block1)
-        if_block1.c();
-      t3 = space();
-      if (if_block2)
-        if_block2.c();
-      t4 = space();
-      div1 = element("div");
-      button0 = element("button");
-      button0.textContent = "Workspace";
-      t6 = space();
-      button1 = element("button");
-      button1.textContent = "Elastic";
-      t8 = space();
-      button2 = element("button");
-      button2.textContent = "Deadlines";
-      t10 = space();
-      button3 = element("button");
-      button3.textContent = "Archive";
-      t12 = space();
-      attr(div0, "class", "pos-card-name");
-      attr(button0, "class", "pos-ptc-start-btn");
-      attr(button3, "class", "pos-del");
-      attr(div1, "class", "pos-card-acts");
-      set_style(div1, "margin-top", "10px");
-      attr(div2, "class", "pos-card pos-project-card");
-      attr(div2, "style", div2_style_value = /*showHeatmap*/
-      ctx[10] ? `border-left: 4px solid hsl(${/*getHue*/
-      ctx[14](
-        /*project*/
-        ctx[41].createdAt,
-        /*range*/
-        ctx[12],
-        /*minTime*/
-        ctx[5]
-      )}, 75%, 50%) !important;` : "");
-      this.first = div2;
-    },
-    m(target, anchor) {
-      insert(target, div2, anchor);
-      append(div2, div0);
-      append(div0, t0);
-      append(div2, t1);
-      if (if_block0)
-        if_block0.m(div2, null);
-      append(div2, t2);
-      if (if_block1)
-        if_block1.m(div2, null);
-      append(div2, t3);
-      if (if_block2)
-        if_block2.m(div2, null);
-      append(div2, t4);
-      append(div2, div1);
-      append(div1, button0);
-      append(div1, t6);
-      append(div1, button1);
-      append(div1, t8);
-      append(div1, button2);
-      append(div1, t10);
-      append(div1, button3);
-      append(div2, t12);
-      if (!mounted) {
-        dispose = [
-          listen(div0, "click", click_handler_1),
-          listen(button0, "click", click_handler_2),
-          listen(button1, "click", click_handler_3),
-          listen(button2, "click", click_handler_4),
-          listen(button3, "click", click_handler_5)
-        ];
-        mounted = true;
-      }
-    },
-    p(new_ctx, dirty) {
-      ctx = new_ctx;
-      if (dirty[0] & /*sortedProjects*/
-      2048 && t0_value !== (t0_value = /*project*/
-      ctx[41].name + ""))
-        set_data(t0, t0_value);
-      if (
-        /*showDesc*/
-        ctx[7] && /*project*/
-        ctx[41].description
-      ) {
-        if (if_block0) {
-          if_block0.p(ctx, dirty);
-        } else {
-          if_block0 = create_if_block_5(ctx);
-          if_block0.c();
-          if_block0.m(div2, t2);
-        }
-      } else if (if_block0) {
-        if_block0.d(1);
-        if_block0 = null;
-      }
-      if (
-        /*showAge*/
-        ctx[8]
-      ) {
-        if (if_block1) {
-          if_block1.p(ctx, dirty);
-        } else {
-          if_block1 = create_if_block_4(ctx);
-          if_block1.c();
-          if_block1.m(div2, t3);
-        }
-      } else if (if_block1) {
-        if_block1.d(1);
-        if_block1 = null;
-      }
-      if (
-        /*showStats*/
-        ctx[9]
-      ) {
-        if (if_block2) {
-          if_block2.p(ctx, dirty);
-        } else {
-          if_block2 = create_if_block_1(ctx);
-          if_block2.c();
-          if_block2.m(div2, t4);
-        }
-      } else if (if_block2) {
-        if_block2.d(1);
-        if_block2 = null;
-      }
-      if (dirty[0] & /*showHeatmap, sortedProjects, range, minTime*/
-      7200 && div2_style_value !== (div2_style_value = /*showHeatmap*/
-      ctx[10] ? `border-left: 4px solid hsl(${/*getHue*/
-      ctx[14](
-        /*project*/
-        ctx[41].createdAt,
-        /*range*/
-        ctx[12],
-        /*minTime*/
-        ctx[5]
-      )}, 75%, 50%) !important;` : "")) {
-        attr(div2, "style", div2_style_value);
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(div2);
-      }
-      if (if_block0)
-        if_block0.d();
-      if (if_block1)
-        if_block1.d();
-      if (if_block2)
-        if_block2.d();
-      mounted = false;
-      run_all(dispose);
-    }
-  };
-}
-function create_fragment(ctx) {
-  let div4;
-  let div0;
-  let input0;
-  let t0;
-  let button0;
-  let t2;
-  let div3;
-  let div1;
-  let span0;
-  let t4;
-  let label0;
-  let input1;
-  let t5;
-  let span1;
-  let t7;
-  let label1;
-  let input2;
-  let t8;
-  let span2;
-  let t10;
-  let label2;
-  let input3;
-  let t11;
-  let span3;
-  let t13;
-  let label3;
-  let input4;
-  let t14;
-  let span4;
-  let t16;
-  let div2;
-  let span5;
-  let t18;
-  let select;
-  let option0;
-  let option1;
-  let option2;
-  let option3;
-  let t23;
-  let button1;
-  let t24_value = (
-    /*sortOrder*/
-    ctx[2] === "asc" ? "\u25B2" : "\u25BC"
-  );
-  let t24;
-  let t25;
-  let if_block_anchor;
-  let mounted;
-  let dispose;
-  function select_block_type(ctx2, dirty) {
-    if (
-      /*sortedProjects*/
-      ctx2[11].length === 0
-    )
-      return create_if_block;
-    return create_else_block;
-  }
-  let current_block_type = select_block_type(ctx, [-1, -1]);
-  let if_block = current_block_type(ctx);
-  return {
-    c() {
-      div4 = element("div");
-      div0 = element("div");
-      input0 = element("input");
-      t0 = space();
-      button0 = element("button");
-      button0.textContent = "+ New Project";
-      t2 = space();
-      div3 = element("div");
-      div1 = element("div");
-      span0 = element("span");
-      span0.textContent = "Properties:";
-      t4 = space();
-      label0 = element("label");
-      input1 = element("input");
-      t5 = space();
-      span1 = element("span");
-      span1.textContent = "Description";
-      t7 = space();
-      label1 = element("label");
-      input2 = element("input");
-      t8 = space();
-      span2 = element("span");
-      span2.textContent = "Age";
-      t10 = space();
-      label2 = element("label");
-      input3 = element("input");
-      t11 = space();
-      span3 = element("span");
-      span3.textContent = "Stats";
-      t13 = space();
-      label3 = element("label");
-      input4 = element("input");
-      t14 = space();
-      span4 = element("span");
-      span4.textContent = "Heatmap";
-      t16 = space();
-      div2 = element("div");
-      span5 = element("span");
-      span5.textContent = "Sort:";
-      t18 = space();
-      select = element("select");
-      option0 = element("option");
-      option0.textContent = "Name";
-      option1 = element("option");
-      option1.textContent = "Date Created";
-      option2 = element("option");
-      option2.textContent = "Total Tasks";
-      option3 = element("option");
-      option3.textContent = "Active Tasks";
-      t23 = space();
-      button1 = element("button");
-      t24 = text(t24_value);
-      t25 = space();
-      if_block.c();
-      if_block_anchor = empty();
-      attr(input0, "type", "text");
-      attr(input0, "placeholder", "Search projects...");
-      attr(input0, "class", "pos-dt-search-input");
-      attr(button0, "class", "pos-newtask-btn");
-      attr(div0, "class", "pos-dt-search-row");
-      attr(span0, "class", "pos-dt-label");
-      attr(input1, "type", "checkbox");
-      attr(label0, "class", "pos-dt-toggle");
-      attr(input2, "type", "checkbox");
-      attr(label1, "class", "pos-dt-toggle");
-      attr(input3, "type", "checkbox");
-      attr(label2, "class", "pos-dt-toggle");
-      attr(input4, "type", "checkbox");
-      attr(label3, "class", "pos-dt-toggle");
-      attr(div1, "class", "pos-dt-group");
-      attr(span5, "class", "pos-dt-label");
-      option0.__value = "name";
-      set_input_value(option0, option0.__value);
-      option1.__value = "createdAt";
-      set_input_value(option1, option1.__value);
-      option2.__value = "tasks";
-      set_input_value(option2, option2.__value);
-      option3.__value = "activeTasks";
-      set_input_value(option3, option3.__value);
-      attr(select, "class", "pos-dt-select");
-      if (
-        /*sortBy*/
-        ctx[1] === void 0
-      )
-        add_render_callback(() => (
-          /*select_change_handler*/
-          ctx[33].call(select)
-        ));
-      attr(button1, "class", "pos-dt-order-btn");
-      attr(button1, "title", "Toggle sort direction");
-      attr(div2, "class", "pos-dt-group");
-      attr(div3, "class", "pos-dt-controls");
-      attr(div4, "class", "pos-dashboard-toolbar");
-    },
-    m(target, anchor) {
-      insert(target, div4, anchor);
-      append(div4, div0);
-      append(div0, input0);
-      set_input_value(
-        input0,
-        /*searchQuery*/
-        ctx[3]
-      );
-      append(div0, t0);
-      append(div0, button0);
-      append(div4, t2);
-      append(div4, div3);
-      append(div3, div1);
-      append(div1, span0);
-      append(div1, t4);
-      append(div1, label0);
-      append(label0, input1);
-      input1.checked = /*showDesc*/
-      ctx[7];
-      append(label0, t5);
-      append(label0, span1);
-      append(div1, t7);
-      append(div1, label1);
-      append(label1, input2);
-      input2.checked = /*showAge*/
-      ctx[8];
-      append(label1, t8);
-      append(label1, span2);
-      append(div1, t10);
-      append(div1, label2);
-      append(label2, input3);
-      input3.checked = /*showStats*/
-      ctx[9];
-      append(label2, t11);
-      append(label2, span3);
-      append(div1, t13);
-      append(div1, label3);
-      append(label3, input4);
-      input4.checked = /*showHeatmap*/
-      ctx[10];
-      append(label3, t14);
-      append(label3, span4);
-      append(div3, t16);
-      append(div3, div2);
-      append(div2, span5);
-      append(div2, t18);
-      append(div2, select);
-      append(select, option0);
-      append(select, option1);
-      append(select, option2);
-      append(select, option3);
-      select_option(
-        select,
-        /*sortBy*/
-        ctx[1],
-        true
-      );
-      append(div2, t23);
-      append(div2, button1);
-      append(button1, t24);
-      insert(target, t25, anchor);
-      if_block.m(target, anchor);
-      insert(target, if_block_anchor, anchor);
-      if (!mounted) {
-        dispose = [
-          listen(
-            input0,
-            "input",
-            /*input0_input_handler*/
-            ctx[28]
-          ),
-          listen(
-            button0,
-            "click",
-            /*createProject*/
-            ctx[15]
-          ),
-          listen(
-            input1,
-            "change",
-            /*input1_change_handler*/
-            ctx[29]
-          ),
-          listen(
-            input1,
-            "change",
-            /*saveConfig*/
-            ctx[13]
-          ),
-          listen(
-            input2,
-            "change",
-            /*input2_change_handler*/
-            ctx[30]
-          ),
-          listen(
-            input2,
-            "change",
-            /*saveConfig*/
-            ctx[13]
-          ),
-          listen(
-            input3,
-            "change",
-            /*input3_change_handler*/
-            ctx[31]
-          ),
-          listen(
-            input3,
-            "change",
-            /*saveConfig*/
-            ctx[13]
-          ),
-          listen(
-            input4,
-            "change",
-            /*input4_change_handler*/
-            ctx[32]
-          ),
-          listen(
-            input4,
-            "change",
-            /*saveConfig*/
-            ctx[13]
-          ),
-          listen(
-            select,
-            "change",
-            /*select_change_handler*/
-            ctx[33]
-          ),
-          listen(
-            select,
-            "change",
-            /*saveConfig*/
-            ctx[13]
-          ),
-          listen(
-            button1,
-            "click",
-            /*click_handler*/
-            ctx[34]
-          )
-        ];
-        mounted = true;
-      }
-    },
-    p(ctx2, dirty) {
-      if (dirty[0] & /*searchQuery*/
-      8 && input0.value !== /*searchQuery*/
-      ctx2[3]) {
-        set_input_value(
-          input0,
-          /*searchQuery*/
-          ctx2[3]
-        );
-      }
-      if (dirty[0] & /*showDesc*/
-      128) {
-        input1.checked = /*showDesc*/
-        ctx2[7];
-      }
-      if (dirty[0] & /*showAge*/
-      256) {
-        input2.checked = /*showAge*/
-        ctx2[8];
-      }
-      if (dirty[0] & /*showStats*/
-      512) {
-        input3.checked = /*showStats*/
-        ctx2[9];
-      }
-      if (dirty[0] & /*showHeatmap*/
-      1024) {
-        input4.checked = /*showHeatmap*/
-        ctx2[10];
-      }
-      if (dirty[0] & /*sortBy*/
-      2) {
-        select_option(
-          select,
-          /*sortBy*/
-          ctx2[1]
-        );
-      }
-      if (dirty[0] & /*sortOrder*/
-      4 && t24_value !== (t24_value = /*sortOrder*/
-      ctx2[2] === "asc" ? "\u25B2" : "\u25BC"))
-        set_data(t24, t24_value);
-      if (current_block_type === (current_block_type = select_block_type(ctx2, dirty)) && if_block) {
-        if_block.p(ctx2, dirty);
-      } else {
-        if_block.d(1);
-        if_block = current_block_type(ctx2);
-        if (if_block) {
-          if_block.c();
-          if_block.m(if_block_anchor.parentNode, if_block_anchor);
-        }
-      }
-    },
-    i: noop,
-    o: noop,
-    d(detaching) {
-      if (detaching) {
-        detach(div4);
-        detach(t25);
-        detach(if_block_anchor);
-      }
-      if_block.d(detaching);
-      mounted = false;
-      run_all(dispose);
-    }
-  };
-}
-function instance($$self, $$props, $$invalidate) {
-  let activeProjects;
-  let tasks;
-  let allTimes;
-  let minTime;
-  let maxTime;
-  let range;
-  let projectCounts;
-  let filteredProjects;
-  let sortedProjects;
-  let $projectsStore;
-  let $tasksStore;
-  component_subscribe($$self, projectsStore, ($$value) => $$invalidate(26, $projectsStore = $$value));
-  component_subscribe($$self, tasksStore, ($$value) => $$invalidate(27, $tasksStore = $$value));
-  let { app } = $$props;
-  let { fileManager } = $$props;
-  let { plugin } = $$props;
-  let { onSelect } = $$props;
-  let timer;
-  let now2 = Date.now();
-  let showDesc = true;
-  let showAge = true;
-  let showStats = true;
-  let showHeatmap = true;
-  let sortBy = "createdAt";
-  let sortOrder = "desc";
-  let searchQuery = "";
-  onMount(() => {
-    timer = window.setInterval(
-      () => {
-        $$invalidate(6, now2 = Date.now());
-      },
-      6e4
-    );
-    try {
-      const saved = localStorage.getItem("pos-dashboard-config");
-      if (saved) {
-        const config = JSON.parse(saved);
-        $$invalidate(7, showDesc = config.showDesc !== void 0 ? config.showDesc : true);
-        $$invalidate(8, showAge = config.showAge !== void 0 ? config.showAge : true);
-        $$invalidate(9, showStats = config.showStats !== void 0 ? config.showStats : true);
-        $$invalidate(10, showHeatmap = config.showHeatmap !== void 0 ? config.showHeatmap : true);
-        $$invalidate(1, sortBy = config.sortBy || "createdAt");
-        $$invalidate(2, sortOrder = config.sortOrder || "desc");
-      }
-    } catch (e) {
-      console.error("Failed to load dashboard configuration:", e);
-    }
-  });
-  onDestroy(() => {
-    window.clearInterval(timer);
-  });
-  function saveConfig() {
-    try {
-      localStorage.setItem("pos-dashboard-config", JSON.stringify({
-        showDesc,
-        showAge,
-        showStats,
-        showHeatmap,
-        sortBy,
-        sortOrder
-      }));
-    } catch (e) {
-      console.error("Failed to save dashboard configuration:", e);
-    }
-  }
-  function getHue(createdAt, range2, minTime2) {
-    const tMs = new Date(createdAt).getTime();
-    const ratio = range2 > 1 ? (tMs - minTime2) / range2 : 0;
-    return 120 * ratio;
-  }
-  function createProject() {
-    new NewProjectModal(
-      app,
-      async (name, desc) => {
-        const id = `proj-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`;
-        const fm = {
-          type: "project",
-          name,
-          description: desc,
-          createdAt: (/* @__PURE__ */ new Date()).toISOString(),
-          status: "active"
-        };
-        const content = "---\n" + Object.entries(fm).map(([k, v]) => `${k}: ${v}`).join("\n") + "\n---\n";
-        await app.vault.create(`projects/${id}.md`, content);
-        await fileManager.loadAll();
-        new import_obsidian3.Notice("Project created successfully!");
-      }
-    ).open();
-  }
-  async function archiveProject(id) {
-    if (confirm("Archive this project?")) {
-      const file = app.vault.getAbstractFileByPath(`projects/${id}.md`);
-      if (file) {
-        let c = await app.vault.read(file);
-        c = c.replace(/status:\s*active/, "status: archived");
-        if (!c.includes("status:"))
-          c = c.replace(/---/, "---\nstatus: archived");
-        await app.vault.modify(file, c);
-        await fileManager.loadAll();
-        new import_obsidian3.Notice("Project archived.");
-      }
-    }
-  }
-  function handleOpenWorkspace(projectId) {
-    plugin.activateWorkspaceView(projectId);
-  }
-  function input0_input_handler() {
-    searchQuery = this.value;
-    $$invalidate(3, searchQuery);
-  }
-  function input1_change_handler() {
-    showDesc = this.checked;
-    $$invalidate(7, showDesc);
-  }
-  function input2_change_handler() {
-    showAge = this.checked;
-    $$invalidate(8, showAge);
-  }
-  function input3_change_handler() {
-    showStats = this.checked;
-    $$invalidate(9, showStats);
-  }
-  function input4_change_handler() {
-    showHeatmap = this.checked;
-    $$invalidate(10, showHeatmap);
-  }
-  function select_change_handler() {
-    sortBy = select_value(this);
-    $$invalidate(1, sortBy);
-  }
-  const click_handler = () => {
-    $$invalidate(2, sortOrder = sortOrder === "asc" ? "desc" : "asc");
-    saveConfig();
-  };
-  const click_handler_1 = (project) => handleOpenWorkspace(project.id);
-  const click_handler_2 = (project) => handleOpenWorkspace(project.id);
-  const click_handler_3 = (project) => onSelect(project.id, "elastic");
-  const click_handler_4 = (project) => onSelect(project.id, "deadlines");
-  const click_handler_5 = (project) => archiveProject(project.id);
-  $$self.$$set = ($$props2) => {
-    if ("app" in $$props2)
-      $$invalidate(18, app = $$props2.app);
-    if ("fileManager" in $$props2)
-      $$invalidate(19, fileManager = $$props2.fileManager);
-    if ("plugin" in $$props2)
-      $$invalidate(20, plugin = $$props2.plugin);
-    if ("onSelect" in $$props2)
-      $$invalidate(0, onSelect = $$props2.onSelect);
-  };
-  $$self.$$.update = () => {
-    if ($$self.$$.dirty[0] & /*$projectsStore*/
-    67108864) {
-      $:
-        $$invalidate(22, activeProjects = $projectsStore.filter((p) => p.status === "active"));
-    }
-    if ($$self.$$.dirty[0] & /*$tasksStore*/
-    134217728) {
-      $:
-        $$invalidate(23, tasks = $tasksStore);
-    }
-    if ($$self.$$.dirty[0] & /*activeProjects*/
-    4194304) {
-      $:
-        $$invalidate(25, allTimes = activeProjects.map((p) => new Date(p.createdAt).getTime()));
-    }
-    if ($$self.$$.dirty[0] & /*allTimes*/
-    33554432) {
-      $:
-        $$invalidate(5, minTime = Math.min(...allTimes));
-    }
-    if ($$self.$$.dirty[0] & /*allTimes*/
-    33554432) {
-      $:
-        $$invalidate(24, maxTime = Math.max(...allTimes));
-    }
-    if ($$self.$$.dirty[0] & /*maxTime, minTime*/
-    16777248) {
-      $:
-        $$invalidate(12, range = maxTime - minTime || 1);
-    }
-    if ($$self.$$.dirty[0] & /*$projectsStore, tasks*/
-    75497472) {
-      $:
-        $$invalidate(4, projectCounts = $projectsStore.reduce(
-          (acc, p) => {
-            const pTasks = tasks.filter((t) => t.project === p.id);
-            acc[p.id] = {
-              running: pTasks.filter((t) => t.status === "running").length,
-              review: pTasks.filter((t) => t.status === "review").length,
-              total: pTasks.length
-            };
-            return acc;
-          },
-          {}
-        ));
-    }
-    if ($$self.$$.dirty[0] & /*activeProjects, searchQuery*/
-    4194312) {
-      $:
-        $$invalidate(21, filteredProjects = activeProjects.filter((p) => p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.description && p.description.toLowerCase().includes(searchQuery.toLowerCase())));
-    }
-    if ($$self.$$.dirty[0] & /*filteredProjects, sortBy, projectCounts, sortOrder*/
-    2097174) {
-      $:
-        $$invalidate(11, sortedProjects = [...filteredProjects].sort((a, b) => {
-          var _a, _b, _c, _d;
-          let valA;
-          let valB;
-          if (sortBy === "name") {
-            valA = a.name.toLowerCase();
-            valB = b.name.toLowerCase();
-          } else if (sortBy === "createdAt") {
-            valA = new Date(a.createdAt).getTime();
-            valB = new Date(b.createdAt).getTime();
-          } else if (sortBy === "tasks") {
-            valA = ((_a = projectCounts[a.id]) == null ? void 0 : _a.total) || 0;
-            valB = ((_b = projectCounts[b.id]) == null ? void 0 : _b.total) || 0;
-          } else if (sortBy === "activeTasks") {
-            valA = ((_c = projectCounts[a.id]) == null ? void 0 : _c.running) || 0;
-            valB = ((_d = projectCounts[b.id]) == null ? void 0 : _d.running) || 0;
-          }
-          if (valA < valB)
-            return sortOrder === "asc" ? -1 : 1;
-          if (valA > valB)
-            return sortOrder === "asc" ? 1 : -1;
-          return 0;
-        }));
-    }
-  };
-  return [
-    onSelect,
-    sortBy,
-    sortOrder,
-    searchQuery,
-    projectCounts,
-    minTime,
-    now2,
-    showDesc,
-    showAge,
-    showStats,
-    showHeatmap,
-    sortedProjects,
-    range,
-    saveConfig,
-    getHue,
-    createProject,
-    archiveProject,
-    handleOpenWorkspace,
-    app,
-    fileManager,
-    plugin,
-    filteredProjects,
-    activeProjects,
-    tasks,
-    maxTime,
-    allTimes,
-    $projectsStore,
-    $tasksStore,
-    input0_input_handler,
-    input1_change_handler,
-    input2_change_handler,
-    input3_change_handler,
-    input4_change_handler,
-    select_change_handler,
-    click_handler,
-    click_handler_1,
-    click_handler_2,
-    click_handler_3,
-    click_handler_4,
-    click_handler_5
-  ];
-}
-var AgingView = class extends SvelteComponent {
-  constructor(options) {
-    super();
-    init(
-      this,
-      options,
-      instance,
-      create_fragment,
-      safe_not_equal,
-      {
-        app: 18,
-        fileManager: 19,
-        plugin: 20,
-        onSelect: 0
-      },
-      null,
-      [-1, -1]
-    );
-  }
-};
-var AgingView_default = AgingView;
-
 // src/ui/views/ElasticView.svelte
-var import_obsidian4 = require("obsidian");
 function get_each_context2(ctx, list, i) {
   const child_ctx = ctx.slice();
   child_ctx[72] = list[i];
@@ -3077,7 +2352,7 @@ function create_if_block_6(ctx) {
     }
   };
 }
-function create_if_block_52(ctx) {
+function create_if_block_5(ctx) {
   let input;
   let input_value_value;
   let mounted;
@@ -3251,7 +2526,7 @@ function create_each_block_1(key_1, ctx) {
   }
   let if_block4 = (
     /*task*/
-    ctx[72].isFixedDuration && create_if_block_52(ctx)
+    ctx[72].isFixedDuration && create_if_block_5(ctx)
   );
   function click_handler_12() {
     return (
@@ -3515,7 +2790,7 @@ function create_each_block_1(key_1, ctx) {
         if (if_block4) {
           if_block4.p(ctx, dirty);
         } else {
-          if_block4 = create_if_block_52(ctx);
+          if_block4 = create_if_block_5(ctx);
           if_block4.c();
           if_block4.m(div2, t19);
         }
@@ -3573,7 +2848,7 @@ function create_each_block_1(key_1, ctx) {
     }
   };
 }
-function create_if_block_42(ctx) {
+function create_if_block_4(ctx) {
   let div;
   return {
     c() {
@@ -3590,7 +2865,7 @@ function create_if_block_42(ctx) {
     }
   };
 }
-function create_if_block_32(ctx) {
+function create_if_block_3(ctx) {
   let div0;
   let t;
   let div1;
@@ -3649,7 +2924,7 @@ function create_if_block_32(ctx) {
     }
   };
 }
-function create_if_block_22(ctx) {
+function create_if_block_2(ctx) {
   let div;
   return {
     c() {
@@ -3689,7 +2964,7 @@ function create_each_block2(key_1, ctx) {
     /*dragOverStatus*/
     ctx[10] === "review" && /*dragOverIndex*/
     ctx[11] === /*i*/
-    ctx[74] && create_if_block_22(ctx)
+    ctx[74] && create_if_block_2(ctx)
   );
   function click_handler_14() {
     return (
@@ -3808,7 +3083,7 @@ function create_each_block2(key_1, ctx) {
       ) {
         if (if_block) {
         } else {
-          if_block = create_if_block_22(ctx);
+          if_block = create_if_block_2(ctx);
           if_block.c();
           if_block.m(t0.parentNode, t0);
         }
@@ -4019,11 +3294,11 @@ function create_fragment2(ctx) {
     /*dragOverStatus*/
     ctx[10] === "running" && /*dragOverIndex*/
     ctx[11] >= /*running*/
-    ctx[5].length && create_if_block_42(ctx)
+    ctx[5].length && create_if_block_4(ctx)
   );
   let if_block2 = (
     /*isLocked*/
-    ctx[3] && create_if_block_32(ctx)
+    ctx[3] && create_if_block_3(ctx)
   );
   let each_value = ensure_array_like(
     /*review*/
@@ -4386,7 +3661,7 @@ function create_fragment2(ctx) {
       ) {
         if (if_block1) {
         } else {
-          if_block1 = create_if_block_42(ctx2);
+          if_block1 = create_if_block_4(ctx2);
           if_block1.c();
           if_block1.m(div6, null);
         }
@@ -4401,7 +3676,7 @@ function create_fragment2(ctx) {
         if (if_block2) {
           if_block2.p(ctx2, dirty);
         } else {
-          if_block2 = create_if_block_32(ctx2);
+          if_block2 = create_if_block_3(ctx2);
           if_block2.c();
           if_block2.m(div7, null);
         }
@@ -5354,7 +4629,7 @@ function get_each_context4(ctx, list, i) {
   child_ctx[12] = list[i];
   return child_ctx;
 }
-function create_if_block_33(ctx) {
+function create_if_block_32(ctx) {
   let div;
   let label;
   let t1;
@@ -5505,7 +4780,7 @@ function create_each_block4(key_1, ctx) {
     }
   };
 }
-function create_if_block_23(ctx) {
+function create_if_block_22(ctx) {
   let deadlinesview;
   let current;
   deadlinesview = new DeadlinesView_default({
@@ -5705,9 +4980,9 @@ function create_fragment4(ctx) {
   let dispose;
   let if_block0 = (
     /*mode*/
-    ctx[3] !== "projects" && create_if_block_33(ctx)
+    ctx[3] !== "projects" && create_if_block_32(ctx)
   );
-  const if_block_creators = [create_if_block4, create_if_block_14, create_if_block_23];
+  const if_block_creators = [create_if_block4, create_if_block_14, create_if_block_22];
   const if_blocks = [];
   function select_block_type(ctx2, dirty) {
     if (
@@ -5850,7 +5125,7 @@ function create_fragment4(ctx) {
         if (if_block0) {
           if_block0.p(ctx2, dirty);
         } else {
-          if_block0 = create_if_block_33(ctx2);
+          if_block0 = create_if_block_32(ctx2);
           if_block0.c();
           if_block0.m(div0, null);
         }
@@ -6656,7 +5931,7 @@ function create_if_block_62(ctx) {
     }
   };
 }
-function create_if_block_53(ctx) {
+function create_if_block_52(ctx) {
   let span;
   let t0;
   let t1_value = (
@@ -6691,7 +5966,7 @@ function create_if_block_53(ctx) {
     }
   };
 }
-function create_if_block_43(ctx) {
+function create_if_block_42(ctx) {
   let input;
   let input_value_value;
   let mounted;
@@ -6816,7 +6091,7 @@ function create_each_block_13(key_1, ctx) {
   let if_block2 = (
     /*task*/
     ctx[55].isFixedDuration && /*task*/
-    ctx[55].fixedDuration && create_if_block_53(ctx)
+    ctx[55].fixedDuration && create_if_block_52(ctx)
   );
   function click_handler_11() {
     return (
@@ -6848,7 +6123,7 @@ function create_each_block_13(key_1, ctx) {
   }
   let if_block3 = (
     /*task*/
-    ctx[55].isFixedDuration && create_if_block_43(ctx)
+    ctx[55].isFixedDuration && create_if_block_42(ctx)
   );
   function click_handler_13() {
     return (
@@ -7058,7 +6333,7 @@ function create_each_block_13(key_1, ctx) {
         if (if_block2) {
           if_block2.p(ctx, dirty);
         } else {
-          if_block2 = create_if_block_53(ctx);
+          if_block2 = create_if_block_52(ctx);
           if_block2.c();
           if_block2.m(div1, null);
         }
@@ -7082,7 +6357,7 @@ function create_each_block_13(key_1, ctx) {
         if (if_block3) {
           if_block3.p(ctx, dirty);
         } else {
-          if_block3 = create_if_block_43(ctx);
+          if_block3 = create_if_block_42(ctx);
           if_block3.c();
           if_block3.m(div4, t17);
         }
@@ -7120,7 +6395,7 @@ function create_each_block_13(key_1, ctx) {
     }
   };
 }
-function create_if_block_34(ctx) {
+function create_if_block_33(ctx) {
   let div;
   return {
     c() {
@@ -7137,7 +6412,7 @@ function create_if_block_34(ctx) {
     }
   };
 }
-function create_if_block_24(ctx) {
+function create_if_block_23(ctx) {
   let div;
   return {
     c() {
@@ -7217,7 +6492,7 @@ function create_each_block5(key_1, ctx) {
     /*dragOverStatus*/
     ctx[2] === "review" && /*dragOverIndex*/
     ctx[3] === /*i*/
-    ctx[57] && create_if_block_24(ctx)
+    ctx[57] && create_if_block_23(ctx)
   );
   function click_handler_15() {
     return (
@@ -7348,7 +6623,7 @@ function create_each_block5(key_1, ctx) {
       ) {
         if (if_block0) {
         } else {
-          if_block0 = create_if_block_24(ctx);
+          if_block0 = create_if_block_23(ctx);
           if_block0.c();
           if_block0.m(t0.parentNode, t0);
         }
@@ -7548,7 +6823,7 @@ function create_fragment5(ctx) {
     /*dragOverStatus*/
     ctx[2] === "running" && /*dragOverIndex*/
     ctx[3] >= /*running*/
-    ctx[5].length && create_if_block_34(ctx)
+    ctx[5].length && create_if_block_33(ctx)
   );
   let each_value = ensure_array_like(
     /*review*/
@@ -7873,7 +7148,7 @@ function create_fragment5(ctx) {
       ) {
         if (if_block2) {
         } else {
-          if_block2 = create_if_block_34(ctx2);
+          if_block2 = create_if_block_33(ctx2);
           if_block2.c();
           if_block2.m(div6, null);
         }
@@ -8227,7 +7502,7 @@ function get_each_context6(ctx, list, i) {
   child_ctx[31] = list[i];
   return child_ctx;
 }
-function create_if_block_25(ctx) {
+function create_if_block_24(ctx) {
   let div1;
   let span;
   let t0_value = (
@@ -8779,7 +8054,7 @@ function create_fragment6(ctx) {
   let dispose;
   let if_block0 = (
     /*selectedTaskIds*/
-    ctx[5].size > 0 && create_if_block_25(ctx)
+    ctx[5].size > 0 && create_if_block_24(ctx)
   );
   function select_block_type(ctx2, dirty) {
     if (
@@ -8997,7 +8272,7 @@ function create_fragment6(ctx) {
         if (if_block0) {
           if_block0.p(ctx2, dirty);
         } else {
-          if_block0 = create_if_block_25(ctx2);
+          if_block0 = create_if_block_24(ctx2);
           if_block0.c();
           if_block0.m(div2, t6);
         }
@@ -9328,7 +8603,7 @@ function create_else_block4(ctx) {
       /*projectTab*/
       ctx2[7] === "notes"
     )
-      return create_if_block_35;
+      return create_if_block_34;
     return create_else_block_3;
   }
   let current_block_type = select_block_type_1(ctx, -1);
@@ -9639,7 +8914,7 @@ function create_else_block_3(ctx) {
     }
   };
 }
-function create_if_block_35(ctx) {
+function create_if_block_34(ctx) {
   let button;
   let t_value = (
     /*isSaving*/
@@ -9702,7 +8977,7 @@ function create_else_block_1(ctx) {
   let if_block;
   let if_block_anchor;
   let current;
-  const if_block_creators = [create_if_block_26, create_else_block_2];
+  const if_block_creators = [create_if_block_25, create_else_block_2];
   const if_blocks = [];
   function select_block_type_3(ctx2, dirty) {
     if (
@@ -9895,7 +9170,7 @@ function create_else_block_2(ctx) {
     }
   };
 }
-function create_if_block_26(ctx) {
+function create_if_block_25(ctx) {
   let projecttaskboard;
   let current;
   projecttaskboard = new ProjectTaskBoard_default({
