@@ -138,12 +138,13 @@ export class FileManager {
 
   async createTask(data: Partial<TaskData>): Promise<string> {
     const id = `task-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    const initialStatus = data.status || 'backlog';
     const fm: Record<string, any> = {
       name: data.name,
       project: data.project || null,
-      status: 'backlog',
+      status: initialStatus,
       weight: data.weight || 1,
-      orderIndex: 0,
+      orderIndex: data.orderIndex || 0,
       isFixedDuration: data.isFixedDuration || false,
       fixedDuration: data.isFixedDuration ? data.fixedDuration : null,
       isCompleted: false,
@@ -159,9 +160,9 @@ export class FileManager {
       ...data,
       id,
       project: fm.project,
-      status: 'backlog',
+      status: initialStatus,
       weight: fm.weight,
-      orderIndex: 0,
+      orderIndex: fm.orderIndex,
       isFixedDuration: fm.isFixedDuration,
       fixedDuration: fm.fixedDuration,
       isCompleted: false,
@@ -178,5 +179,21 @@ export class FileManager {
     tasksStore.update(tasks => tasks.filter(t => t.id !== id));
     const file = this.app.vault.getAbstractFileByPath(`${TASKS_FOLDER}/${id}.md`);
     if (file instanceof TFile) await this.app.vault.delete(file);
+  }
+
+  async getProjectContent(id: string): Promise<string> {
+    const file = this.app.vault.getAbstractFileByPath(`${PROJECTS_FOLDER}/${id}.md`);
+    if (!(file instanceof TFile)) return '';
+    const c = await this.app.vault.read(file);
+    return c.replace(/^---\r?\n[\s\S]*?\r?\n---/, '').trim();
+  }
+
+  async saveProjectContent(id: string, newBody: string): Promise<void> {
+    const file = this.app.vault.getAbstractFileByPath(`${PROJECTS_FOLDER}/${id}.md`);
+    if (!(file instanceof TFile)) return;
+    const c = await this.app.vault.read(file);
+    const fm = parseFrontmatter(c);
+    const serialized = serializeFrontmatter(fm) + '\n' + newBody;
+    await this.app.vault.modify(file, serialized);
   }
 }

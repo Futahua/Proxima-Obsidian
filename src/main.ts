@@ -1,16 +1,22 @@
 import { Plugin, ItemView, WorkspaceLeaf, Notice } from 'obsidian';
+import { get } from 'svelte/store';
 import { FileManager } from './data/FileManager';
+import { projectsStore } from './stores/data';
 import App from './ui/App.svelte';
+import ProjectsView from './ui/views/ProjectsView.svelte';
 
 const VIEW_TYPE = 'project-os-view';
+const WORKSPACE_VIEW_TYPE = 'project-os-workspace-view';
 
 class ProjectOSView extends ItemView {
   component: App | null = null;
   fileManager: FileManager;
+  plugin: ProjectOSPlugin;
 
-  constructor(leaf: WorkspaceLeaf, fileManager: FileManager) {
+  constructor(leaf: WorkspaceLeaf, fileManager: FileManager, plugin: ProjectOSPlugin) {
     super(leaf);
     this.fileManager = fileManager;
+    this.plugin = plugin;
   }
 
   getViewType() { return VIEW_TYPE; }
@@ -22,9 +28,62 @@ class ProjectOSView extends ItemView {
       target: this.contentEl,
       props: {
         app: this.app,
-        fileManager: this.fileManager
+        fileManager: this.fileManager,
+        plugin: this.plugin
       }
     });
+  }
+
+  async onClose() {
+    if (this.component) {
+      this.component.$destroy();
+    }
+  }
+}
+
+class ProjectWorkspaceView extends ItemView {
+  component: ProjectsView | null = null;
+  fileManager: FileManager;
+  plugin: ProjectOSPlugin;
+  projectId: string | null = null;
+
+  constructor(leaf: WorkspaceLeaf, fileManager: FileManager, plugin: ProjectOSPlugin) {
+    super(leaf);
+    this.fileManager = fileManager;
+    this.plugin = plugin;
+  }
+
+  getViewType() { return WORKSPACE_VIEW_TYPE; }
+
+  getDisplayText() {
+    if (this.projectId) {
+      const proj = get(projectsStore).find(p => p.id === this.projectId);
+      if (proj) return `${proj.name} - Project Workspace`;
+    }
+    return 'Project Workspace';
+  }
+
+  getIcon() { return 'folder-kanban'; }
+
+  async setState(state: any, result: any) {
+    this.projectId = state.projectId || null;
+    this.leaf.updateHeader();
+
+    if (this.component) {
+      this.component.$set({ selectedProjectId: this.projectId });
+    } else {
+      this.component = new ProjectsView({
+        target: this.contentEl,
+        props: {
+          app: this.app,
+          fileManager: this.fileManager,
+          plugin: this.plugin,
+          selectedProjectId: this.projectId,
+          isFullPage: true
+        }
+      });
+    }
+    await super.setState(state, result);
   }
 
   async onClose() {
@@ -55,7 +114,12 @@ export default class ProjectOSPlugin extends Plugin {
 
     this.registerView(
       VIEW_TYPE,
-      (leaf) => new ProjectOSView(leaf, this.fileManager)
+      (leaf) => new ProjectOSView(leaf, this.fileManager, this)
+    );
+
+    this.registerView(
+      WORKSPACE_VIEW_TYPE,
+      (leaf) => new ProjectWorkspaceView(leaf, this.fileManager, this)
     );
 
     this.addRibbonIcon('layout-dashboard', 'Open Project OS', () => {
@@ -101,6 +165,28 @@ export default class ProjectOSPlugin extends Plugin {
       leaf = workspace.getRightLeaf(false) || workspace.getLeaf(false);
       await leaf.setViewState({ type: VIEW_TYPE, active: true });
     }
+    workspace.revealLeaf(leaf);
+  }
+
+  async activateWorkspaceView(projectId: string) {
+    const { workspace } = this.app;
+    
+    // Look for existing leaf with this project ID in its state
+    let leaf = workspace.getLeavesOfType(WORKSPACE_VIEW_TYPE).find(l => {
+      const view = l.view as ProjectWorkspaceView;
+      return view.projectId === projectId;
+    });
+
+    if (!leaf) {
+      // Create new tab in the central workspace editor area
+      leaf = workspace.getLeaf('tab');
+      await leaf.setViewState({
+        type: WORKSPACE_VIEW_TYPE,
+        active: true,
+        state: { projectId }
+      });
+    }
+
     workspace.revealLeaf(leaf);
   }
 }

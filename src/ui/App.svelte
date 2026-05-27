@@ -4,12 +4,14 @@
   import AgingView from './views/AgingView.svelte';
   import ElasticView from './views/ElasticView.svelte';
   import DeadlinesView from './views/DeadlinesView.svelte';
+  import ProjectsView from './views/ProjectsView.svelte';
   import { projectsStore } from '../stores/data';
 
   export let app;
   export let fileManager;
+  export let plugin;
 
-  let mode: 'aging' | 'elastic' | 'deadlines' = 'aging';
+  let mode: 'aging' | 'elastic' | 'deadlines' | 'projects' = 'aging';
   let selectedProjectId: string | null = null;
 
   $: activeProjects = $projectsStore.filter(p => p.status === 'active');
@@ -21,8 +23,9 @@
     <button class="pos-mode-btn" class:pos-mode-active={mode === 'aging'} on:click={() => mode = 'aging'}>Aging</button>
     <button class="pos-mode-btn" class:pos-mode-active={mode === 'elastic'} on:click={() => mode = 'elastic'}>Elastic</button>
     <button class="pos-mode-btn" class:pos-mode-active={mode === 'deadlines'} on:click={() => mode = 'deadlines'}>Deadlines</button>
+    <button class="pos-mode-btn" class:pos-mode-active={mode === 'projects'} on:click={() => mode = 'projects'}>Projects</button>
     
-    {#if mode !== 'aging'}
+    {#if mode !== 'aging' && mode !== 'projects'}
       <div class="pos-project-selector-row">
         <label for="project-select">Project:</label>
         <select id="project-select" bind:value={selectedProjectId} class="pos-project-selector">
@@ -43,6 +46,8 @@
       <ElasticView {app} {fileManager} projectId={selectedProjectId} />
     {:else if mode === 'deadlines'}
       <DeadlinesView {app} {fileManager} projectId={selectedProjectId} />
+    {:else if mode === 'projects'}
+      <ProjectsView {app} {fileManager} {plugin} />
     {/if}
   </div>
 </div>

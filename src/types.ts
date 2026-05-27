@@ -1,4 +1,4 @@
-export type TaskStatus = 'backlog' | 'running' | 'review';
+export type TaskStatus = 'planned' | 'backlog' | 'running' | 'review';
 export type ProjectStatus = 'active' | 'archived';
 
 export interface ProjectData {
