@@ -8737,14 +8737,14 @@ function get_else_ctx(ctx) {
   const child_ctx = ctx.slice();
   const constants_0 = (
     /*$tasksStore*/
-    child_ctx[8].filter((t) => t.project === /*selectedProject*/
+    child_ctx[7].filter((t) => t.project === /*selectedProject*/
     child_ctx[4].id).sort((a, b) => a.orderIndex - b.orderIndex)
   );
-  child_ctx[22] = constants_0;
+  child_ctx[19] = constants_0;
   return child_ctx;
 }
 function create_else_block4(ctx) {
-  let div4;
+  let div5;
   let header;
   let div1;
   let button0;
@@ -8772,29 +8772,20 @@ function create_else_block4(ctx) {
   let t10;
   let button3;
   let t12;
-  let t13;
   let div3;
+  let t13;
+  let div4;
   let current_block_type_index;
-  let if_block1;
+  let if_block;
   let current;
   let mounted;
   let dispose;
+  const if_block_creators = [create_if_block_17, create_else_block_1];
+  const if_blocks = [];
   function select_block_type_1(ctx2, dirty) {
     if (
       /*projectTab*/
-      ctx2[7] === "notes"
-    )
-      return create_if_block_35;
-    return create_else_block_3;
-  }
-  let current_block_type = select_block_type_1(ctx, -1);
-  let if_block0 = current_block_type(ctx);
-  const if_block_creators = [create_if_block_17, create_else_block_1];
-  const if_blocks = [];
-  function select_block_type_2(ctx2, dirty) {
-    if (
-      /*projectTab*/
-      ctx2[7] === "notes"
+      ctx2[6] === "notes"
     )
       return 0;
     return 1;
@@ -8804,11 +8795,11 @@ function create_else_block4(ctx) {
       return get_else_ctx(ctx2);
     return ctx2;
   }
-  current_block_type_index = select_block_type_2(ctx, -1);
-  if_block1 = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](select_block_ctx(ctx, current_block_type_index));
+  current_block_type_index = select_block_type_1(ctx, -1);
+  if_block = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](select_block_ctx(ctx, current_block_type_index));
   return {
     c() {
-      div4 = element("div");
+      div5 = element("div");
       header = element("header");
       div1 = element("div");
       button0 = element("button");
@@ -8832,10 +8823,10 @@ function create_else_block4(ctx) {
       button3 = element("button");
       button3.textContent = "\u{1F4CA} Backlog Grid";
       t12 = space();
-      if_block0.c();
-      t13 = space();
       div3 = element("div");
-      if_block1.c();
+      t13 = space();
+      div4 = element("div");
+      if_block.c();
       attr(button0, "class", "pos-back-btn");
       attr(span, "class", "pos-editor-project-file");
       attr(div0, "class", "pos-editor-project-title");
@@ -8845,30 +8836,31 @@ function create_else_block4(ctx) {
         button1,
         "active",
         /*projectTab*/
-        ctx[7] === "notes"
+        ctx[6] === "notes"
       );
       attr(button2, "class", "pos-tab-btn");
       toggle_class(
         button2,
         "active",
         /*projectTab*/
-        ctx[7] === "board"
+        ctx[6] === "board"
       );
       attr(button3, "class", "pos-tab-btn");
       toggle_class(
         button3,
         "active",
         /*projectTab*/
-        ctx[7] === "grid"
+        ctx[6] === "grid"
       );
       attr(div2, "class", "pos-editor-header-tabs");
+      set_style(div3, "width", "100px");
       attr(header, "class", "pos-editor-header");
-      attr(div3, "class", "pos-project-workspace-body");
-      attr(div4, "class", "pos-project-full-workspace");
+      attr(div4, "class", "pos-project-workspace-body");
+      attr(div5, "class", "pos-project-full-workspace");
     },
     m(target, anchor) {
-      insert(target, div4, anchor);
-      append(div4, header);
+      insert(target, div5, anchor);
+      append(div5, header);
       append(header, div1);
       append(div1, button0);
       append(div1, t1);
@@ -8887,10 +8879,10 @@ function create_else_block4(ctx) {
       append(div2, t10);
       append(div2, button3);
       append(header, t12);
-      if_block0.m(header, null);
-      append(div4, t13);
-      append(div4, div3);
-      if_blocks[current_block_type_index].m(div3, null);
+      append(header, div3);
+      append(div5, t13);
+      append(div5, div4);
+      if_blocks[current_block_type_index].m(div4, null);
       current = true;
       if (!mounted) {
         dispose = [
@@ -8898,25 +8890,25 @@ function create_else_block4(ctx) {
             button0,
             "click",
             /*click_handler*/
-            ctx[16]
+            ctx[13]
           ),
           listen(
             button1,
             "click",
             /*click_handler_1*/
-            ctx[17]
+            ctx[14]
           ),
           listen(
             button2,
             "click",
             /*click_handler_2*/
-            ctx[18]
+            ctx[15]
           ),
           listen(
             button3,
             "click",
             /*click_handler_3*/
-            ctx[19]
+            ctx[16]
           )
         ];
         mounted = true;
@@ -8932,44 +8924,34 @@ function create_else_block4(ctx) {
       ctx2[4].id + ""))
         set_data(t4, t4_value);
       if (!current || dirty & /*projectTab*/
-      128) {
+      64) {
         toggle_class(
           button1,
           "active",
           /*projectTab*/
-          ctx2[7] === "notes"
+          ctx2[6] === "notes"
         );
       }
       if (!current || dirty & /*projectTab*/
-      128) {
+      64) {
         toggle_class(
           button2,
           "active",
           /*projectTab*/
-          ctx2[7] === "board"
+          ctx2[6] === "board"
         );
       }
       if (!current || dirty & /*projectTab*/
-      128) {
+      64) {
         toggle_class(
           button3,
           "active",
           /*projectTab*/
-          ctx2[7] === "grid"
+          ctx2[6] === "grid"
         );
       }
-      if (current_block_type === (current_block_type = select_block_type_1(ctx2, dirty)) && if_block0) {
-        if_block0.p(ctx2, dirty);
-      } else {
-        if_block0.d(1);
-        if_block0 = current_block_type(ctx2);
-        if (if_block0) {
-          if_block0.c();
-          if_block0.m(header, null);
-        }
-      }
       let previous_block_index = current_block_type_index;
-      current_block_type_index = select_block_type_2(ctx2, dirty);
+      current_block_type_index = select_block_type_1(ctx2, dirty);
       if (current_block_type_index === previous_block_index) {
         if_blocks[current_block_type_index].p(select_block_ctx(ctx2, current_block_type_index), dirty);
       } else {
@@ -8978,32 +8960,31 @@ function create_else_block4(ctx) {
           if_blocks[previous_block_index] = null;
         });
         check_outros();
-        if_block1 = if_blocks[current_block_type_index];
-        if (!if_block1) {
-          if_block1 = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](select_block_ctx(ctx2, current_block_type_index));
-          if_block1.c();
+        if_block = if_blocks[current_block_type_index];
+        if (!if_block) {
+          if_block = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](select_block_ctx(ctx2, current_block_type_index));
+          if_block.c();
         } else {
-          if_block1.p(select_block_ctx(ctx2, current_block_type_index), dirty);
+          if_block.p(select_block_ctx(ctx2, current_block_type_index), dirty);
         }
-        transition_in(if_block1, 1);
-        if_block1.m(div3, null);
+        transition_in(if_block, 1);
+        if_block.m(div4, null);
       }
     },
     i(local) {
       if (current)
         return;
-      transition_in(if_block1);
+      transition_in(if_block);
       current = true;
     },
     o(local) {
-      transition_out(if_block1);
+      transition_out(if_block);
       current = false;
     },
     d(detaching) {
       if (detaching) {
-        detach(div4);
+        detach(div5);
       }
-      if_block0.d();
       if_blocks[current_block_type_index].d();
       mounted = false;
       run_all(dispose);
@@ -9030,7 +9011,7 @@ function create_if_block7(ctx) {
       isFullPage: true,
       onSelect: (
         /*func*/
-        ctx[15]
+        ctx[12]
       )
     }
   });
@@ -9059,7 +9040,7 @@ function create_if_block7(ctx) {
       if (dirty & /*selectedProjectId*/
       1)
         projectshub_changes.onSelect = /*func*/
-        ctx2[15];
+        ctx2[12];
       projectshub.$set(projectshub_changes);
     },
     i(local) {
@@ -9077,82 +9058,6 @@ function create_if_block7(ctx) {
     }
   };
 }
-function create_else_block_3(ctx) {
-  let div;
-  return {
-    c() {
-      div = element("div");
-      set_style(div, "width", "100px");
-    },
-    m(target, anchor) {
-      insert(target, div, anchor);
-    },
-    p: noop,
-    d(detaching) {
-      if (detaching) {
-        detach(div);
-      }
-    }
-  };
-}
-function create_if_block_35(ctx) {
-  let button;
-  let t_value = (
-    /*isSaving*/
-    ctx[6] ? "Saving..." : "Save (Ctrl+S)"
-  );
-  let t;
-  let mounted;
-  let dispose;
-  return {
-    c() {
-      button = element("button");
-      t = text(t_value);
-      attr(button, "class", "pos-save-btn");
-      toggle_class(
-        button,
-        "saving",
-        /*isSaving*/
-        ctx[6]
-      );
-    },
-    m(target, anchor) {
-      insert(target, button, anchor);
-      append(button, t);
-      if (!mounted) {
-        dispose = listen(
-          button,
-          "click",
-          /*handleSaveProject*/
-          ctx[9]
-        );
-        mounted = true;
-      }
-    },
-    p(ctx2, dirty) {
-      if (dirty & /*isSaving*/
-      64 && t_value !== (t_value = /*isSaving*/
-      ctx2[6] ? "Saving..." : "Save (Ctrl+S)"))
-        set_data(t, t_value);
-      if (dirty & /*isSaving*/
-      64) {
-        toggle_class(
-          button,
-          "saving",
-          /*isSaving*/
-          ctx2[6]
-        );
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(button);
-      }
-      mounted = false;
-      dispose();
-    }
-  };
-}
 function create_else_block_1(ctx) {
   let current_block_type_index;
   let if_block;
@@ -9160,15 +9065,15 @@ function create_else_block_1(ctx) {
   let current;
   const if_block_creators = [create_if_block_26, create_else_block_2];
   const if_blocks = [];
-  function select_block_type_3(ctx2, dirty) {
+  function select_block_type_2(ctx2, dirty) {
     if (
       /*projectTab*/
-      ctx2[7] === "board"
+      ctx2[6] === "board"
     )
       return 0;
     return 1;
   }
-  current_block_type_index = select_block_type_3(ctx, -1);
+  current_block_type_index = select_block_type_2(ctx, -1);
   if_block = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](ctx);
   return {
     c() {
@@ -9182,7 +9087,7 @@ function create_else_block_1(ctx) {
     },
     p(ctx2, dirty) {
       let previous_block_index = current_block_type_index;
-      current_block_type_index = select_block_type_3(ctx2, dirty);
+      current_block_type_index = select_block_type_2(ctx2, dirty);
       if (current_block_type_index === previous_block_index) {
         if_blocks[current_block_type_index].p(ctx2, dirty);
       } else {
@@ -9221,73 +9126,104 @@ function create_else_block_1(ctx) {
   };
 }
 function create_if_block_17(ctx) {
-  let div1;
+  let div4;
   let div0;
-  let textarea;
+  let span;
+  let t1;
+  let button;
+  let t3;
+  let div3;
+  let div2;
+  let div1;
   let mounted;
   let dispose;
   return {
     c() {
-      div1 = element("div");
+      div4 = element("div");
       div0 = element("div");
-      textarea = element("textarea");
-      attr(textarea, "class", "pos-markdown-textarea");
-      attr(textarea, "placeholder", "Write your project details, research notes, and action plans here using standard markdown...");
-      attr(textarea, "spellcheck", "false");
-      attr(div0, "class", "pos-editor-pane");
-      attr(div1, "class", "pos-project-split-workspace");
+      span = element("span");
+      span.textContent = "\u{1F4C4} Note Preview";
+      t1 = space();
+      button = element("button");
+      button.textContent = "Edit Note Natively \u2197";
+      t3 = space();
+      div3 = element("div");
+      div2 = element("div");
+      div1 = element("div");
+      set_style(span, "font-weight", "700");
+      set_style(span, "font-size", "0.85em");
+      set_style(span, "color", "var(--text-muted)");
+      set_style(span, "text-transform", "uppercase");
+      set_style(span, "letter-spacing", "0.05em");
+      set_style(span, "display", "flex");
+      set_style(span, "align-items", "center");
+      set_style(span, "gap", "6px");
+      attr(button, "class", "pos-modal-primary");
+      set_style(button, "padding", "4px 12px");
+      set_style(button, "font-size", "0.85em");
+      set_style(button, "font-weight", "600");
+      attr(div0, "class", "pos-native-note-bar");
+      set_style(div0, "display", "flex");
+      set_style(div0, "justify-content", "space-between");
+      set_style(div0, "align-items", "center");
+      set_style(div0, "padding", "10px 16px");
+      set_style(div0, "background", "var(--background-secondary)");
+      set_style(div0, "border", "1px solid var(--background-modifier-border)");
+      set_style(div0, "border-bottom", "none");
+      set_style(div0, "border-radius", "8px 8px 0 0");
+      set_style(div0, "flex-shrink", "0");
+      attr(div1, "class", "markdown-preview-view markdown-rendered");
+      set_style(div1, "color", "var(--text-normal)");
+      set_style(div1, "line-height", "1.6");
+      set_style(div1, "font-family", "var(--font-interface)");
+      set_style(div1, "height", "100%");
+      set_style(div2, "flex", "1");
+      set_style(div2, "overflow-y", "auto");
+      set_style(div2, "padding", "24px");
+      set_style(div2, "min-height", "0");
+      attr(div3, "class", "pos-editor-pane");
+      set_style(div3, "border-radius", "0 0 8px 8px");
+      set_style(div3, "flex", "1");
+      set_style(div3, "min-height", "0");
+      set_style(div3, "display", "flex");
+      set_style(div3, "flex-direction", "column");
+      set_style(div3, "overflow", "hidden");
+      set_style(div3, "background", "var(--background-primary)");
+      attr(div4, "class", "pos-project-split-workspace");
+      set_style(div4, "flex-direction", "column");
+      set_style(div4, "height", "100%");
     },
     m(target, anchor) {
-      insert(target, div1, anchor);
-      append(div1, div0);
-      append(div0, textarea);
-      set_input_value(
-        textarea,
-        /*projectContent*/
-        ctx[5]
-      );
+      insert(target, div4, anchor);
+      append(div4, div0);
+      append(div0, span);
+      append(div0, t1);
+      append(div0, button);
+      append(div4, t3);
+      append(div4, div3);
+      append(div3, div2);
+      append(div2, div1);
+      ctx[17](div1);
       if (!mounted) {
-        dispose = [
-          listen(
-            textarea,
-            "input",
-            /*textarea_input_handler*/
-            ctx[20]
-          ),
-          listen(textarea, "keydown", stop_propagation(
-            /*handleKeyDown*/
-            ctx[10]
-          )),
-          listen(textarea, "keypress", stop_propagation(
-            /*keypress_handler*/
-            ctx[13]
-          )),
-          listen(textarea, "keyup", stop_propagation(
-            /*keyup_handler*/
-            ctx[14]
-          ))
-        ];
+        dispose = listen(
+          button,
+          "click",
+          /*handleOpenNoteNatively*/
+          ctx[8]
+        );
         mounted = true;
       }
     },
-    p(ctx2, dirty) {
-      if (dirty & /*projectContent*/
-      32) {
-        set_input_value(
-          textarea,
-          /*projectContent*/
-          ctx2[5]
-        );
-      }
-    },
+    p: noop,
     i: noop,
     o: noop,
     d(detaching) {
       if (detaching) {
-        detach(div1);
+        detach(div4);
       }
+      ctx[17](null);
       mounted = false;
-      run_all(dispose);
+      dispose();
     }
   };
 }
@@ -9310,7 +9246,7 @@ function create_else_block_2(ctx) {
       ),
       projectTasks: (
         /*projectTasks*/
-        ctx[22]
+        ctx[19]
       )
     }
   });
@@ -9337,9 +9273,9 @@ function create_else_block_2(ctx) {
         projecttaskgrid_changes.projectId = /*selectedProject*/
         ctx2[4].id;
       if (dirty & /*$tasksStore, selectedProject*/
-      272)
+      144)
         projecttaskgrid_changes.projectTasks = /*projectTasks*/
-        ctx2[22];
+        ctx2[19];
       projecttaskgrid.$set(projecttaskgrid_changes);
     },
     i(local) {
@@ -9376,7 +9312,7 @@ function create_if_block_26(ctx) {
       ),
       projectTasks: (
         /*projectTasks*/
-        ctx[22]
+        ctx[19]
       )
     }
   });
@@ -9403,9 +9339,9 @@ function create_if_block_26(ctx) {
         projecttaskboard_changes.projectId = /*selectedProject*/
         ctx2[4].id;
       if (dirty & /*$tasksStore, selectedProject*/
-      272)
+      144)
         projecttaskboard_changes.projectTasks = /*projectTasks*/
-        ctx2[22];
+        ctx2[19];
       projecttaskboard.$set(projecttaskboard_changes);
     },
     i(local) {
@@ -9492,54 +9428,39 @@ function instance7($$self, $$props, $$invalidate) {
   let activeProjects;
   let $projectsStore;
   let $tasksStore;
-  component_subscribe($$self, projectsStore, ($$value) => $$invalidate(12, $projectsStore = $$value));
-  component_subscribe($$self, tasksStore, ($$value) => $$invalidate(8, $tasksStore = $$value));
+  component_subscribe($$self, projectsStore, ($$value) => $$invalidate(11, $projectsStore = $$value));
+  component_subscribe($$self, tasksStore, ($$value) => $$invalidate(7, $tasksStore = $$value));
   let { app } = $$props;
   let { fileManager } = $$props;
   let { plugin } = $$props;
   let { selectedProjectId = null } = $$props;
   let selectedProject = null;
   let projectContent = "";
-  let isSaving = false;
+  let previewEl;
   let projectTab = "notes";
   async function loadProjectContent(id) {
-    $$invalidate(5, projectContent = await fileManager.getProjectContent(id));
+    $$invalidate(9, projectContent = await fileManager.getProjectContent(id));
   }
-  async function handleSaveProject() {
+  function handleOpenNoteNatively() {
     if (!selectedProject)
       return;
-    $$invalidate(6, isSaving = true);
-    try {
-      await fileManager.saveProjectContent(selectedProject.id, projectContent);
-      new import_obsidian7.Notice("Project saved successfully!");
-    } catch (e) {
-      new import_obsidian7.Notice("Failed to save project: " + e.message);
-    } finally {
-      $$invalidate(6, isSaving = false);
+    const file = app.vault.getAbstractFileByPath(`projects/${selectedProject.id}.md`);
+    if (file) {
+      app.workspace.getLeaf("tab").openFile(file);
     }
-  }
-  function handleKeyDown(e) {
-    if ((e.ctrlKey || e.metaKey) && e.key === "s") {
-      e.preventDefault();
-      handleSaveProject();
-    }
-  }
-  function keypress_handler(event) {
-    bubble.call(this, $$self, event);
-  }
-  function keyup_handler(event) {
-    bubble.call(this, $$self, event);
   }
   const func = (id, m) => {
     $$invalidate(0, selectedProjectId = id);
   };
   const click_handler = () => $$invalidate(0, selectedProjectId = null);
-  const click_handler_1 = () => $$invalidate(7, projectTab = "notes");
-  const click_handler_2 = () => $$invalidate(7, projectTab = "board");
-  const click_handler_3 = () => $$invalidate(7, projectTab = "grid");
-  function textarea_input_handler() {
-    projectContent = this.value;
-    $$invalidate(5, projectContent), $$invalidate(0, selectedProjectId), $$invalidate(11, activeProjects), $$invalidate(12, $projectsStore);
+  const click_handler_1 = () => $$invalidate(6, projectTab = "notes");
+  const click_handler_2 = () => $$invalidate(6, projectTab = "board");
+  const click_handler_3 = () => $$invalidate(6, projectTab = "grid");
+  function div1_binding($$value) {
+    binding_callbacks[$$value ? "unshift" : "push"](() => {
+      previewEl = $$value;
+      $$invalidate(5, previewEl);
+    });
   }
   $$self.$$set = ($$props2) => {
     if ("app" in $$props2)
@@ -9553,12 +9474,12 @@ function instance7($$self, $$props, $$invalidate) {
   };
   $$self.$$.update = () => {
     if ($$self.$$.dirty & /*$projectsStore*/
-    4096) {
+    2048) {
       $:
-        $$invalidate(11, activeProjects = $projectsStore.filter((p) => p.status === "active"));
+        $$invalidate(10, activeProjects = $projectsStore.filter((p) => p.status === "active"));
     }
     if ($$self.$$.dirty & /*selectedProjectId, activeProjects*/
-    2049) {
+    1025) {
       $: {
         if (selectedProjectId) {
           const proj = activeProjects.find((p) => p.id === selectedProjectId);
@@ -9567,12 +9488,21 @@ function instance7($$self, $$props, $$invalidate) {
             loadProjectContent(selectedProjectId);
           } else {
             $$invalidate(4, selectedProject = null);
-            $$invalidate(5, projectContent = "");
+            $$invalidate(9, projectContent = "");
           }
         } else {
           $$invalidate(4, selectedProject = null);
-          $$invalidate(5, projectContent = "");
-          $$invalidate(7, projectTab = "notes");
+          $$invalidate(9, projectContent = "");
+          $$invalidate(6, projectTab = "notes");
+        }
+      }
+    }
+    if ($$self.$$.dirty & /*previewEl, projectContent, selectedProject, plugin*/
+    568) {
+      $: {
+        if (previewEl && projectContent !== void 0 && selectedProject) {
+          previewEl.empty();
+          import_obsidian7.MarkdownRenderer.renderMarkdown(projectContent, previewEl, `projects/${selectedProject.id}.md`, plugin);
         }
       }
     }
@@ -9583,22 +9513,19 @@ function instance7($$self, $$props, $$invalidate) {
     fileManager,
     plugin,
     selectedProject,
-    projectContent,
-    isSaving,
+    previewEl,
     projectTab,
     $tasksStore,
-    handleSaveProject,
-    handleKeyDown,
+    handleOpenNoteNatively,
+    projectContent,
     activeProjects,
     $projectsStore,
-    keypress_handler,
-    keyup_handler,
     func,
     click_handler,
     click_handler_1,
     click_handler_2,
     click_handler_3,
-    textarea_input_handler
+    div1_binding
   ];
 }
 var ProjectsView = class extends SvelteComponent {

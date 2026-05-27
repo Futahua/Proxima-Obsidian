@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { App as ObsidianApp, Notice } from 'obsidian';
+  import { App as ObsidianApp, Notice, MarkdownRenderer } from 'obsidian';
   import type { FileManager } from '../../data/FileManager';
   import { projectsStore, tasksStore } from '../../stores/data';
   import type { ProjectData } from '../../types';
@@ -17,7 +17,7 @@
 
   let selectedProject: ProjectData | null = null;
   let projectContent = '';
-  let isSaving = false;
+  let previewEl: HTMLElement;
 
   let projectTab: 'notes' | 'board' | 'grid' = 'notes';
 
@@ -42,23 +42,24 @@
     projectContent = await fileManager.getProjectContent(id);
   }
 
-  async function handleSaveProject() {
-    if (!selectedProject) return;
-    isSaving = true;
-    try {
-      await fileManager.saveProjectContent(selectedProject.id, projectContent);
-      new Notice('Project saved successfully!');
-    } catch (e) {
-      new Notice('Failed to save project: ' + e.message);
-    } finally {
-      isSaving = false;
+  // Reactive Markdown Compiler
+  $: {
+    if (previewEl && projectContent !== undefined && selectedProject) {
+      previewEl.empty();
+      MarkdownRenderer.renderMarkdown(
+        projectContent,
+        previewEl,
+        `projects/${selectedProject.id}.md`,
+        plugin
+      );
     }
   }
 
-  function handleKeyDown(e: KeyboardEvent) {
-    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-      e.preventDefault();
-      handleSaveProject();
+  function handleOpenNoteNatively() {
+    if (!selectedProject) return;
+    const file = app.vault.getAbstractFileByPath(`projects/${selectedProject.id}.md`);
+    if (file) {
+      app.workspace.getLeaf('tab').openFile(file as any);
     }
   }
 </script>
@@ -112,34 +113,27 @@
         </button>
       </div>
 
-      {#if projectTab === 'notes'}
-        <button 
-          class="pos-save-btn" 
-          class:saving={isSaving} 
-          on:click={handleSaveProject}
-        >
-          {isSaving ? 'Saving...' : 'Save (Ctrl+S)'}
-        </button>
-      {:else}
-        <div style="width: 100px;"></div>
-      {/if}
+      <div style="width: 100px;"></div>
     </header>
 
     <!-- CONTENT DISPATCHER -->
     <div class="pos-project-workspace-body">
       {#if projectTab === 'notes'}
-        <!-- 📄 NOTES VIEW (EDITOR ONLY - SPACIOUS SPLIT OPTIMIZED) -->
-        <div class="pos-project-split-workspace">
-          <div class="pos-editor-pane">
-            <textarea 
-              class="pos-markdown-textarea" 
-              bind:value={projectContent} 
-              on:keydown|stopPropagation={handleKeyDown} 
-              on:keypress|stopPropagation
-              on:keyup|stopPropagation
-              placeholder="Write your project details, research notes, and action plans here using standard markdown..."
-              spellcheck="false"
-            />
+        <!-- 📄 NOTES VIEW (NATIVE EMBEDDED MIRROR PREVIEW & EDIT ACTION) -->
+        <div class="pos-project-split-workspace" style="flex-direction: column; height: 100%;">
+          <div class="pos-native-note-bar" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; background: var(--background-secondary); border: 1px solid var(--background-modifier-border); border-bottom: none; border-radius: 8px 8px 0 0; flex-shrink: 0;">
+            <span style="font-weight: 700; font-size: 0.85em; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 6px;">
+              📄 Note Preview
+            </span>
+            <button class="pos-modal-primary" on:click={handleOpenNoteNatively} style="padding: 4px 12px; font-size: 0.85em; font-weight: 600;">
+              Edit Note Natively ↗
+            </button>
+          </div>
+          
+          <div class="pos-editor-pane" style="border-radius: 0 0 8px 8px; flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden; background: var(--background-primary);">
+            <div style="flex: 1; overflow-y: auto; padding: 24px; min-height: 0;">
+              <div bind:this={previewEl} class="markdown-preview-view markdown-rendered" style="color: var(--text-normal); line-height: 1.6; font-family: var(--font-interface); height: 100%;"></div>
+            </div>
           </div>
         </div>
       {:else}
