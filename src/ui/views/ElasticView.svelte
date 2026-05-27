@@ -4,7 +4,7 @@
   import type { FileManager } from '../../data/FileManager';
   import { tasksStore, getProjectTasks } from '../../stores/data';
   import { calculateLiquidTimeline, fmtDate, fmtTime, fmtDur } from '../../utils';
-  import { EditTaskModal, ConfirmModal, NewTaskModal } from '../../modals/Modals';
+  import { QuickEditTaskModal, ConfirmModal, NewTaskModal } from '../../modals/Modals';
   import type { TaskData, TaskStatus, TimelineItem } from '../../types';
 
   export let app;
@@ -13,9 +13,10 @@
 
   $: projectTasks = getProjectTasks($tasksStore, projectId);
   
-  $: backlog = projectTasks.filter(t => t.status === 'backlog');
-  $: running = projectTasks.filter(t => t.status === 'running');
-  $: review = projectTasks.filter(t => t.status === 'review');
+  const sortTasks = (tasks: TaskData[]) => tasks.sort((a, b) => (a.priority - b.priority) || (a.orderIndex - b.orderIndex));
+  $: backlog = sortTasks(projectTasks.filter(t => t.status === 'backlog'));
+  $: running = sortTasks(projectTasks.filter(t => t.status === 'running'));
+  $: review = sortTasks(projectTasks.filter(t => t.status === 'review'));
 
   let deadline = new Date();
   deadline.setHours(17, 0, 0, 0);
@@ -87,15 +88,14 @@
     window.clearInterval(timer);
   });
 
-  // Actions
   function createTask() {
     new NewTaskModal(app, async (name) => {
-      await fileManager.createTask({ name, project: projectId });
+      await fileManager.createTask({ name, project: projectId === 'all' ? null : projectId });
     }).open();
   }
 
   function editTask(task: TaskData) {
-    new EditTaskModal(app, task, async (updates) => {
+    new QuickEditTaskModal(app, task, async (updates) => {
       await fileManager.updateTask(task.id, updates);
     }).open();
   }
@@ -256,7 +256,7 @@
     dragOverIndex = -1;
 
     // Filter project-specific tasks to reindex correctly
-    const allTasksOfProject = $tasksStore.filter(t => t.project === projectId);
+    const allTasksOfProject = getProjectTasks($tasksStore, projectId);
     
     if (oldStatus === status) {
       // Reordering within the same column
@@ -324,10 +324,17 @@
           {#if dragOverStatus === 'backlog' && dragOverIndex === i}
             <div class="pos-drag-placeholder" style="height: {dragHeight}px"></div>
           {/if}
-          <div class="pos-card" class:pos-dragging-source={dragId === task.id} draggable="true" on:dragstart={(e) => handleDragStart(e, task.id)} on:dragend={handleDragEnd}>
+          <div class="pos-card priority-{task.priority}" class:pos-dragging-source={dragId === task.id} draggable="true" on:dragstart={(e) => handleDragStart(e, task.id)} on:dragend={handleDragEnd}>
             <div style="cursor: pointer;" on:click={() => editTask(task)}>
               <div class="pos-card-name">{task.name}</div>
               {#if task.description}<div class="pos-card-desc">{task.description}</div>{/if}
+              {#if task.tags && task.tags.length > 0}
+                <div class="pos-card-meta">
+                  {#each task.tags as tag}
+                    <span class="pos-tag-pill">{tag}</span>
+                  {/each}
+                </div>
+              {/if}
             </div>
             <div class="pos-card-acts">
               <button class="pos-del" on:click={() => deleteTask(task.id)}>Delete</button>
@@ -360,7 +367,7 @@
           {/if}
           {@const ti = timeline.find(t => t.id === task.id)}
           <div 
-            class="pos-card" 
+            class="pos-card priority-{task.priority}" 
             class:pos-dragging-source={dragId === task.id} 
             style="height: {taskHeights[task.id] ? taskHeights[task.id] + 'px' : 'auto'};"
             draggable="true" 
@@ -371,6 +378,11 @@
               <div class="pos-card-name">{task.name}</div>
               {#if task.description}<div class="pos-card-desc">{task.description}</div>{/if}
               <div class="pos-card-meta">
+                {#if task.tags && task.tags.length > 0}
+                  {#each task.tags as tag}
+                    <span class="pos-tag-pill">{tag}</span>
+                  {/each}
+                {/if}
                 {#if task.isFixedDuration && task.fixedDuration}<span>Fixed {task.fixedDuration}m</span>{/if}
                 {#if ti}<span>{fmtTime(ti.endTime)} ({fmtDur(Math.round(ti.calculatedDuration))})</span>{/if}
               </div>
@@ -424,9 +436,16 @@
           {#if dragOverStatus === 'review' && dragOverIndex === i}
             <div class="pos-drag-placeholder" style="height: {dragHeight}px"></div>
           {/if}
-          <div class="pos-card pos-completed" class:pos-dragging-source={dragId === task.id} draggable="true" on:dragstart={(e) => handleDragStart(e, task.id)} on:dragend={handleDragEnd}>
+          <div class="pos-card pos-completed priority-{task.priority}" class:pos-dragging-source={dragId === task.id} draggable="true" on:dragstart={(e) => handleDragStart(e, task.id)} on:dragend={handleDragEnd}>
             <div style="cursor: pointer;" on:click={() => editTask(task)}>
               <div class="pos-card-name">{task.name}</div>
+              {#if task.tags && task.tags.length > 0}
+                <div class="pos-card-meta">
+                  {#each task.tags as tag}
+                    <span class="pos-tag-pill">{tag}</span>
+                  {/each}
+                </div>
+              {/if}
             </div>
             <div class="pos-card-acts">
               <button class="pos-del" on:click={() => deleteTask(task.id)}>Delete</button>

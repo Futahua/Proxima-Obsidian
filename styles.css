@@ -2521,3 +2521,89 @@ body.pos-is-moving * {
   background: rgba(167, 201, 87, 0.1);
   box-shadow: inset 0 0 0 2px #A7C957;
 }
+
+/* Priority */
+.pos-priority-badge {
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.85em;
+  font-weight: bold;
+}
+.pos-priority-badge.high { background: rgba(220, 53, 69, 0.15); color: #dc3545; }
+.pos-priority-badge.medium { background: rgba(255, 193, 7, 0.15); color: #ffc107; }
+.pos-priority-badge.low { background: rgba(40, 167, 69, 0.15); color: #28a745; }
+
+.pos-td-priority { width: 100px; }
+
+.pos-card.priority-1 { border-left: 4px solid #dc3545; }
+.pos-card.priority-2 { border-left: 4px solid #ffc107; }
+.pos-card.priority-3 { border-left: 4px solid #28a745; }
+
+/* Tags */
+.pos-tag-pill {
+  background: rgba(167, 201, 87, 0.15);
+  color: #A7C957;
+  border: 1px solid rgba(167, 201, 87, 0.3);
+  padding: 2px 6px;
+  border-radius: 12px;
+  font-size: 0.75em;
+  font-weight: 500;
+  margin-right: 4px;
+  display: inline-flex;
+  align-items: center;
+}
+.pos-tag-input-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+  border: 1px solid var(--background-modifier-border);
+  padding: 4px;
+  border-radius: 4px;
+}
+.pos-tag-input {
+  border: none !important;
+  background: transparent !important;
+  flex: 1;
+  min-width: 100px;
+  padding: 0 !important;
+  box-shadow: none !important;
+}
+.pos-tag-input:focus { box-shadow: none !important; }
+.pos-tag-pill-remove {
+  cursor: pointer;
+  opacity: 0.6;
+  margin-left: 4px;
+}
+.pos-tag-pill-remove:hover { opacity: 1; }
+
+.pos-tag-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+  padding: 0 20px;
+}
+.pos-tag-filter-pill {
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  color: var(--text-normal);
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 0.85em;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.pos-tag-filter-pill:hover { background: var(--background-modifier-hover); }
+.pos-tag-filter-pill.active {
+  background: #A7C957;
+  color: #101010;
+  border-color: #A7C957;
+}
+
+.pos-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}

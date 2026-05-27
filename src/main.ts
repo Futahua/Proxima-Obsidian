@@ -4,6 +4,7 @@ import { FileManager } from './data/FileManager';
 import { projectsStore } from './stores/data';
 import App from './ui/App.svelte';
 import ProjectsView from './ui/views/ProjectsView.svelte';
+import { ProjectOSSettings, DEFAULT_SETTINGS, ProjectOSSettingTab } from './settings';
 
 const VIEW_TYPE = 'project-os-view';
 const WORKSPACE_VIEW_TYPE = 'project-os-workspace-view';
@@ -95,67 +96,85 @@ class ProjectWorkspaceView extends ItemView {
 
 export default class ProjectOSPlugin extends Plugin {
   fileManager!: FileManager;
+  settings!: ProjectOSSettings;
 
   async onload() {
-    console.log("Initializing Project OS...");
-    new Notice("Initializing Project OS...");
-    
-    this.fileManager = new FileManager(this.app);
+    try {
+      console.log("Initializing Project OS...");
+      new Notice("Initializing Project OS...");
+      
+      await this.loadSettings();
 
-    this.app.workspace.onLayoutReady(async () => {
+      this.fileManager = new FileManager(this.app);
+
+      this.addSettingTab(new ProjectOSSettingTab(this.app, this));
+
+      this.app.workspace.onLayoutReady(async () => {
+        try {
+          await this.fileManager.initialize();
+          console.log("Project OS: data initialized successfully!");
+        } catch (e) {
+          console.error("Project OS: failed to initialize data", e);
+          new Notice("Project OS failed to initialize: " + e.message);
+        }
+      });
+
       try {
-        await this.fileManager.initialize();
-        console.log("Project OS: data initialized successfully!");
+        this.registerView(
+          VIEW_TYPE,
+          (leaf) => new ProjectOSView(leaf, this.fileManager, this)
+        );
       } catch (e) {
-        console.error("Project OS: failed to initialize data", e);
-        new Notice("Project OS failed to initialize: " + e.message);
+        console.warn('View already registered:', VIEW_TYPE);
       }
-    });
 
-    this.registerView(
-      VIEW_TYPE,
-      (leaf) => new ProjectOSView(leaf, this.fileManager, this)
-    );
+      try {
+        this.registerView(
+          WORKSPACE_VIEW_TYPE,
+          (leaf) => new ProjectWorkspaceView(leaf, this.fileManager, this)
+        );
+      } catch (e) {
+        console.warn('View already registered:', WORKSPACE_VIEW_TYPE);
+      }
 
-    this.registerView(
-      WORKSPACE_VIEW_TYPE,
-      (leaf) => new ProjectWorkspaceView(leaf, this.fileManager, this)
-    );
+      this.addRibbonIcon('layout-dashboard', 'Open Project OS', () => {
+        this.activateView();
+      });
 
-    this.addRibbonIcon('layout-dashboard', 'Open Project OS', () => {
-      this.activateView();
-    });
+      this.addCommand({
+        id: 'open-project-os',
+        name: 'Open Project OS Dashboard',
+        callback: () => this.activateView(),
+      });
 
-    this.addCommand({
-      id: 'open-project-os',
-      name: 'Open Project OS Dashboard',
-      callback: () => this.activateView(),
-    });
+      // Reactive listener for external changes
+      this.registerEvent(
+        this.app.metadataCache.on('changed', async (file) => {
+          if (file.path.startsWith('tasks/') || file.path.startsWith('projects/')) {
+            await this.fileManager.loadAll();
+          }
+        })
+      );
 
-    // Reactive listener for external changes
-    this.registerEvent(
-      this.app.metadataCache.on('changed', async (file) => {
-        if (file.path.startsWith('tasks/') || file.path.startsWith('projects/')) {
-          await this.fileManager.loadAll();
-        }
-      })
-    );
+      this.registerEvent(
+        this.app.vault.on('create', async (file) => {
+          if (file.path.startsWith('tasks/') || file.path.startsWith('projects/')) {
+            await this.fileManager.loadAll();
+          }
+        })
+      );
 
-    this.registerEvent(
-      this.app.vault.on('create', async (file) => {
-        if (file.path.startsWith('tasks/') || file.path.startsWith('projects/')) {
-          await this.fileManager.loadAll();
-        }
-      })
-    );
-
-    this.registerEvent(
-      this.app.vault.on('delete', async (file) => {
-        if (file.path.startsWith('tasks/') || file.path.startsWith('projects/')) {
-          await this.fileManager.loadAll();
-        }
-      })
-    );
+      this.registerEvent(
+        this.app.vault.on('delete', async (file) => {
+          if (file.path.startsWith('tasks/') || file.path.startsWith('projects/')) {
+            await this.fileManager.loadAll();
+          }
+        })
+      );
+    } catch (e) {
+      new Notice("ONLOAD CRASH: " + (e.message || e), 10000);
+      throw e;
+    }
   }
 
   async activateView() {
@@ -188,5 +207,20 @@ export default class ProjectOSPlugin extends Plugin {
     }
 
     workspace.revealLeaf(leaf);
+  }
+
+  async loadSettings() {
+    this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+  }
+
+  async saveSettings() {
+    await this.saveData(this.settings);
+    // Optional: trigger a re-render or event to update views
+  }
+
+  onunload() {
+    console.log("Unloading Project OS...");
+    this.app.workspace.detachLeavesOfType(VIEW_TYPE);
+    this.app.workspace.detachLeavesOfType(WORKSPACE_VIEW_TYPE);
   }
 }

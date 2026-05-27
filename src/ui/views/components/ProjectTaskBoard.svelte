@@ -1,7 +1,7 @@
 <script lang="ts">
   import { App as ObsidianApp, TFile } from 'obsidian';
   import type { FileManager } from '../../../data/FileManager';
-  import { EditTaskModal, NewTaskModal } from '../../../modals/Modals';
+  import { QuickEditTaskModal, NewTaskModal } from '../../../modals/Modals';
   import type { TaskData, TaskStatus } from '../../../types';
 
   export let app;
@@ -9,10 +9,11 @@
   export let projectId: string;
   export let projectTasks: TaskData[];
 
-  $: planned = projectTasks.filter(t => t.status === 'planned');
-  $: backlog = projectTasks.filter(t => t.status === 'backlog');
-  $: running = projectTasks.filter(t => t.status === 'running');
-  $: review = projectTasks.filter(t => t.status === 'review');
+  const sortTasks = (tasks: TaskData[]) => tasks.sort((a, b) => (a.priority - b.priority) || (a.orderIndex - b.orderIndex));
+  $: planned = sortTasks(projectTasks.filter(t => t.status === 'planned'));
+  $: backlog = sortTasks(projectTasks.filter(t => t.status === 'backlog'));
+  $: running = sortTasks(projectTasks.filter(t => t.status === 'running'));
+  $: review = sortTasks(projectTasks.filter(t => t.status === 'review'));
 
   // Drag and drop states
   let dragId: string | null = null;
@@ -151,7 +152,7 @@
   }
 
   function editTask(task: TaskData) {
-    new EditTaskModal(app, task, async (updates) => {
+    new QuickEditTaskModal(app, task, async (updates) => {
       await fileManager.updateTask(task.id, updates);
     }).open();
   }
@@ -196,7 +197,7 @@
           {#if dragOverStatus === 'planned' && dragOverIndex === i}
             <div class="pos-drag-placeholder"></div>
           {/if}
-          <div class="pos-card pos-board-card" class:pos-dragging-source={dragId === task.id} draggable="true" on:dragstart={(e) => handleDragStart(e, task.id)} on:dragend={handleDragEnd}>
+          <div class="pos-card pos-board-card priority-{task.priority}" class:pos-dragging-source={dragId === task.id} draggable="true" on:dragstart={(e) => handleDragStart(e, task.id)} on:dragend={handleDragEnd}>
             <div class="pos-ptc-header">
               <input type="checkbox" checked={false} on:change={() => updateStatus(task, 'backlog')} class="pos-task-checkbox" />
               <div class="pos-ptc-body" style="cursor: pointer;" on:click={() => editTask(task)}>
@@ -204,6 +205,11 @@
                 {#if task.description}<div class="pos-card-desc">{task.description}</div>{/if}
                 <div class="pos-ptc-meta">
                   <span>W:{task.weight}</span>
+                  {#if task.tags && task.tags.length > 0}
+                    {#each task.tags as tag}
+                      <span class="pos-tag-pill">{tag}</span>
+                    {/each}
+                  {/if}
                 </div>
               </div>
             </div>
@@ -229,7 +235,7 @@
           {#if dragOverStatus === 'backlog' && dragOverIndex === i}
             <div class="pos-drag-placeholder" style="height: {dragHeight}px"></div>
           {/if}
-          <div class="pos-card pos-board-card" class:pos-dragging-source={dragId === task.id} draggable="true" on:dragstart={(e) => handleDragStart(e, task.id)} on:dragend={handleDragEnd}>
+          <div class="pos-card pos-board-card priority-{task.priority}" class:pos-dragging-source={dragId === task.id} draggable="true" on:dragstart={(e) => handleDragStart(e, task.id)} on:dragend={handleDragEnd}>
             <div class="pos-ptc-header">
               <input type="checkbox" checked={true} on:change={() => updateStatus(task, 'planned')} class="pos-task-checkbox" />
               <div class="pos-ptc-body" style="cursor: pointer;" on:click={() => editTask(task)}>
@@ -237,6 +243,11 @@
                 {#if task.description}<div class="pos-card-desc">{task.description}</div>{/if}
                 <div class="pos-ptc-meta">
                   <span>W:{task.weight}</span>
+                  {#if task.tags && task.tags.length > 0}
+                    {#each task.tags as tag}
+                      <span class="pos-tag-pill">{tag}</span>
+                    {/each}
+                  {/if}
                 </div>
               </div>
             </div>
@@ -262,13 +273,18 @@
           {#if dragOverStatus === 'running' && dragOverIndex === i}
             <div class="pos-drag-placeholder" style="height: {dragHeight}px"></div>
           {/if}
-          <div class="pos-card pos-board-card" class:pos-dragging-source={dragId === task.id} draggable="true" on:dragstart={(e) => handleDragStart(e, task.id)} on:dragend={handleDragEnd}>
+          <div class="pos-card pos-board-card priority-{task.priority}" class:pos-dragging-source={dragId === task.id} draggable="true" on:dragstart={(e) => handleDragStart(e, task.id)} on:dragend={handleDragEnd}>
             <div class="pos-ptc-header">
               <div class="pos-ptc-body" style="cursor: pointer;" on:click={() => editTask(task)}>
                 <div class="pos-card-name">{task.name}</div>
                 {#if task.description}<div class="pos-card-desc">{task.description}</div>{/if}
                 <div class="pos-ptc-meta">
                   <span>W:{task.weight}</span>
+                  {#if task.tags && task.tags.length > 0}
+                    {#each task.tags as tag}
+                      <span class="pos-tag-pill">{tag}</span>
+                    {/each}
+                  {/if}
                   {#if task.isFixedDuration && task.fixedDuration}<span>Fixed {task.fixedDuration}m</span>{/if}
                 </div>
               </div>
@@ -315,6 +331,11 @@
                 {#if task.description}<div class="pos-card-desc">{task.description}</div>{/if}
                 <div class="pos-ptc-meta">
                   <span>W:{task.weight}</span>
+                  {#if task.tags && task.tags.length > 0}
+                    {#each task.tags as tag}
+                      <span class="pos-tag-pill">{tag}</span>
+                    {/each}
+                  {/if}
                 </div>
               </div>
             </div>

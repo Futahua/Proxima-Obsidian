@@ -6,6 +6,7 @@ export const tasksStore = writable<TaskData[]>([]);
 
 // Derived store pattern for specific project tasks
 export function getProjectTasks(tasks: TaskData[], projectId: string | null): TaskData[] {
+  if (projectId === 'all') return tasks;
   if (projectId) return tasks.filter(t => t.project === projectId);
   return tasks.filter(t => !t.project); // Uncategorized
 }

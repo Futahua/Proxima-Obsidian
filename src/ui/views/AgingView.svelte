@@ -13,7 +13,9 @@
   export let isFullPage = false;
   export let onSelect: (id: string, view: 'elastic' | 'deadlines') => void;
 
-  $: activeProjects = $projectsStore.filter(p => p.status === 'active');
+  let showArchived = false;
+
+  $: displayProjects = $projectsStore.filter(p => showArchived ? p.status === 'archived' : p.status === 'active');
   $: tasks = $tasksStore;
 
   let timer: number;
@@ -61,7 +63,7 @@
 
   async function handleDeleteProject(id: string) {
     if (confirm('Delete project and its Markdown file? Tasks remain but will be uncategorized.')) {
-      const file = app.vault.getAbstractFileByPath(`projects/${id}.md`);
+      const file = app.vault.getAbstractFileByPath(`projects/${id}.md`) || app.vault.getAbstractFileByPath(`projects/${id}/index.md`);
       if (file) {
         await app.vault.delete(file);
         
@@ -77,6 +79,20 @@
     }
   }
 
+  async function handleArchiveProject(id: string) {
+    if (confirm('Archive this project?')) {
+      await fileManager.archiveProject(id);
+      new Notice('Project archived.');
+    }
+  }
+
+  async function handleUnarchiveProject(id: string) {
+    if (confirm('Restore this project to active status?')) {
+      await fileManager.unarchiveProject(id);
+      new Notice('Project restored.');
+    }
+  }
+
   function handleSelectProject(id: string) {
     if (isFullPage) {
       onSelect(id, 'elastic');
@@ -85,7 +101,7 @@
     }
   }
 
-  $: allTimes = activeProjects.map(p => new Date(p.createdAt).getTime());
+  $: allTimes = displayProjects.map(p => new Date(p.createdAt).getTime());
   $: minTime = Math.min(...allTimes);
   $: maxTime = Math.max(...allTimes);
   $: range = maxTime - minTime || 1;
@@ -100,40 +116,66 @@
       </button>
     </div>
     
-    <p class="pos-subtitle">Select or create a workspace to manage project notes and tasks modularly in a central tab.</p>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+      <p class="pos-subtitle" style="margin-bottom: 0;">Select or create a workspace to manage project notes and tasks modularly in a central tab.</p>
+      
+      <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.9em;">
+        <input type="checkbox" bind:checked={showArchived} />
+        <span>Show Archived Projects</span>
+      </label>
+    </div>
 
     <div class="pos-project-list">
-      {#if activeProjects.length === 0}
-        <p class="pos-empty">No projects yet. Click "+ New Project" above to build your first project workspace!</p>
+      {#if displayProjects.length === 0}
+        <p class="pos-empty">{showArchived ? 'No archived projects.' : 'No active projects yet. Click "+ New Project" above to build your first project workspace!'}</p>
       {:else}
-        {#each activeProjects as p (p.id)}
+        {#each displayProjects as p (p.id)}
           {@const pTasks = tasks.filter(t => t.project === p.id)}
-          {@const counts = {
-            running: pTasks.filter(t => t.status === 'running').length,
-            review: pTasks.filter(t => t.status === 'review').length,
-            total: pTasks.length,
-          }}
-          <div class="pos-card pos-project-card" style="background-color: hsl({getHue(p.createdAt, range, minTime)}, 70%, 90%);">
+          {@const total = pTasks.length}
+          {@const completed = pTasks.filter(t => t.status === 'review').length}
+          {@const running = pTasks.filter(t => t.status === 'running').length}
+          {@const overdue = pTasks.filter(t => t.status !== 'review' && t.deadline && new Date(t.deadline).getTime() < now).length}
+          {@const highPriority = pTasks.filter(t => t.status !== 'review' && t.priority === 1).length}
+          {@const futureDeadlines = pTasks.filter(t => t.status !== 'review' && t.deadline && new Date(t.deadline).getTime() > now).map(t => new Date(t.deadline || '').getTime())}
+          {@const nearestDeadline = futureDeadlines.length > 0 ? Math.min(...futureDeadlines) : null}
+          {@const completionPct = total > 0 ? Math.round((completed / total) * 100) : 0}
+          
+          <div class="pos-card pos-project-card" style="background-color: hsl({showArchived ? '0, 0%, 90%' : getHue(p.createdAt, range, minTime) + ', 70%, 90%'});">
             <div class="pos-card-name" on:click={() => handleSelectProject(p.id)} style="cursor: pointer; font-weight: bold; font-size: 1.15em;">
               {p.name}
+              {#if showArchived}<span style="font-size: 0.7em; margin-left: 8px; padding: 2px 6px; background: rgba(0,0,0,0.1); border-radius: 4px;">ARCHIVED</span>{/if}
             </div>
             {#if p.description}
               <div class="pos-card-desc">{p.description}</div>
             {/if}
             <div class="pos-age">Age: {formatAge(p.createdAt, now)}</div>
             
-            <div class="pos-card-meta">
-              <span>{counts.total} tasks</span>
-              {#if counts.running > 0}
-                <span class="pos-pwc-active-badge" style="background: rgba(167, 201, 87, 0.4); color: #101010; border: 1px solid rgba(0,0,0,0.1); font-size: 0.9em; padding: 1px 6px;">
-                  {counts.running} active
-                </span>
-              {/if}
-              {#if counts.review > 0}<span>{counts.review} completed</span>{/if}
+            <div class="pos-card-meta" style="display: flex; flex-direction: column; gap: 8px; margin-top: 12px;">
+              <div style="display: flex; align-items: center; gap: 12px; font-weight: 600;">
+                <span title="Total Tasks">{total} Tasks</span>
+                <span title="Completion">✅ {completionPct}%</span>
+                {#if overdue > 0}<span title="Overdue Tasks" style="color: #dc3545;">⚠️ {overdue} Overdue</span>{/if}
+                {#if highPriority > 0}<span title="High Priority Tasks" style="color: #ff6b6b;">🔥 {highPriority} P1</span>{/if}
+              </div>
+              <div style="font-size: 0.9em; opacity: 0.8;">
+                {#if nearestDeadline}
+                  Next Deadline: {new Date(nearestDeadline).toLocaleDateString()}
+                {:else}
+                  No upcoming deadlines
+                {/if}
+              </div>
+              <div style="width: 100%; height: 6px; background: rgba(0,0,0,0.1); border-radius: 3px; overflow: hidden; margin-top: 4px;">
+                <div style="height: 100%; width: {completionPct}%; background: #28a745; transition: width 0.3s;"></div>
+              </div>
             </div>
 
-            <div class="pos-card-acts" style="margin-top: 12px; display: flex; gap: 6px; flex-wrap: wrap;">
-              <button class="pos-ptc-start-btn" on:click={() => handleSelectProject(p.id)}>Workspace</button>
+            <div class="pos-card-acts" style="margin-top: 16px; display: flex; gap: 8px; flex-wrap: wrap;">
+              <button class="pos-ptc-start-btn" on:click={() => handleSelectProject(p.id)}>Open Workspace</button>
+              {#if !showArchived}
+                <button on:click={() => handleArchiveProject(p.id)} title="Archive project">Archive</button>
+              {:else}
+                <button on:click={() => handleUnarchiveProject(p.id)} title="Restore project">Restore</button>
+              {/if}
               <button class="pos-del" on:click={() => handleDeleteProject(p.id)} title="Delete project">Delete</button>
             </div>
           </div>

@@ -225,6 +225,49 @@ export class QuickEditTaskModal extends Modal {
     });
     desc.value = task.description;
 
+    // Priority
+    const pr = contentEl.createEl('div', { cls: 'pos-modal-row', attr: { style: 'margin-top: 10px;' } });
+    pr.createEl('label', { text: 'Priority:' });
+    const pSel = pr.createEl('select', { cls: 'pos-modal-input', attr: { style: 'width: 150px;' }});
+    const priorities = [{label: 'High', val: 1}, {label: 'Medium', val: 2}, {label: 'Low', val: 3}];
+    priorities.forEach(p => {
+      pSel.createEl('option', { value: String(p.val), text: p.label }).selected = (task.priority === p.val);
+    });
+
+    // Tags
+    let localTags = [...(task.tags || [])];
+    const tr = contentEl.createEl('div', { cls: 'pos-modal-row', attr: { style: 'margin-top: 10px; align-items: flex-start;' } });
+    tr.createEl('label', { text: 'Tags:' });
+    const tWrap = tr.createEl('div', { cls: 'pos-tag-input-row', attr: { style: 'flex: 1; min-height: 32px;' } });
+    
+    const renderTags = () => {
+      tWrap.empty();
+      localTags.forEach(tag => {
+        const pill = tWrap.createEl('span', { cls: 'pos-tag-pill', text: tag });
+        const xBtn = pill.createEl('span', { cls: 'pos-tag-pill-remove', text: '×', attr: { style: 'margin-left: 4px;' } });
+        xBtn.addEventListener('click', () => {
+          localTags = localTags.filter(t => t !== tag);
+          renderTags();
+        });
+      });
+      const tInp = tWrap.createEl('input', { type: 'text', placeholder: 'Add tag, press Enter', cls: 'pos-tag-input' });
+      tInp.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ',') {
+          e.preventDefault();
+          const val = tInp.value.trim().replace(/^,+|,+$/g, '');
+          if (val && !localTags.includes(val)) {
+            localTags.push(val);
+            renderTags();
+            // Focus the input again after re-render if it was the user typing
+            const newInp = tWrap.querySelector('.pos-tag-input') as HTMLInputElement;
+            if (newInp) newInp.focus();
+          }
+          tInp.value = '';
+        }
+      });
+    };
+    renderTags();
+
     // Buttons
     const br = contentEl.createEl('div', { cls: 'pos-modal-buttons', attr: { style: 'margin-top: 16px;' } });
     br.createEl('button', { text: 'Edit Natively' }).addEventListener('click', () => {
@@ -243,7 +286,9 @@ export class QuickEditTaskModal extends Modal {
         name,
         description: desc.value.trim(),
         status: sSel.value as any,
-        isCompleted: sSel.value === 'review'
+        isCompleted: sSel.value === 'review',
+        priority: parseInt(pSel.value, 10) as 1 | 2 | 3,
+        tags: localTags
       };
       
       if (sdChk.checked && sdInp.value) {

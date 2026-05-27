@@ -1,20 +1,23 @@
 <script lang="ts">
   import { App as ObsidianApp, TFile } from 'obsidian';
   import type { FileManager } from '../../../data/FileManager';
-  import { EditTaskModal, ConfirmModal } from '../../../modals/Modals';
+  import { QuickEditTaskModal, ConfirmModal } from '../../../modals/Modals';
   import type { TaskData, TaskStatus } from '../../../types';
 
   export let app;
   export let fileManager: FileManager;
-  export let projectId: string;
   export let projectTasks: TaskData[];
 
   // Search & Filter state
   let searchQuery = '';
   let statusFilter: 'all' | 'planned' | 'active' | 'review' = 'all';
+  let priorityFilter: 'all' | 1 | 2 | 3 = 'all';
+  let tagFilter: string | null = null;
+
+  $: uniqueTags = Array.from(new Set(projectTasks.flatMap(t => t.tags || []))).sort();
 
   // Sorting state
-  let sortBy: 'name' | 'weight' | 'status' | 'createdAt' = 'name';
+  let sortBy: 'name' | 'weight' | 'status' | 'createdAt' | 'priority' | 'tags' = 'name';
   let sortOrder: 'asc' | 'desc' = 'asc';
 
   // Multi-select state
@@ -29,15 +32,32 @@
     if (!matchesSearch) return false;
 
     // 2. Status Group filter
-    if (statusFilter === 'planned') return task.status === 'planned';
-    if (statusFilter === 'active') return task.status === 'backlog' || task.status === 'running';
-    if (statusFilter === 'review') return task.status === 'review';
+    if (statusFilter === 'planned' && task.status !== 'planned') return false;
+    if (statusFilter === 'active' && task.status !== 'backlog' && task.status !== 'running') return false;
+    if (statusFilter === 'review' && task.status !== 'review') return false;
+
+    // 3. Priority filter
+    if (priorityFilter !== 'all' && task.priority !== priorityFilter) return false;
+
+    // 4. Tag filter
+    if (tagFilter && !(task.tags || []).includes(tagFilter)) return false;
 
     return true;
   });
 
   // Apply sorting
   $: sortedTasks = [...filteredTasks].sort((a, b) => {
+    if (sortBy === 'tags') {
+      const aCount = (a.tags || []).length;
+      const bCount = (b.tags || []).length;
+      if (aCount !== bCount) return sortOrder === 'asc' ? (aCount - bCount) : (bCount - aCount);
+      const aName = (a.tags || []).join(', ').toLowerCase();
+      const bName = (b.tags || []).join(', ').toLowerCase();
+      if (aName < bName) return sortOrder === 'asc' ? -1 : 1;
+      if (aName > bName) return sortOrder === 'asc' ? 1 : -1;
+      return 0;
+    }
+    
     let fieldA: any = a[sortBy];
     let fieldB: any = b[sortBy];
 
@@ -124,7 +144,7 @@
   }
 
   function editTask(task: TaskData) {
-    new EditTaskModal(app, task, async (updates) => {
+    new QuickEditTaskModal(app, task, async (updates) => {
       await fileManager.updateTask(task.id, updates);
     }).open();
   }
@@ -138,6 +158,16 @@
 </script>
 
 <div class="pos-grid-workspace">
+  <!-- TAG FILTER BAR -->
+  {#if uniqueTags.length > 0}
+    <div class="pos-tag-filter-bar">
+      <button class="pos-tag-filter-pill" class:active={tagFilter === null} on:click={() => tagFilter = null}>All Tags</button>
+      {#each uniqueTags as tag}
+        <button class="pos-tag-filter-pill" class:active={tagFilter === tag} on:click={() => tagFilter = tag}>{tag}</button>
+      {/each}
+    </div>
+  {/if}
+
   <!-- FILTER BAR -->
   <div class="pos-grid-filter-bar">
     <input 
@@ -152,6 +182,13 @@
       <option value="planned">Planned (Inactive)</option>
       <option value="active">Active (Backlog/Running)</option>
       <option value="review">Review (Completed)</option>
+    </select>
+    
+    <select bind:value={priorityFilter} class="pos-grid-select-filter">
+      <option value="all">All Priorities</option>
+      <option value={1}>High Priority</option>
+      <option value={2}>Medium Priority</option>
+      <option value={3}>Low Priority</option>
     </select>
   </div>
 
@@ -190,6 +227,12 @@
           <th class="pos-th-status" on:click={() => toggleSort('status')}>
             Status {sortBy === 'status' ? (sortOrder === 'asc' ? '▲' : '▼') : ''}
           </th>
+          <th class="pos-th-priority" on:click={() => toggleSort('priority')}>
+            Priority {sortBy === 'priority' ? (sortOrder === 'asc' ? '▲' : '▼') : ''}
+          </th>
+          <th class="pos-th-tags" on:click={() => toggleSort('tags')}>
+            Tags {sortBy === 'tags' ? (sortOrder === 'asc' ? '▲' : '▼') : ''}
+          </th>
           <th class="pos-th-weight" on:click={() => toggleSort('weight')}>
             Weight {sortBy === 'weight' ? (sortOrder === 'asc' ? '▲' : '▼') : ''}
           </th>
@@ -202,7 +245,7 @@
       <tbody>
         {#if sortedTasks.length === 0}
           <tr>
-            <td colspan="6" class="pos-empty-grid">
+            <td colspan="8" class="pos-empty-grid">
               No tasks match your search filters.
             </td>
           </tr>
@@ -230,6 +273,24 @@
                 <span class="pos-ptc-status-badge {task.status}">
                   {task.status.toUpperCase()}
                 </span>
+              </td>
+              <td class="pos-td-priority">
+                {#if task.priority === 1}
+                  <span class="pos-priority-badge high">High</span>
+                {:else if task.priority === 2}
+                  <span class="pos-priority-badge medium">Medium</span>
+                {:else}
+                  <span class="pos-priority-badge low">Low</span>
+                {/if}
+              </td>
+              <td class="pos-td-tags">
+                <div class="pos-card-meta">
+                  {#if task.tags}
+                    {#each task.tags as tag}
+                      <span class="pos-tag-pill" style="cursor: pointer;" on:click|stopPropagation={() => tagFilter = tag}>{tag}</span>
+                    {/each}
+                  {/if}
+                </div>
               </td>
               <td class="pos-td-weight font-mono">
                 {task.weight}

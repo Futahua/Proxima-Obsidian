@@ -25,6 +25,8 @@ export interface TaskData {
   startDate: string | null;
   deadline: string | null;
   ganttRow?: number;
+  tags: string[];
+  priority: 1 | 2 | 3;
 }
 
 export interface TimelineItem {

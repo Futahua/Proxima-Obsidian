@@ -14,7 +14,10 @@ export function parseFrontmatter(content: string): Record<string, any> {
     if (idx === -1) return;
     const key = line.slice(0, idx).trim();
     let val: any = line.slice(idx + 1).trim();
-    if (val === 'true' || val === 'false') val = val === 'true';
+    if (val.startsWith('[') && val.endsWith(']')) {
+      const inner = val.slice(1, -1);
+      val = inner.split(',').map((s: string) => s.trim()).filter((s: string) => s.length > 0);
+    } else if (val === 'true' || val === 'false') val = val === 'true';
     else if (val === 'null' || val === 'undefined') val = null;
     else if (!isNaN(val as any) && val !== '') val = Number(val);
     data[key] = val;
@@ -25,7 +28,11 @@ export function parseFrontmatter(content: string): Record<string, any> {
 export function serializeFrontmatter(fields: Record<string, any>): string {
   let s = '---\n';
   for (const [k, v] of Object.entries(fields)) {
-    if (v !== undefined && v !== null) s += `${k}: ${v}\n`;
+    if (Array.isArray(v)) {
+      s += `${k}: [${v.join(', ')}]\n`;
+    } else if (v !== undefined && v !== null) {
+      s += `${k}: ${v}\n`;
+    }
   }
   s += '---\n';
   return s;
@@ -166,6 +173,8 @@ export class FileManager {
         startDate: startDate,
         deadline: deadline,
         ganttRow: fm.ganttRow || 0,
+        tags: Array.isArray(fm.tags) ? fm.tags : [],
+        priority: (fm.priority === 1 || fm.priority === 2 || fm.priority === 3) ? fm.priority : 2,
       });
     }
     tasks.sort((a, b) => a.orderIndex - b.orderIndex);
@@ -220,6 +229,8 @@ export class FileManager {
       fixedDuration: data.isFixedDuration ? data.fixedDuration : null,
       isCompleted: false,
       createdAt: new Date().toISOString(),
+      tags: data.tags || [],
+      priority: data.priority || 2,
     };
     if (data.deadline) fm.deadline = data.deadline;
     if (data.startDate) fm.startDate = data.startDate;
@@ -237,8 +248,11 @@ export class FileManager {
       orderIndex: fm.orderIndex,
       isFixedDuration: fm.isFixedDuration,
       fixedDuration: fm.fixedDuration,
+      maxDuration: fm.maxDuration || null,
       isCompleted: false,
       createdAt: fm.createdAt,
+      tags: fm.tags,
+      priority: fm.priority,
       startDate: fm.startDate || null,
       deadline: fm.deadline || null,
       description: data.description || '',
@@ -273,6 +287,51 @@ export class FileManager {
     const fm = parseFrontmatter(c);
     const serialized = serializeFrontmatter(fm) + '\n' + newBody;
     await this.app.vault.modify(file, serialized);
+  }
+
+  async unarchiveProject(id: string): Promise<void> {
+    const notePath = this.resolveProjectNotePath(id);
+    if (!notePath) return;
+    const file = this.app.vault.getAbstractFileByPath(notePath);
+    if (!(file instanceof TFile)) return;
+    const c = await this.app.vault.read(file);
+    const fm = parseFrontmatter(c);
+    fm.status = 'active';
+    
+    // Extract body
+    let newBody = '';
+    const bodyMatch = c.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/);
+    if (bodyMatch) {
+      newBody = bodyMatch[2];
+    } else {
+      newBody = c;
+    }
+    
+    const newFileContent = stringifyYamlFrontmatter(fm) + newBody;
+    await this.app.vault.modify(file, newFileContent);
+  }
+
+  async archiveProject(id: string): Promise<void> {
+    const notePath = this.resolveProjectNotePath(id);
+    if (!notePath) return;
+    const file = this.app.vault.getAbstractFileByPath(notePath);
+    if (!(file instanceof TFile)) return;
+    const c = await this.app.vault.read(file);
+    const fm = parseFrontmatter(c);
+    fm.status = 'archived';
+    
+    // Extract body
+    let newBody = '';
+    const bodyMatch = c.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/);
+    if (bodyMatch) {
+      newBody = bodyMatch[2];
+    } else {
+      newBody = c;
+    }
+    
+    const serialized = serializeFrontmatter(fm) + '\n' + newBody;
+    await this.app.vault.modify(file, serialized);
+    await this.loadAll();
   }
 
   /**

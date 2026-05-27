@@ -11,7 +11,7 @@
   export let plugin;
 
   let mode: 'projects' | 'elastic' | 'deadlines' = 'projects';
-  let selectedProjectId: string | null = null;
+  let selectedProjectId: string | null = 'all';
 
   $: activeProjects = $projectsStore.filter(p => p.status === 'active');
 </script>
@@ -27,6 +27,7 @@
       <div class="pos-project-selector-row">
         <label for="project-select">Project:</label>
         <select id="project-select" bind:value={selectedProjectId} class="pos-project-selector">
+          <option value="all">— All Projects —</option>
           <option value={null}>— Uncategorized —</option>
           {#each activeProjects as p (p.id)}
             <option value={p.id}>{p.name}</option>

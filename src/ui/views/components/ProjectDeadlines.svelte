@@ -8,6 +8,7 @@
   export let app;
   export let fileManager;
   export let projectId;
+  export let plugin;
 
   $: projectTasks = getProjectTasks($tasksStore, projectId);
   $: deadlinedTasks = projectTasks.filter(t => t.deadline && !t.isCompleted).sort((a, b) =>
@@ -77,16 +78,19 @@
   function getHueForRemaining(diffMs: number): number {
     const daysLeft = diffMs / (1000 * 60 * 60 * 24);
     if (daysLeft <= 0) return 0;
-    if (daysLeft >= 7) return 120;
-    return 120 * (daysLeft / 7);
+    const threshold = plugin.settings.nearDeadlineDays || 7;
+    if (daysLeft >= threshold) return 120;
+    return 120 * (daysLeft / threshold);
   }
 
   function urgencyClass(diffMs: number): string {
     const days = diffMs / 86400000;
+    const near = plugin.settings.nearDeadlineDays || 7;
+    const urgent = plugin.settings.urgentDeadlineDays || 2;
     if (days < 0) return 'overdue';
     if (days < 1) return 'critical';
-    if (days < 3) return 'warning';
-    if (days < 7) return 'caution';
+    if (days < urgent) return 'warning';
+    if (days < near) return 'caution';
     return 'safe';
   }
 
@@ -668,7 +672,7 @@
                       class:is-end={pt.isEnd}
                       style="left: {pt.leftPct}%; width: {pt.widthPct}%; top: {pt.row * 28 + 4}px;"
                       on:click={() => openTaskEditor(pt.task)}
-                      title="{pt.task.name}"
+                      title="{pt.task.priority ? 'P' + pt.task.priority + ' - ' : ''}{pt.task.name} {(pt.task.tags && pt.task.tags.length > 0) ? '[' + pt.task.tags.join(', ') + ']' : ''}"
                     >
                       <span class="pos-dl-cal-bar-title">{pt.task.name}</span>
                     </button>
@@ -720,7 +724,7 @@
                     class:hover-left-half={hoverTaskId === task.id && hoverSide === 'left'}
                     class:hover-right-half={hoverTaskId === task.id && hoverSide === 'right'}
                     style="left: {draggingTaskId === task.id ? tempDragLeft : pos.leftPx}px; width: {draggingTaskId === task.id ? tempDragWidth : pos.widthPx}px; --bar-hue: {hue}; transform: translateY({draggingTaskId === task.id && ganttDragMode === 'move' ? tempDragTranslateY : 0}px);"
-                    title="{task.name} — {formatCountdown(diffMs)}"
+                    title="{task.priority ? 'P' + task.priority + ' - ' : ''}{task.name} {(task.tags && task.tags.length > 0) ? '[' + task.tags.join(', ') + ']' : ''} — {formatCountdown(diffMs)}"
                     on:mousemove={(e) => handleBarMouseMove(e, task.id)}
                     on:mouseleave={handleBarMouseLeave}
                     on:mousedown={(e) => onGanttMouseDown(e, task.id)}
@@ -748,7 +752,18 @@
                 {@const progress = totalMs > 0 ? Math.min(1, Math.max(0, elapsed / totalMs)) : 1}
                 <div class="pos-dl-countdown-card {urgencyClass(diff)}" on:click={() => openTaskEditor(task)}>
                   <div class="pos-dl-cc-info">
-                    <div class="pos-dl-cc-name">{task.name}</div>
+                    <div class="pos-dl-cc-name">
+                      {#if task.priority === 1}<span class="pos-priority-badge high" style="margin-right: 6px; font-size: 10px; padding: 2px 4px;">P1</span>{/if}
+                      {#if task.priority === 2}<span class="pos-priority-badge medium" style="margin-right: 6px; font-size: 10px; padding: 2px 4px;">P2</span>{/if}
+                      {task.name}
+                    </div>
+                    {#if task.tags && task.tags.length > 0}
+                      <div class="pos-card-meta" style="margin-top: 4px; margin-bottom: 2px;">
+                        {#each task.tags as tag}
+                          <span class="pos-tag-pill">{tag}</span>
+                        {/each}
+                      </div>
+                    {/if}
                     <div class="pos-dl-cc-date">Due {formatDeadlineDate(task.deadline || '')}</div>
                   </div>
                   <div class="pos-dl-cc-right">

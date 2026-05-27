@@ -261,7 +261,7 @@
       {:else if projectTab === 'deadlines'}
         <!-- 📅 DEADLINES VIEW -->
         <div style="height: 100%; overflow: hidden;">
-          <ProjectDeadlines {app} {fileManager} projectId={selectedProject.id} />
+          <ProjectDeadlines {app} {fileManager} {plugin} projectId={selectedProject.id} />
         </div>
 
       {:else}
