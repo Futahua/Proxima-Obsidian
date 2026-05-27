@@ -28,7 +28,7 @@ __export(main_exports, {
   default: () => ProjectOSPlugin
 });
 module.exports = __toCommonJS(main_exports);
-var import_obsidian7 = require("obsidian");
+var import_obsidian8 = require("obsidian");
 
 // node_modules/svelte/src/runtime/internal/utils.js
 function noop() {
@@ -1144,6 +1144,9 @@ var FileManager = class {
 if (typeof window !== "undefined")
   (window.__svelte || (window.__svelte = { v: /* @__PURE__ */ new Set() })).v.add(PUBLIC_VERSION);
 
+// src/ui/views/AgingView.svelte
+var import_obsidian3 = require("obsidian");
+
 // src/utils.ts
 function calculateLiquidTimeline(tasks, startTime, deadline) {
   const totalMin = (deadline.getTime() - startTime.getTime()) / 6e4;
@@ -1422,36 +1425,15 @@ var NewTaskModal = class extends import_obsidian2.Modal {
 // src/ui/views/AgingView.svelte
 function get_each_context(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[20] = list[i];
+  child_ctx[41] = list[i];
   const constants_0 = (
-    /*tasks*/
-    child_ctx[5].filter(function func(...args) {
-      return (
-        /*func*/
-        ctx[18](
-          /*project*/
-          child_ctx[20],
-          ...args
-        )
-      );
-    })
+    /*projectCounts*/
+    child_ctx[4][
+      /*project*/
+      child_ctx[41].id
+    ] || { running: 0, review: 0, total: 0 }
   );
-  child_ctx[21] = constants_0;
-  const constants_1 = {
-    running: (
-      /*projectTasks*/
-      child_ctx[21].filter((t) => t.status === "running").length
-    ),
-    review: (
-      /*projectTasks*/
-      child_ctx[21].filter((t) => t.status === "review").length
-    ),
-    total: (
-      /*projectTasks*/
-      child_ctx[21].length
-    )
-  };
-  child_ctx[22] = constants_1;
+  child_ctx[42] = constants_0;
   return child_ctx;
 }
 function create_else_block(ctx) {
@@ -1459,12 +1441,12 @@ function create_else_block(ctx) {
   let each_blocks = [];
   let each_1_lookup = /* @__PURE__ */ new Map();
   let each_value = ensure_array_like(
-    /*activeProjects*/
-    ctx[2]
+    /*sortedProjects*/
+    ctx[11]
   );
   const get_key = (ctx2) => (
     /*project*/
-    ctx2[20].id
+    ctx2[41].id
   );
   for (let i = 0; i < each_value.length; i += 1) {
     let child_ctx = get_each_context(ctx, each_value, i);
@@ -1488,11 +1470,11 @@ function create_else_block(ctx) {
       }
     },
     p(ctx2, dirty) {
-      if (dirty & /*getHue, activeProjects, range, minTime, archiveProject, onSelect, tasks, now*/
-      383) {
+      if (dirty[0] & /*showHeatmap, getHue, sortedProjects, range, minTime, archiveProject, onSelect, handleOpenWorkspace, projectCounts, showStats, now, showAge, showDesc*/
+      221169) {
         each_value = ensure_array_like(
-          /*activeProjects*/
-          ctx2[2]
+          /*sortedProjects*/
+          ctx2[11]
         );
         each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx2, each_value, each_1_lookup, div, destroy_block, create_each_block, null, get_each_context);
       }
@@ -1512,7 +1494,7 @@ function create_if_block(ctx) {
   return {
     c() {
       p = element("p");
-      p.textContent = "No projects yet. Create one!";
+      p.textContent = "No projects match your filters or dashboard parameters.";
       attr(p, "class", "pos-empty");
     },
     m(target, anchor) {
@@ -1526,11 +1508,11 @@ function create_if_block(ctx) {
     }
   };
 }
-function create_if_block_3(ctx) {
+function create_if_block_5(ctx) {
   let div;
   let t_value = (
     /*project*/
-    ctx[20].description + ""
+    ctx[41].description + ""
   );
   let t;
   return {
@@ -1544,9 +1526,9 @@ function create_if_block_3(ctx) {
       append(div, t);
     },
     p(ctx2, dirty) {
-      if (dirty & /*activeProjects*/
-      4 && t_value !== (t_value = /*project*/
-      ctx2[20].description + ""))
+      if (dirty[0] & /*sortedProjects*/
+      2048 && t_value !== (t_value = /*project*/
+      ctx2[41].description + ""))
         set_data(t, t_value);
     },
     d(detaching) {
@@ -1556,11 +1538,142 @@ function create_if_block_3(ctx) {
     }
   };
 }
-function create_if_block_2(ctx) {
+function create_if_block_4(ctx) {
+  let div;
+  let t0;
+  let t1_value = formatAge(
+    /*project*/
+    ctx[41].createdAt,
+    /*now*/
+    ctx[6]
+  ) + "";
+  let t1;
+  return {
+    c() {
+      div = element("div");
+      t0 = text("Age: ");
+      t1 = text(t1_value);
+      attr(div, "class", "pos-age");
+    },
+    m(target, anchor) {
+      insert(target, div, anchor);
+      append(div, t0);
+      append(div, t1);
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*sortedProjects, now*/
+      2112 && t1_value !== (t1_value = formatAge(
+        /*project*/
+        ctx2[41].createdAt,
+        /*now*/
+        ctx2[6]
+      ) + ""))
+        set_data(t1, t1_value);
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div);
+      }
+    }
+  };
+}
+function create_if_block_1(ctx) {
+  let div;
   let span;
   let t0_value = (
     /*counts*/
-    ctx[22].running + ""
+    ctx[42].total + ""
+  );
+  let t0;
+  let t1;
+  let t2;
+  let t3;
+  let if_block0 = (
+    /*counts*/
+    ctx[42].running > 0 && create_if_block_3(ctx)
+  );
+  let if_block1 = (
+    /*counts*/
+    ctx[42].review > 0 && create_if_block_2(ctx)
+  );
+  return {
+    c() {
+      div = element("div");
+      span = element("span");
+      t0 = text(t0_value);
+      t1 = text(" tasks");
+      t2 = space();
+      if (if_block0)
+        if_block0.c();
+      t3 = space();
+      if (if_block1)
+        if_block1.c();
+      attr(div, "class", "pos-card-meta");
+    },
+    m(target, anchor) {
+      insert(target, div, anchor);
+      append(div, span);
+      append(span, t0);
+      append(span, t1);
+      append(div, t2);
+      if (if_block0)
+        if_block0.m(div, null);
+      append(div, t3);
+      if (if_block1)
+        if_block1.m(div, null);
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*projectCounts, sortedProjects*/
+      2064 && t0_value !== (t0_value = /*counts*/
+      ctx2[42].total + ""))
+        set_data(t0, t0_value);
+      if (
+        /*counts*/
+        ctx2[42].running > 0
+      ) {
+        if (if_block0) {
+          if_block0.p(ctx2, dirty);
+        } else {
+          if_block0 = create_if_block_3(ctx2);
+          if_block0.c();
+          if_block0.m(div, t3);
+        }
+      } else if (if_block0) {
+        if_block0.d(1);
+        if_block0 = null;
+      }
+      if (
+        /*counts*/
+        ctx2[42].review > 0
+      ) {
+        if (if_block1) {
+          if_block1.p(ctx2, dirty);
+        } else {
+          if_block1 = create_if_block_2(ctx2);
+          if_block1.c();
+          if_block1.m(div, null);
+        }
+      } else if (if_block1) {
+        if_block1.d(1);
+        if_block1 = null;
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div);
+      }
+      if (if_block0)
+        if_block0.d();
+      if (if_block1)
+        if_block1.d();
+    }
+  };
+}
+function create_if_block_3(ctx) {
+  let span;
+  let t0_value = (
+    /*counts*/
+    ctx[42].running + ""
   );
   let t0;
   let t1;
@@ -1568,7 +1681,10 @@ function create_if_block_2(ctx) {
     c() {
       span = element("span");
       t0 = text(t0_value);
-      t1 = text(" running");
+      t1 = text(" active");
+      attr(span, "class", "pos-pwc-active-badge");
+      set_style(span, "font-size", "1em");
+      set_style(span, "padding", "1px 6px");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -1576,9 +1692,9 @@ function create_if_block_2(ctx) {
       append(span, t1);
     },
     p(ctx2, dirty) {
-      if (dirty & /*tasks, activeProjects*/
-      36 && t0_value !== (t0_value = /*counts*/
-      ctx2[22].running + ""))
+      if (dirty[0] & /*projectCounts, sortedProjects*/
+      2064 && t0_value !== (t0_value = /*counts*/
+      ctx2[42].running + ""))
         set_data(t0, t0_value);
     },
     d(detaching) {
@@ -1588,11 +1704,11 @@ function create_if_block_2(ctx) {
     }
   };
 }
-function create_if_block_1(ctx) {
+function create_if_block_2(ctx) {
   let span;
   let t0_value = (
     /*counts*/
-    ctx[22].review + ""
+    ctx[42].review + ""
   );
   let t0;
   let t1;
@@ -1600,7 +1716,7 @@ function create_if_block_1(ctx) {
     c() {
       span = element("span");
       t0 = text(t0_value);
-      t1 = text(" done");
+      t1 = text(" completed");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -1608,9 +1724,9 @@ function create_if_block_1(ctx) {
       append(span, t1);
     },
     p(ctx2, dirty) {
-      if (dirty & /*tasks, activeProjects*/
-      36 && t0_value !== (t0_value = /*counts*/
-      ctx2[22].review + ""))
+      if (dirty[0] & /*projectCounts, sortedProjects*/
+      2064 && t0_value !== (t0_value = /*counts*/
+      ctx2[42].review + ""))
         set_data(t0, t0_value);
     },
     d(detaching) {
@@ -1621,80 +1737,84 @@ function create_if_block_1(ctx) {
   };
 }
 function create_each_block(key_1, ctx) {
-  let div4;
+  let div2;
   let div0;
   let t0_value = (
     /*project*/
-    ctx[20].name + ""
+    ctx[41].name + ""
   );
   let t0;
   let t1;
   let t2;
-  let div1;
-  let t3_value = formatAge(
-    /*project*/
-    ctx[20].createdAt,
-    /*now*/
-    ctx[3]
-  ) + "";
   let t3;
   let t4;
-  let div2;
-  let span;
-  let t5_value = (
-    /*counts*/
-    ctx[22].total + ""
-  );
-  let t5;
-  let t6;
-  let t7;
-  let t8;
-  let t9;
-  let div3;
+  let div1;
   let button0;
-  let t11;
+  let t6;
   let button1;
-  let t13;
+  let t8;
   let button2;
-  let t15;
+  let t10;
+  let button3;
+  let t12;
+  let div2_style_value;
   let mounted;
   let dispose;
-  let if_block0 = (
-    /*project*/
-    ctx[20].description && create_if_block_3(ctx)
-  );
-  let if_block1 = (
-    /*counts*/
-    ctx[22].running > 0 && create_if_block_2(ctx)
-  );
-  let if_block2 = (
-    /*counts*/
-    ctx[22].review > 0 && create_if_block_1(ctx)
-  );
-  function click_handler() {
-    return (
-      /*click_handler*/
-      ctx[15](
-        /*project*/
-        ctx[20]
-      )
-    );
-  }
   function click_handler_1() {
     return (
       /*click_handler_1*/
-      ctx[16](
+      ctx[35](
         /*project*/
-        ctx[20]
+        ctx[41]
       )
     );
   }
+  let if_block0 = (
+    /*showDesc*/
+    ctx[7] && /*project*/
+    ctx[41].description && create_if_block_5(ctx)
+  );
+  let if_block1 = (
+    /*showAge*/
+    ctx[8] && create_if_block_4(ctx)
+  );
+  let if_block2 = (
+    /*showStats*/
+    ctx[9] && create_if_block_1(ctx)
+  );
   function click_handler_2() {
     return (
       /*click_handler_2*/
-      ctx[17](
+      ctx[36](
         /*project*/
-        ctx[20]
+        ctx[41]
+      )
+    );
+  }
+  function click_handler_3() {
+    return (
+      /*click_handler_3*/
+      ctx[37](
+        /*project*/
+        ctx[41]
+      )
+    );
+  }
+  function click_handler_4() {
+    return (
+      /*click_handler_4*/
+      ctx[38](
+        /*project*/
+        ctx[41]
+      )
+    );
+  }
+  function click_handler_5() {
+    return (
+      /*click_handler_5*/
+      ctx[39](
+        /*project*/
+        ctx[41]
       )
     );
   }
@@ -1702,171 +1822,153 @@ function create_each_block(key_1, ctx) {
     key: key_1,
     first: null,
     c() {
-      div4 = element("div");
+      div2 = element("div");
       div0 = element("div");
       t0 = text(t0_value);
       t1 = space();
       if (if_block0)
         if_block0.c();
       t2 = space();
-      div1 = element("div");
-      t3 = text(t3_value);
-      t4 = space();
-      div2 = element("div");
-      span = element("span");
-      t5 = text(t5_value);
-      t6 = text(" tasks");
-      t7 = space();
       if (if_block1)
         if_block1.c();
-      t8 = space();
+      t3 = space();
       if (if_block2)
         if_block2.c();
-      t9 = space();
-      div3 = element("div");
+      t4 = space();
+      div1 = element("div");
       button0 = element("button");
-      button0.textContent = "Open";
-      t11 = space();
+      button0.textContent = "Workspace";
+      t6 = space();
       button1 = element("button");
-      button1.textContent = "Deadlines";
-      t13 = space();
+      button1.textContent = "Elastic";
+      t8 = space();
       button2 = element("button");
-      button2.textContent = "Archive";
-      t15 = space();
+      button2.textContent = "Deadlines";
+      t10 = space();
+      button3 = element("button");
+      button3.textContent = "Archive";
+      t12 = space();
       attr(div0, "class", "pos-card-name");
-      attr(div1, "class", "pos-age");
-      attr(div2, "class", "pos-card-meta");
-      attr(button2, "class", "pos-del");
-      attr(div3, "class", "pos-card-acts");
-      attr(div4, "class", "pos-card pos-project-card");
-      set_style(div4, "background-color", "hsl(" + /*getHue*/
-      ctx[6](
+      attr(button0, "class", "pos-ptc-start-btn");
+      attr(button3, "class", "pos-del");
+      attr(div1, "class", "pos-card-acts");
+      set_style(div1, "margin-top", "10px");
+      attr(div2, "class", "pos-card pos-project-card");
+      attr(div2, "style", div2_style_value = /*showHeatmap*/
+      ctx[10] ? `border-left: 4px solid hsl(${/*getHue*/
+      ctx[14](
         /*project*/
-        ctx[20].createdAt,
+        ctx[41].createdAt,
         /*range*/
-        ctx[4],
+        ctx[12],
         /*minTime*/
-        ctx[1]
-      ) + ", 70%, 90%)");
-      this.first = div4;
+        ctx[5]
+      )}, 75%, 50%) !important;` : "");
+      this.first = div2;
     },
     m(target, anchor) {
-      insert(target, div4, anchor);
-      append(div4, div0);
+      insert(target, div2, anchor);
+      append(div2, div0);
       append(div0, t0);
-      append(div4, t1);
+      append(div2, t1);
       if (if_block0)
-        if_block0.m(div4, null);
-      append(div4, t2);
-      append(div4, div1);
-      append(div1, t3);
-      append(div4, t4);
-      append(div4, div2);
-      append(div2, span);
-      append(span, t5);
-      append(span, t6);
-      append(div2, t7);
+        if_block0.m(div2, null);
+      append(div2, t2);
       if (if_block1)
         if_block1.m(div2, null);
-      append(div2, t8);
+      append(div2, t3);
       if (if_block2)
         if_block2.m(div2, null);
-      append(div4, t9);
-      append(div4, div3);
-      append(div3, button0);
-      append(div3, t11);
-      append(div3, button1);
-      append(div3, t13);
-      append(div3, button2);
-      append(div4, t15);
+      append(div2, t4);
+      append(div2, div1);
+      append(div1, button0);
+      append(div1, t6);
+      append(div1, button1);
+      append(div1, t8);
+      append(div1, button2);
+      append(div1, t10);
+      append(div1, button3);
+      append(div2, t12);
       if (!mounted) {
         dispose = [
-          listen(button0, "click", click_handler),
-          listen(button1, "click", click_handler_1),
-          listen(button2, "click", click_handler_2)
+          listen(div0, "click", click_handler_1),
+          listen(button0, "click", click_handler_2),
+          listen(button1, "click", click_handler_3),
+          listen(button2, "click", click_handler_4),
+          listen(button3, "click", click_handler_5)
         ];
         mounted = true;
       }
     },
     p(new_ctx, dirty) {
       ctx = new_ctx;
-      if (dirty & /*activeProjects*/
-      4 && t0_value !== (t0_value = /*project*/
-      ctx[20].name + ""))
+      if (dirty[0] & /*sortedProjects*/
+      2048 && t0_value !== (t0_value = /*project*/
+      ctx[41].name + ""))
         set_data(t0, t0_value);
       if (
-        /*project*/
-        ctx[20].description
+        /*showDesc*/
+        ctx[7] && /*project*/
+        ctx[41].description
       ) {
         if (if_block0) {
           if_block0.p(ctx, dirty);
         } else {
-          if_block0 = create_if_block_3(ctx);
+          if_block0 = create_if_block_5(ctx);
           if_block0.c();
-          if_block0.m(div4, t2);
+          if_block0.m(div2, t2);
         }
       } else if (if_block0) {
         if_block0.d(1);
         if_block0 = null;
       }
-      if (dirty & /*activeProjects, now*/
-      12 && t3_value !== (t3_value = formatAge(
-        /*project*/
-        ctx[20].createdAt,
-        /*now*/
-        ctx[3]
-      ) + ""))
-        set_data(t3, t3_value);
-      if (dirty & /*tasks, activeProjects*/
-      36 && t5_value !== (t5_value = /*counts*/
-      ctx[22].total + ""))
-        set_data(t5, t5_value);
       if (
-        /*counts*/
-        ctx[22].running > 0
+        /*showAge*/
+        ctx[8]
       ) {
         if (if_block1) {
           if_block1.p(ctx, dirty);
         } else {
-          if_block1 = create_if_block_2(ctx);
+          if_block1 = create_if_block_4(ctx);
           if_block1.c();
-          if_block1.m(div2, t8);
+          if_block1.m(div2, t3);
         }
       } else if (if_block1) {
         if_block1.d(1);
         if_block1 = null;
       }
       if (
-        /*counts*/
-        ctx[22].review > 0
+        /*showStats*/
+        ctx[9]
       ) {
         if (if_block2) {
           if_block2.p(ctx, dirty);
         } else {
           if_block2 = create_if_block_1(ctx);
           if_block2.c();
-          if_block2.m(div2, null);
+          if_block2.m(div2, t4);
         }
       } else if (if_block2) {
         if_block2.d(1);
         if_block2 = null;
       }
-      if (dirty & /*activeProjects, range, minTime*/
-      22) {
-        set_style(div4, "background-color", "hsl(" + /*getHue*/
-        ctx[6](
-          /*project*/
-          ctx[20].createdAt,
-          /*range*/
-          ctx[4],
-          /*minTime*/
-          ctx[1]
-        ) + ", 70%, 90%)");
+      if (dirty[0] & /*showHeatmap, sortedProjects, range, minTime*/
+      7200 && div2_style_value !== (div2_style_value = /*showHeatmap*/
+      ctx[10] ? `border-left: 4px solid hsl(${/*getHue*/
+      ctx[14](
+        /*project*/
+        ctx[41].createdAt,
+        /*range*/
+        ctx[12],
+        /*minTime*/
+        ctx[5]
+      )}, 75%, 50%) !important;` : "")) {
+        attr(div2, "style", div2_style_value);
       }
     },
     d(detaching) {
       if (detaching) {
-        detach(div4);
+        detach(div2);
       }
       if (if_block0)
         if_block0.d();
@@ -1880,50 +1982,351 @@ function create_each_block(key_1, ctx) {
   };
 }
 function create_fragment(ctx) {
-  let div;
-  let button;
-  let t1;
+  let div4;
+  let div0;
+  let input0;
+  let t0;
+  let button0;
+  let t2;
+  let div3;
+  let div1;
+  let span0;
+  let t4;
+  let label0;
+  let input1;
+  let t5;
+  let span1;
+  let t7;
+  let label1;
+  let input2;
+  let t8;
+  let span2;
+  let t10;
+  let label2;
+  let input3;
+  let t11;
+  let span3;
+  let t13;
+  let label3;
+  let input4;
+  let t14;
+  let span4;
+  let t16;
+  let div2;
+  let span5;
+  let t18;
+  let select;
+  let option0;
+  let option1;
+  let option2;
+  let option3;
+  let t23;
+  let button1;
+  let t24_value = (
+    /*sortOrder*/
+    ctx[2] === "asc" ? "\u25B2" : "\u25BC"
+  );
+  let t24;
+  let t25;
   let if_block_anchor;
   let mounted;
   let dispose;
   function select_block_type(ctx2, dirty) {
     if (
-      /*activeProjects*/
-      ctx2[2].length === 0
+      /*sortedProjects*/
+      ctx2[11].length === 0
     )
       return create_if_block;
     return create_else_block;
   }
-  let current_block_type = select_block_type(ctx, -1);
+  let current_block_type = select_block_type(ctx, [-1, -1]);
   let if_block = current_block_type(ctx);
   return {
     c() {
-      div = element("div");
-      button = element("button");
-      button.textContent = "+ New Project";
-      t1 = space();
+      div4 = element("div");
+      div0 = element("div");
+      input0 = element("input");
+      t0 = space();
+      button0 = element("button");
+      button0.textContent = "+ New Project";
+      t2 = space();
+      div3 = element("div");
+      div1 = element("div");
+      span0 = element("span");
+      span0.textContent = "Properties:";
+      t4 = space();
+      label0 = element("label");
+      input1 = element("input");
+      t5 = space();
+      span1 = element("span");
+      span1.textContent = "Description";
+      t7 = space();
+      label1 = element("label");
+      input2 = element("input");
+      t8 = space();
+      span2 = element("span");
+      span2.textContent = "Age";
+      t10 = space();
+      label2 = element("label");
+      input3 = element("input");
+      t11 = space();
+      span3 = element("span");
+      span3.textContent = "Stats";
+      t13 = space();
+      label3 = element("label");
+      input4 = element("input");
+      t14 = space();
+      span4 = element("span");
+      span4.textContent = "Heatmap";
+      t16 = space();
+      div2 = element("div");
+      span5 = element("span");
+      span5.textContent = "Sort:";
+      t18 = space();
+      select = element("select");
+      option0 = element("option");
+      option0.textContent = "Name";
+      option1 = element("option");
+      option1.textContent = "Date Created";
+      option2 = element("option");
+      option2.textContent = "Total Tasks";
+      option3 = element("option");
+      option3.textContent = "Active Tasks";
+      t23 = space();
+      button1 = element("button");
+      t24 = text(t24_value);
+      t25 = space();
       if_block.c();
       if_block_anchor = empty();
-      attr(button, "class", "pos-newtask-btn");
-      attr(div, "class", "pos-newtask-row");
+      attr(input0, "type", "text");
+      attr(input0, "placeholder", "Search projects...");
+      attr(input0, "class", "pos-dt-search-input");
+      attr(button0, "class", "pos-newtask-btn");
+      attr(div0, "class", "pos-dt-search-row");
+      attr(span0, "class", "pos-dt-label");
+      attr(input1, "type", "checkbox");
+      attr(label0, "class", "pos-dt-toggle");
+      attr(input2, "type", "checkbox");
+      attr(label1, "class", "pos-dt-toggle");
+      attr(input3, "type", "checkbox");
+      attr(label2, "class", "pos-dt-toggle");
+      attr(input4, "type", "checkbox");
+      attr(label3, "class", "pos-dt-toggle");
+      attr(div1, "class", "pos-dt-group");
+      attr(span5, "class", "pos-dt-label");
+      option0.__value = "name";
+      set_input_value(option0, option0.__value);
+      option1.__value = "createdAt";
+      set_input_value(option1, option1.__value);
+      option2.__value = "tasks";
+      set_input_value(option2, option2.__value);
+      option3.__value = "activeTasks";
+      set_input_value(option3, option3.__value);
+      attr(select, "class", "pos-dt-select");
+      if (
+        /*sortBy*/
+        ctx[1] === void 0
+      )
+        add_render_callback(() => (
+          /*select_change_handler*/
+          ctx[33].call(select)
+        ));
+      attr(button1, "class", "pos-dt-order-btn");
+      attr(button1, "title", "Toggle sort direction");
+      attr(div2, "class", "pos-dt-group");
+      attr(div3, "class", "pos-dt-controls");
+      attr(div4, "class", "pos-dashboard-toolbar");
     },
     m(target, anchor) {
-      insert(target, div, anchor);
-      append(div, button);
-      insert(target, t1, anchor);
+      insert(target, div4, anchor);
+      append(div4, div0);
+      append(div0, input0);
+      set_input_value(
+        input0,
+        /*searchQuery*/
+        ctx[3]
+      );
+      append(div0, t0);
+      append(div0, button0);
+      append(div4, t2);
+      append(div4, div3);
+      append(div3, div1);
+      append(div1, span0);
+      append(div1, t4);
+      append(div1, label0);
+      append(label0, input1);
+      input1.checked = /*showDesc*/
+      ctx[7];
+      append(label0, t5);
+      append(label0, span1);
+      append(div1, t7);
+      append(div1, label1);
+      append(label1, input2);
+      input2.checked = /*showAge*/
+      ctx[8];
+      append(label1, t8);
+      append(label1, span2);
+      append(div1, t10);
+      append(div1, label2);
+      append(label2, input3);
+      input3.checked = /*showStats*/
+      ctx[9];
+      append(label2, t11);
+      append(label2, span3);
+      append(div1, t13);
+      append(div1, label3);
+      append(label3, input4);
+      input4.checked = /*showHeatmap*/
+      ctx[10];
+      append(label3, t14);
+      append(label3, span4);
+      append(div3, t16);
+      append(div3, div2);
+      append(div2, span5);
+      append(div2, t18);
+      append(div2, select);
+      append(select, option0);
+      append(select, option1);
+      append(select, option2);
+      append(select, option3);
+      select_option(
+        select,
+        /*sortBy*/
+        ctx[1],
+        true
+      );
+      append(div2, t23);
+      append(div2, button1);
+      append(button1, t24);
+      insert(target, t25, anchor);
       if_block.m(target, anchor);
       insert(target, if_block_anchor, anchor);
       if (!mounted) {
-        dispose = listen(
-          button,
-          "click",
-          /*createProject*/
-          ctx[7]
-        );
+        dispose = [
+          listen(
+            input0,
+            "input",
+            /*input0_input_handler*/
+            ctx[28]
+          ),
+          listen(
+            button0,
+            "click",
+            /*createProject*/
+            ctx[15]
+          ),
+          listen(
+            input1,
+            "change",
+            /*input1_change_handler*/
+            ctx[29]
+          ),
+          listen(
+            input1,
+            "change",
+            /*saveConfig*/
+            ctx[13]
+          ),
+          listen(
+            input2,
+            "change",
+            /*input2_change_handler*/
+            ctx[30]
+          ),
+          listen(
+            input2,
+            "change",
+            /*saveConfig*/
+            ctx[13]
+          ),
+          listen(
+            input3,
+            "change",
+            /*input3_change_handler*/
+            ctx[31]
+          ),
+          listen(
+            input3,
+            "change",
+            /*saveConfig*/
+            ctx[13]
+          ),
+          listen(
+            input4,
+            "change",
+            /*input4_change_handler*/
+            ctx[32]
+          ),
+          listen(
+            input4,
+            "change",
+            /*saveConfig*/
+            ctx[13]
+          ),
+          listen(
+            select,
+            "change",
+            /*select_change_handler*/
+            ctx[33]
+          ),
+          listen(
+            select,
+            "change",
+            /*saveConfig*/
+            ctx[13]
+          ),
+          listen(
+            button1,
+            "click",
+            /*click_handler*/
+            ctx[34]
+          )
+        ];
         mounted = true;
       }
     },
-    p(ctx2, [dirty]) {
+    p(ctx2, dirty) {
+      if (dirty[0] & /*searchQuery*/
+      8 && input0.value !== /*searchQuery*/
+      ctx2[3]) {
+        set_input_value(
+          input0,
+          /*searchQuery*/
+          ctx2[3]
+        );
+      }
+      if (dirty[0] & /*showDesc*/
+      128) {
+        input1.checked = /*showDesc*/
+        ctx2[7];
+      }
+      if (dirty[0] & /*showAge*/
+      256) {
+        input2.checked = /*showAge*/
+        ctx2[8];
+      }
+      if (dirty[0] & /*showStats*/
+      512) {
+        input3.checked = /*showStats*/
+        ctx2[9];
+      }
+      if (dirty[0] & /*showHeatmap*/
+      1024) {
+        input4.checked = /*showHeatmap*/
+        ctx2[10];
+      }
+      if (dirty[0] & /*sortBy*/
+      2) {
+        select_option(
+          select,
+          /*sortBy*/
+          ctx2[1]
+        );
+      }
+      if (dirty[0] & /*sortOrder*/
+      4 && t24_value !== (t24_value = /*sortOrder*/
+      ctx2[2] === "asc" ? "\u25B2" : "\u25BC"))
+        set_data(t24, t24_value);
       if (current_block_type === (current_block_type = select_block_type(ctx2, dirty)) && if_block) {
         if_block.p(ctx2, dirty);
       } else {
@@ -1939,13 +2342,13 @@ function create_fragment(ctx) {
     o: noop,
     d(detaching) {
       if (detaching) {
-        detach(div);
-        detach(t1);
+        detach(div4);
+        detach(t25);
         detach(if_block_anchor);
       }
       if_block.d(detaching);
       mounted = false;
-      dispose();
+      run_all(dispose);
     }
   };
 }
@@ -1956,30 +2359,69 @@ function instance($$self, $$props, $$invalidate) {
   let minTime;
   let maxTime;
   let range;
-  let $tasksStore;
+  let projectCounts;
+  let filteredProjects;
+  let sortedProjects;
   let $projectsStore;
-  component_subscribe($$self, tasksStore, ($$value) => $$invalidate(13, $tasksStore = $$value));
-  component_subscribe($$self, projectsStore, ($$value) => $$invalidate(14, $projectsStore = $$value));
+  let $tasksStore;
+  component_subscribe($$self, projectsStore, ($$value) => $$invalidate(26, $projectsStore = $$value));
+  component_subscribe($$self, tasksStore, ($$value) => $$invalidate(27, $tasksStore = $$value));
   let { app } = $$props;
   let { fileManager } = $$props;
+  let { plugin } = $$props;
   let { onSelect } = $$props;
   let timer;
   let now2 = Date.now();
+  let showDesc = true;
+  let showAge = true;
+  let showStats = true;
+  let showHeatmap = true;
+  let sortBy = "createdAt";
+  let sortOrder = "desc";
+  let searchQuery = "";
   onMount(() => {
     timer = window.setInterval(
       () => {
-        $$invalidate(3, now2 = Date.now());
+        $$invalidate(6, now2 = Date.now());
       },
       6e4
     );
+    try {
+      const saved = localStorage.getItem("pos-dashboard-config");
+      if (saved) {
+        const config = JSON.parse(saved);
+        $$invalidate(7, showDesc = config.showDesc !== void 0 ? config.showDesc : true);
+        $$invalidate(8, showAge = config.showAge !== void 0 ? config.showAge : true);
+        $$invalidate(9, showStats = config.showStats !== void 0 ? config.showStats : true);
+        $$invalidate(10, showHeatmap = config.showHeatmap !== void 0 ? config.showHeatmap : true);
+        $$invalidate(1, sortBy = config.sortBy || "createdAt");
+        $$invalidate(2, sortOrder = config.sortOrder || "desc");
+      }
+    } catch (e) {
+      console.error("Failed to load dashboard configuration:", e);
+    }
   });
   onDestroy(() => {
     window.clearInterval(timer);
   });
+  function saveConfig() {
+    try {
+      localStorage.setItem("pos-dashboard-config", JSON.stringify({
+        showDesc,
+        showAge,
+        showStats,
+        showHeatmap,
+        sortBy,
+        sortOrder
+      }));
+    } catch (e) {
+      console.error("Failed to save dashboard configuration:", e);
+    }
+  }
   function getHue(createdAt, range2, minTime2) {
     const tMs = new Date(createdAt).getTime();
     const ratio = range2 > 1 ? (tMs - minTime2) / range2 : 0;
-    return 120 * (1 - ratio);
+    return 120 * ratio;
   }
   function createProject() {
     new NewProjectModal(
@@ -1996,6 +2438,7 @@ function instance($$self, $$props, $$invalidate) {
         const content = "---\n" + Object.entries(fm).map(([k, v]) => `${k}: ${v}`).join("\n") + "\n---\n";
         await app.vault.create(`projects/${id}.md`, content);
         await fileManager.loadAll();
+        new import_obsidian3.Notice("Project created successfully!");
       }
     ).open();
   }
@@ -2009,85 +2452,203 @@ function instance($$self, $$props, $$invalidate) {
           c = c.replace(/---/, "---\nstatus: archived");
         await app.vault.modify(file, c);
         await fileManager.loadAll();
+        new import_obsidian3.Notice("Project archived.");
       }
     }
   }
-  const click_handler = (project) => onSelect(project.id, "elastic");
-  const click_handler_1 = (project) => onSelect(project.id, "deadlines");
-  const click_handler_2 = (project) => archiveProject(project.id);
-  const func = (project, t) => t.project === project.id;
+  function handleOpenWorkspace(projectId) {
+    plugin.activateWorkspaceView(projectId);
+  }
+  function input0_input_handler() {
+    searchQuery = this.value;
+    $$invalidate(3, searchQuery);
+  }
+  function input1_change_handler() {
+    showDesc = this.checked;
+    $$invalidate(7, showDesc);
+  }
+  function input2_change_handler() {
+    showAge = this.checked;
+    $$invalidate(8, showAge);
+  }
+  function input3_change_handler() {
+    showStats = this.checked;
+    $$invalidate(9, showStats);
+  }
+  function input4_change_handler() {
+    showHeatmap = this.checked;
+    $$invalidate(10, showHeatmap);
+  }
+  function select_change_handler() {
+    sortBy = select_value(this);
+    $$invalidate(1, sortBy);
+  }
+  const click_handler = () => {
+    $$invalidate(2, sortOrder = sortOrder === "asc" ? "desc" : "asc");
+    saveConfig();
+  };
+  const click_handler_1 = (project) => handleOpenWorkspace(project.id);
+  const click_handler_2 = (project) => handleOpenWorkspace(project.id);
+  const click_handler_3 = (project) => onSelect(project.id, "elastic");
+  const click_handler_4 = (project) => onSelect(project.id, "deadlines");
+  const click_handler_5 = (project) => archiveProject(project.id);
   $$self.$$set = ($$props2) => {
     if ("app" in $$props2)
-      $$invalidate(9, app = $$props2.app);
+      $$invalidate(18, app = $$props2.app);
     if ("fileManager" in $$props2)
-      $$invalidate(10, fileManager = $$props2.fileManager);
+      $$invalidate(19, fileManager = $$props2.fileManager);
+    if ("plugin" in $$props2)
+      $$invalidate(20, plugin = $$props2.plugin);
     if ("onSelect" in $$props2)
       $$invalidate(0, onSelect = $$props2.onSelect);
   };
   $$self.$$.update = () => {
-    if ($$self.$$.dirty & /*$projectsStore*/
-    16384) {
+    if ($$self.$$.dirty[0] & /*$projectsStore*/
+    67108864) {
       $:
-        $$invalidate(2, activeProjects = $projectsStore.filter((p) => p.status === "active"));
+        $$invalidate(22, activeProjects = $projectsStore.filter((p) => p.status === "active"));
     }
-    if ($$self.$$.dirty & /*$tasksStore*/
-    8192) {
+    if ($$self.$$.dirty[0] & /*$tasksStore*/
+    134217728) {
       $:
-        $$invalidate(5, tasks = $tasksStore);
+        $$invalidate(23, tasks = $tasksStore);
     }
-    if ($$self.$$.dirty & /*activeProjects*/
-    4) {
+    if ($$self.$$.dirty[0] & /*activeProjects*/
+    4194304) {
       $:
-        $$invalidate(12, allTimes = activeProjects.map((p) => new Date(p.createdAt).getTime()));
+        $$invalidate(25, allTimes = activeProjects.map((p) => new Date(p.createdAt).getTime()));
     }
-    if ($$self.$$.dirty & /*allTimes*/
-    4096) {
+    if ($$self.$$.dirty[0] & /*allTimes*/
+    33554432) {
       $:
-        $$invalidate(1, minTime = Math.min(...allTimes));
+        $$invalidate(5, minTime = Math.min(...allTimes));
     }
-    if ($$self.$$.dirty & /*allTimes*/
-    4096) {
+    if ($$self.$$.dirty[0] & /*allTimes*/
+    33554432) {
       $:
-        $$invalidate(11, maxTime = Math.max(...allTimes));
+        $$invalidate(24, maxTime = Math.max(...allTimes));
     }
-    if ($$self.$$.dirty & /*maxTime, minTime*/
-    2050) {
+    if ($$self.$$.dirty[0] & /*maxTime, minTime*/
+    16777248) {
       $:
-        $$invalidate(4, range = maxTime - minTime || 1);
+        $$invalidate(12, range = maxTime - minTime || 1);
+    }
+    if ($$self.$$.dirty[0] & /*$projectsStore, tasks*/
+    75497472) {
+      $:
+        $$invalidate(4, projectCounts = $projectsStore.reduce(
+          (acc, p) => {
+            const pTasks = tasks.filter((t) => t.project === p.id);
+            acc[p.id] = {
+              running: pTasks.filter((t) => t.status === "running").length,
+              review: pTasks.filter((t) => t.status === "review").length,
+              total: pTasks.length
+            };
+            return acc;
+          },
+          {}
+        ));
+    }
+    if ($$self.$$.dirty[0] & /*activeProjects, searchQuery*/
+    4194312) {
+      $:
+        $$invalidate(21, filteredProjects = activeProjects.filter((p) => p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.description && p.description.toLowerCase().includes(searchQuery.toLowerCase())));
+    }
+    if ($$self.$$.dirty[0] & /*filteredProjects, sortBy, projectCounts, sortOrder*/
+    2097174) {
+      $:
+        $$invalidate(11, sortedProjects = [...filteredProjects].sort((a, b) => {
+          var _a, _b, _c, _d;
+          let valA;
+          let valB;
+          if (sortBy === "name") {
+            valA = a.name.toLowerCase();
+            valB = b.name.toLowerCase();
+          } else if (sortBy === "createdAt") {
+            valA = new Date(a.createdAt).getTime();
+            valB = new Date(b.createdAt).getTime();
+          } else if (sortBy === "tasks") {
+            valA = ((_a = projectCounts[a.id]) == null ? void 0 : _a.total) || 0;
+            valB = ((_b = projectCounts[b.id]) == null ? void 0 : _b.total) || 0;
+          } else if (sortBy === "activeTasks") {
+            valA = ((_c = projectCounts[a.id]) == null ? void 0 : _c.running) || 0;
+            valB = ((_d = projectCounts[b.id]) == null ? void 0 : _d.running) || 0;
+          }
+          if (valA < valB)
+            return sortOrder === "asc" ? -1 : 1;
+          if (valA > valB)
+            return sortOrder === "asc" ? 1 : -1;
+          return 0;
+        }));
     }
   };
   return [
     onSelect,
+    sortBy,
+    sortOrder,
+    searchQuery,
+    projectCounts,
     minTime,
-    activeProjects,
     now2,
+    showDesc,
+    showAge,
+    showStats,
+    showHeatmap,
+    sortedProjects,
     range,
-    tasks,
+    saveConfig,
     getHue,
     createProject,
     archiveProject,
+    handleOpenWorkspace,
     app,
     fileManager,
+    plugin,
+    filteredProjects,
+    activeProjects,
+    tasks,
     maxTime,
     allTimes,
-    $tasksStore,
     $projectsStore,
+    $tasksStore,
+    input0_input_handler,
+    input1_change_handler,
+    input2_change_handler,
+    input3_change_handler,
+    input4_change_handler,
+    select_change_handler,
     click_handler,
     click_handler_1,
     click_handler_2,
-    func
+    click_handler_3,
+    click_handler_4,
+    click_handler_5
   ];
 }
 var AgingView = class extends SvelteComponent {
   constructor(options) {
     super();
-    init(this, options, instance, create_fragment, safe_not_equal, { app: 9, fileManager: 10, onSelect: 0 });
+    init(
+      this,
+      options,
+      instance,
+      create_fragment,
+      safe_not_equal,
+      {
+        app: 18,
+        fileManager: 19,
+        plugin: 20,
+        onSelect: 0
+      },
+      null,
+      [-1, -1]
+    );
   }
 };
 var AgingView_default = AgingView;
 
 // src/ui/views/ElasticView.svelte
-var import_obsidian3 = require("obsidian");
+var import_obsidian4 = require("obsidian");
 function get_each_context2(ctx, list, i) {
   const child_ctx = ctx.slice();
   child_ctx[72] = list[i];
@@ -2522,7 +3083,7 @@ function create_if_block_6(ctx) {
     }
   };
 }
-function create_if_block_5(ctx) {
+function create_if_block_52(ctx) {
   let input;
   let input_value_value;
   let mounted;
@@ -2696,7 +3257,7 @@ function create_each_block_1(key_1, ctx) {
   }
   let if_block4 = (
     /*task*/
-    ctx[72].isFixedDuration && create_if_block_5(ctx)
+    ctx[72].isFixedDuration && create_if_block_52(ctx)
   );
   function click_handler_12() {
     return (
@@ -2960,7 +3521,7 @@ function create_each_block_1(key_1, ctx) {
         if (if_block4) {
           if_block4.p(ctx, dirty);
         } else {
-          if_block4 = create_if_block_5(ctx);
+          if_block4 = create_if_block_52(ctx);
           if_block4.c();
           if_block4.m(div2, t19);
         }
@@ -3018,7 +3579,7 @@ function create_each_block_1(key_1, ctx) {
     }
   };
 }
-function create_if_block_4(ctx) {
+function create_if_block_42(ctx) {
   let div;
   return {
     c() {
@@ -3464,7 +4025,7 @@ function create_fragment2(ctx) {
     /*dragOverStatus*/
     ctx[10] === "running" && /*dragOverIndex*/
     ctx[11] >= /*running*/
-    ctx[5].length && create_if_block_4(ctx)
+    ctx[5].length && create_if_block_42(ctx)
   );
   let if_block2 = (
     /*isLocked*/
@@ -3831,7 +4392,7 @@ function create_fragment2(ctx) {
       ) {
         if (if_block1) {
         } else {
-          if_block1 = create_if_block_4(ctx2);
+          if_block1 = create_if_block_42(ctx2);
           if_block1.c();
           if_block1.m(div6, null);
         }
@@ -3999,7 +4560,7 @@ function instance2($$self, $$props, $$invalidate) {
   }
   function openTaskFile(taskId) {
     const file = app.vault.getAbstractFileByPath(`tasks/${taskId}.md`);
-    if (file instanceof import_obsidian3.TFile) {
+    if (file instanceof import_obsidian4.TFile) {
       app.workspace.getLeaf().openFile(file);
     }
   }
@@ -4794,10 +5355,10 @@ var DeadlinesView = class extends SvelteComponent {
 var DeadlinesView_default = DeadlinesView;
 
 // src/ui/views/ProjectsView.svelte
-var import_obsidian6 = require("obsidian");
+var import_obsidian7 = require("obsidian");
 
 // src/ui/views/components/ProjectTaskBoard.svelte
-var import_obsidian4 = require("obsidian");
+var import_obsidian5 = require("obsidian");
 function get_each_context4(ctx, list, i) {
   const child_ctx = ctx.slice();
   child_ctx[55] = list[i];
@@ -5479,7 +6040,7 @@ function create_if_block_62(ctx) {
     }
   };
 }
-function create_if_block_52(ctx) {
+function create_if_block_53(ctx) {
   let span;
   let t0;
   let t1_value = (
@@ -5514,7 +6075,7 @@ function create_if_block_52(ctx) {
     }
   };
 }
-function create_if_block_42(ctx) {
+function create_if_block_43(ctx) {
   let input;
   let input_value_value;
   let mounted;
@@ -5639,7 +6200,7 @@ function create_each_block_13(key_1, ctx) {
   let if_block2 = (
     /*task*/
     ctx[55].isFixedDuration && /*task*/
-    ctx[55].fixedDuration && create_if_block_52(ctx)
+    ctx[55].fixedDuration && create_if_block_53(ctx)
   );
   function click_handler_11() {
     return (
@@ -5671,7 +6232,7 @@ function create_each_block_13(key_1, ctx) {
   }
   let if_block3 = (
     /*task*/
-    ctx[55].isFixedDuration && create_if_block_42(ctx)
+    ctx[55].isFixedDuration && create_if_block_43(ctx)
   );
   function click_handler_13() {
     return (
@@ -5881,7 +6442,7 @@ function create_each_block_13(key_1, ctx) {
         if (if_block2) {
           if_block2.p(ctx, dirty);
         } else {
-          if_block2 = create_if_block_52(ctx);
+          if_block2 = create_if_block_53(ctx);
           if_block2.c();
           if_block2.m(div1, null);
         }
@@ -5905,7 +6466,7 @@ function create_each_block_13(key_1, ctx) {
         if (if_block3) {
           if_block3.p(ctx, dirty);
         } else {
-          if_block3 = create_if_block_42(ctx);
+          if_block3 = create_if_block_43(ctx);
           if_block3.c();
           if_block3.m(div4, t17);
         }
@@ -6871,7 +7432,7 @@ function instance4($$self, $$props, $$invalidate) {
   }
   function openTaskFile(taskId) {
     const file = app.vault.getAbstractFileByPath(`tasks/${taskId}.md`);
-    if (file instanceof import_obsidian4.TFile) {
+    if (file instanceof import_obsidian5.TFile) {
       app.workspace.getLeaf().openFile(file);
     }
   }
@@ -7044,7 +7605,7 @@ var ProjectTaskBoard = class extends SvelteComponent {
 var ProjectTaskBoard_default = ProjectTaskBoard;
 
 // src/ui/views/components/ProjectTaskGrid.svelte
-var import_obsidian5 = require("obsidian");
+var import_obsidian6 = require("obsidian");
 function get_each_context5(ctx, list, i) {
   const child_ctx = ctx.slice();
   child_ctx[31] = list[i];
@@ -7973,7 +8534,7 @@ function instance5($$self, $$props, $$invalidate) {
   }
   function openTaskFile(taskId) {
     const file = app.vault.getAbstractFileByPath(`tasks/${taskId}.md`);
-    if (file instanceof import_obsidian5.TFile) {
+    if (file instanceof import_obsidian6.TFile) {
       app.workspace.getLeaf().openFile(file);
     }
   }
@@ -8179,7 +8740,7 @@ function create_else_block_1(ctx) {
   }
   let current_block_type = select_block_type_2(ctx, [-1, -1]);
   let if_block0 = current_block_type(ctx);
-  const if_block_creators = [create_if_block_34, create_if_block_43, create_if_block_53];
+  const if_block_creators = [create_if_block_34, create_if_block_44, create_if_block_54];
   const if_blocks = [];
   function select_block_type_3(ctx2, dirty) {
     if (
@@ -8618,7 +9179,7 @@ function create_if_block_63(ctx) {
     }
   };
 }
-function create_if_block_53(ctx) {
+function create_if_block_54(ctx) {
   let projecttaskgrid;
   let current;
   projecttaskgrid = new ProjectTaskGrid_default({
@@ -8684,7 +9245,7 @@ function create_if_block_53(ctx) {
     }
   };
 }
-function create_if_block_43(ctx) {
+function create_if_block_44(ctx) {
   let projecttaskboard;
   let current;
   projecttaskboard = new ProjectTaskBoard_default({
@@ -9169,9 +9730,9 @@ function instance6($$self, $$props, $$invalidate) {
     $$invalidate(8, isSaving = true);
     try {
       await fileManager.saveProjectContent(selectedProject.id, projectContent);
-      new import_obsidian6.Notice("Project saved successfully!");
+      new import_obsidian7.Notice("Project saved successfully!");
     } catch (e) {
-      new import_obsidian6.Notice("Failed to save project: " + e.message);
+      new import_obsidian7.Notice("Failed to save project: " + e.message);
     } finally {
       $$invalidate(8, isSaving = false);
     }
@@ -9355,7 +9916,7 @@ function get_each_context7(ctx, list, i) {
   child_ctx[13] = list[i];
   return child_ctx;
 }
-function create_if_block_44(ctx) {
+function create_if_block_45(ctx) {
   let div;
   let label;
   let t1;
@@ -9693,6 +10254,10 @@ function create_if_block7(ctx) {
         /*fileManager*/
         ctx[1]
       ),
+      plugin: (
+        /*plugin*/
+        ctx[2]
+      ),
       onSelect: (
         /*func*/
         ctx[12]
@@ -9717,6 +10282,10 @@ function create_if_block7(ctx) {
       2)
         agingview_changes.fileManager = /*fileManager*/
         ctx2[1];
+      if (dirty & /*plugin*/
+      4)
+        agingview_changes.plugin = /*plugin*/
+        ctx2[2];
       if (dirty & /*selectedProjectId, mode*/
       24)
         agingview_changes.onSelect = /*func*/
@@ -9759,7 +10328,7 @@ function create_fragment7(ctx) {
   let if_block0 = (
     /*mode*/
     ctx[3] !== "aging" && /*mode*/
-    ctx[3] !== "projects" && create_if_block_44(ctx)
+    ctx[3] !== "projects" && create_if_block_45(ctx)
   );
   const if_block_creators = [create_if_block7, create_if_block_17, create_if_block_26, create_if_block_35];
   const if_blocks = [];
@@ -9794,7 +10363,7 @@ function create_fragment7(ctx) {
       div2 = element("div");
       div0 = element("div");
       button0 = element("button");
-      button0.textContent = "Aging";
+      button0.textContent = "Dashboard";
       t1 = space();
       button1 = element("button");
       button1.textContent = "Elastic";
@@ -9937,7 +10506,7 @@ function create_fragment7(ctx) {
         if (if_block0) {
           if_block0.p(ctx2, dirty);
         } else {
-          if_block0 = create_if_block_44(ctx2);
+          if_block0 = create_if_block_45(ctx2);
           if_block0.c();
           if_block0.m(div0, null);
         }
@@ -10062,7 +10631,7 @@ var App_default = App3;
 // src/main.ts
 var VIEW_TYPE = "project-os-view";
 var WORKSPACE_VIEW_TYPE = "project-os-workspace-view";
-var ProjectOSView = class extends import_obsidian7.ItemView {
+var ProjectOSView = class extends import_obsidian8.ItemView {
   constructor(leaf, fileManager, plugin) {
     super(leaf);
     __publicField(this, "component", null);
@@ -10096,7 +10665,7 @@ var ProjectOSView = class extends import_obsidian7.ItemView {
     }
   }
 };
-var ProjectWorkspaceView = class extends import_obsidian7.ItemView {
+var ProjectWorkspaceView = class extends import_obsidian8.ItemView {
   constructor(leaf, fileManager, plugin) {
     super(leaf);
     __publicField(this, "component", null);
@@ -10145,14 +10714,14 @@ var ProjectWorkspaceView = class extends import_obsidian7.ItemView {
     }
   }
 };
-var ProjectOSPlugin = class extends import_obsidian7.Plugin {
+var ProjectOSPlugin = class extends import_obsidian8.Plugin {
   constructor() {
     super(...arguments);
     __publicField(this, "fileManager");
   }
   async onload() {
     console.log("Initializing Project OS...");
-    new import_obsidian7.Notice("Initializing Project OS...");
+    new import_obsidian8.Notice("Initializing Project OS...");
     this.fileManager = new FileManager(this.app);
     this.app.workspace.onLayoutReady(async () => {
       try {
@@ -10160,7 +10729,7 @@ var ProjectOSPlugin = class extends import_obsidian7.Plugin {
         console.log("Project OS: data initialized successfully!");
       } catch (e) {
         console.error("Project OS: failed to initialize data", e);
-        new import_obsidian7.Notice("Project OS failed to initialize: " + e.message);
+        new import_obsidian8.Notice("Project OS failed to initialize: " + e.message);
       }
     });
     this.registerView(

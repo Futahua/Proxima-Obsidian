@@ -20,7 +20,7 @@
 <div class="pos-view">
   <!-- MODE BAR -->
   <div class="pos-mode-bar">
-    <button class="pos-mode-btn" class:pos-mode-active={mode === 'aging'} on:click={() => mode = 'aging'}>Aging</button>
+    <button class="pos-mode-btn" class:pos-mode-active={mode === 'aging'} on:click={() => mode = 'aging'}>Dashboard</button>
     <button class="pos-mode-btn" class:pos-mode-active={mode === 'elastic'} on:click={() => mode = 'elastic'}>Elastic</button>
     <button class="pos-mode-btn" class:pos-mode-active={mode === 'deadlines'} on:click={() => mode = 'deadlines'}>Deadlines</button>
     <button class="pos-mode-btn" class:pos-mode-active={mode === 'projects'} on:click={() => mode = 'projects'}>Projects</button>
@@ -41,7 +41,7 @@
   <!-- VIEW AREA -->
   <div class="pos-content">
     {#if mode === 'aging'}
-      <AgingView {app} {fileManager} onSelect={(id, m) => { selectedProjectId = id; mode = m; }} />
+      <AgingView {app} {fileManager} {plugin} onSelect={(id, m) => { selectedProjectId = id; mode = m; }} />
     {:else if mode === 'elastic'}
       <ElasticView {app} {fileManager} projectId={selectedProjectId} />
     {:else if mode === 'deadlines'}
