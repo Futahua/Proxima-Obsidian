@@ -1,0 +1,575 @@
+/* ═══════════════════════════════════════════════════════════════════
+   PROJECT OS — Styles
+   Accent: #A7C957 (lime green)  Danger: #E5484D (red)
+   All base colors use Obsidian CSS variables for theme compatibility.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Main Container ── */
+.pos-view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  padding: 10px;
+  gap: 10px;
+  background: var(--background-primary);
+}
+
+/* ── Mode Switch Bar ── */
+.pos-mode-bar {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.pos-mode-btn {
+  padding: 7px 18px;
+  border-radius: 6px;
+  border: 1px solid var(--background-modifier-border);
+  background: var(--background-secondary);
+  color: var(--text-normal);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.82em;
+  letter-spacing: 0.02em;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+.pos-mode-btn:hover {
+  background: var(--background-modifier-hover);
+}
+.pos-mode-btn.pos-mode-active {
+  background: #A7C957;
+  color: #101010;
+  border-color: #A7C957;
+  font-weight: 700;
+}
+
+/* ── Project Selector ── */
+.pos-project-selector-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  font-size: 0.85em;
+}
+.pos-project-selector-row label {
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.pos-project-selector {
+  flex: 1;
+  padding: 5px 8px;
+  border-radius: 5px;
+  border: 1px solid var(--background-modifier-border);
+  background: var(--background-primary);
+  color: var(--text-normal);
+  font-size: 0.9em;
+}
+
+/* ── Content Area ── */
+.pos-content {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ── Header / Deadline Controls ── */
+.pos-header {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  flex-shrink: 0;
+}
+.pos-deadline-controls {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.pos-deadline-controls input[type="date"],
+.pos-deadline-controls input[type="time"] {
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  color: var(--text-normal);
+  padding: 4px 6px;
+  border-radius: 4px;
+  font-size: 0.82em;
+}
+.pos-deadline-controls button {
+  padding: 5px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--background-modifier-border);
+  background: var(--background-secondary);
+  color: var(--text-normal);
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.8em;
+  transition: background 0.2s;
+}
+.pos-deadline-controls button:hover {
+  background: var(--background-modifier-hover);
+}
+.pos-lock-btn {
+  font-weight: 700 !important;
+  background: #A7C957 !important;
+  color: #101010 !important;
+  border: none !important;
+}
+.pos-lock-btn.locked {
+  background: #E5484D !important;
+  color: white !important;
+}
+.pos-lock-btn:hover {
+  opacity: 0.9;
+}
+
+/* ── Kanban Columns (Elastic mode) ── */
+.pos-columns {
+  display: flex;
+  flex: 1 1 0;
+  min-height: 0;
+  gap: 10px;
+}
+.pos-col {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.pos-col-title {
+  margin: 0 0 6px 0;
+  padding: 8px 6px;
+  background: var(--background-secondary);
+  text-align: center;
+  border-radius: 5px;
+  font-weight: 700;
+  font-size: 0.8em;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+.pos-list-wrapper {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
+  position: relative;
+  border-radius: 5px;
+}
+.pos-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-height: 100%;
+  padding: 4px;
+}
+
+/* ── Card ── */
+.pos-card {
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 0.82em;
+  box-sizing: border-box;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  cursor: grab;
+  transition: box-shadow 0.2s, border-color 0.2s, height 0.3s ease;
+}
+.pos-card:active {
+  cursor: grabbing;
+}
+.pos-card:hover {
+  border-color: #A7C957;
+}
+.pos-completed {
+  opacity: 0.5;
+}
+.pos-completed .pos-card-name {
+  text-decoration: line-through;
+}
+.pos-dragging-source {
+  opacity: 0.3;
+}
+
+.pos-card-name {
+  font-weight: 700;
+  margin-bottom: 2px;
+  color: var(--text-normal);
+  cursor: pointer;
+}
+.pos-card-name:hover {
+  color: #A7C957;
+}
+.pos-card-desc {
+  font-size: 0.75em;
+  color: var(--text-muted);
+  margin-bottom: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pos-card-meta {
+  font-size: 0.7em;
+  color: var(--text-muted);
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+.pos-card-acts {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.pos-card-acts button {
+  font-size: 0.68em;
+  padding: 3px 7px;
+  border-radius: 3px;
+  border: 1px solid var(--background-modifier-border);
+  background: var(--background-secondary);
+  color: var(--text-normal);
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s, color 0.2s;
+}
+.pos-card-acts button:hover {
+  background: #A7C957;
+  color: #101010;
+}
+.pos-del:hover {
+  background: #E5484D !important;
+  color: white !important;
+}
+
+/* ── Weight & Fixed Controls ── */
+.pos-wg {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+.pos-wg span {
+  font-weight: 700;
+  font-size: 0.75em;
+}
+.pos-wg button {
+  padding: 1px 5px;
+  font-size: 0.65em;
+}
+.pos-fixed {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.65em;
+}
+.pos-fixed-input {
+  width: 38px;
+}
+
+/* ── New Task / Bulk Buttons ── */
+.pos-newtask-row {
+  margin-top: 4px;
+  margin-bottom: 4px;
+  flex-shrink: 0;
+}
+.pos-newtask-btn {
+  width: 100%;
+  padding: 7px 0;
+  border-radius: 6px;
+  border: 1px solid #A7C957;
+  background: transparent;
+  color: #A7C957;
+  font-weight: 600;
+  font-size: 0.82em;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.pos-newtask-btn:hover {
+  background: #A7C957;
+  color: #101010;
+}
+.pos-bulk-row {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 5px;
+}
+.pos-bulk-row button {
+  flex: 1;
+  padding: 5px 0;
+  border-radius: 4px;
+  border: 1px solid var(--background-modifier-border);
+  background: var(--background-secondary);
+  color: var(--text-normal);
+  font-size: 0.65em;
+  font-weight: 600;
+  cursor: pointer;
+}
+.pos-bulk-row button:hover {
+  background: #A7C957;
+  color: #101010;
+}
+
+/* ── Lock Line & Wipe (Elastic) ── */
+.pos-redline {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #E5484D;
+  box-shadow: 0 0 20px rgba(229, 72, 77, 0.9);
+  z-index: 10;
+  pointer-events: none;
+}
+.pos-wipe {
+  position: absolute;
+  left: 0;
+  right: 0;
+  background: rgba(10, 10, 10, 0.55);
+  z-index: 5;
+  pointer-events: none;
+}
+
+/* ── Drag Placeholder ── */
+.pos-drag-placeholder {
+  height: 3px;
+  background-color: var(--interactive-accent, #A7C957);
+  margin: 4px 0;
+  border-radius: 2px;
+  width: 100%;
+  box-shadow: 0 0 4px rgba(167, 201, 87, 0.5);
+  transition: all 0.1s ease;
+}
+
+/* ── Project Cards (Aging) ── */
+.pos-project-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.pos-project-card {
+  cursor: default;
+  color: #1a1a1a; /* Ensure readability on colored backgrounds */
+}
+.pos-project-card .pos-card-name {
+  color: #1a1a1a;
+}
+.pos-project-card .pos-card-desc {
+  color: #333;
+}
+.pos-project-card .pos-card-meta {
+  color: #444;
+}
+.pos-project-card .pos-card-acts button {
+  background: rgba(255, 255, 255, 0.6);
+  border-color: rgba(0, 0, 0, 0.15);
+  color: #1a1a1a;
+}
+.pos-project-card .pos-card-acts button:hover {
+  background: #A7C957;
+  color: #101010;
+}
+.pos-age {
+  font-size: 0.72em;
+  color: #555;
+  margin: 4px 0;
+  font-style: italic;
+}
+
+/* ── Deadline Cards ── */
+.pos-deadline-list {
+  flex: 1 1 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.pos-deadline-card {
+  cursor: default;
+  color: #1a1a1a;
+}
+.pos-deadline-card .pos-card-name {
+  color: #1a1a1a;
+}
+.pos-deadline-card .pos-card-desc {
+  color: #333;
+}
+.pos-deadline-card .pos-card-acts button {
+  background: rgba(255, 255, 255, 0.6);
+  border-color: rgba(0, 0, 0, 0.15);
+  color: #1a1a1a;
+}
+.pos-deadline-card .pos-card-acts button:hover {
+  background: #A7C957;
+  color: #101010;
+}
+.pos-countdown {
+  font-size: 0.95em;
+  font-weight: 700;
+  margin: 4px 0;
+  color: #1a1a1a;
+}
+
+/* ── Filter Row ── */
+.pos-filter-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  font-size: 0.82em;
+  color: var(--text-muted);
+}
+.pos-clear-btn {
+  font-size: 0.75em;
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--background-modifier-border);
+  background: var(--background-secondary);
+  color: var(--text-normal);
+  cursor: pointer;
+}
+.pos-clear-btn:hover {
+  background: #A7C957;
+  color: #101010;
+}
+
+/* ── Mini Calendar ── */
+.pos-calendar {
+  flex-shrink: 0;
+  margin-bottom: 6px;
+}
+.pos-cal-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.pos-cal-nav button {
+  padding: 3px 10px;
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--text-normal);
+  font-size: 1em;
+  font-weight: 700;
+}
+.pos-cal-nav button:hover {
+  background: var(--background-modifier-hover);
+}
+.pos-cal-nav span {
+  font-weight: 600;
+  min-width: 150px;
+  text-align: center;
+  font-size: 0.9em;
+}
+.pos-calendar table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8em;
+}
+.pos-calendar th {
+  text-align: center;
+  padding: 4px 2px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+.pos-calendar td {
+  text-align: center;
+  padding: 6px 2px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s;
+  color: var(--text-normal);
+}
+.pos-calendar td:hover {
+  background: var(--background-modifier-hover);
+}
+.pos-calendar td.has-deadline {
+  font-weight: 700;
+  background: rgba(167, 201, 87, 0.25);
+}
+.pos-calendar td.selected {
+  background: #A7C957 !important;
+  color: #101010;
+  font-weight: 700;
+}
+
+/* ── Empty State ── */
+.pos-empty {
+  text-align: center;
+  color: var(--text-muted);
+  margin-top: 20px;
+  font-style: italic;
+}
+
+/* ── Modals ── */
+.pos-modal-input,
+.pos-modal-textarea {
+  width: 100%;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  color: var(--text-normal);
+  padding: 8px 10px;
+  border-radius: 5px;
+  margin-bottom: 10px;
+  box-sizing: border-box;
+  font-size: 0.9em;
+}
+.pos-modal-textarea {
+  height: 85px;
+  resize: vertical;
+}
+.pos-modal-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  font-size: 0.85em;
+}
+.pos-modal-number {
+  width: 65px;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  color: var(--text-normal);
+  padding: 4px 6px;
+  border-radius: 4px;
+}
+.pos-modal-datetime {
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  color: var(--text-normal);
+  padding: 4px 6px;
+  border-radius: 4px;
+  font-size: 0.85em;
+}
+.pos-modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 14px;
+}
+.pos-modal-buttons button {
+  padding: 7px 18px;
+  border-radius: 5px;
+  border: 1px solid var(--background-modifier-border);
+  background: var(--background-secondary);
+  color: var(--text-normal);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.85em;
+}
+.pos-modal-primary {
+  background: #A7C957 !important;
+  color: #101010 !important;
+  border: none !important;
+}
+.pos-modal-primary:hover {
+  opacity: 0.9;
+}
