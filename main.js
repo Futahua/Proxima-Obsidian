@@ -4341,112 +4341,367 @@ var ElasticView = class extends SvelteComponent {
 var ElasticView_default = ElasticView;
 
 // src/ui/views/DeadlinesView.svelte
-function get_each_context3(ctx, list, i) {
+function get_each_context_4(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[15] = list[i];
+  child_ctx[38] = list[i];
   const constants_0 = new Date(
     /*task*/
-    child_ctx[15].deadline || ""
+    child_ctx[38].deadline || ""
   ).getTime() - /*now*/
-  child_ctx[2];
-  child_ctx[16] = constants_0;
+  child_ctx[3];
+  child_ctx[45] = constants_0;
+  return child_ctx;
+}
+function get_each_context_22(ctx, list, i) {
+  const child_ctx = ctx.slice();
+  child_ctx[38] = list[i];
+  child_ctx[41] = i;
+  const constants_0 = (
+    /*getGanttPosition*/
+    child_ctx[11](
+      /*task*/
+      child_ctx[38].createdAt,
+      /*task*/
+      child_ctx[38].deadline || ""
+    )
+  );
+  child_ctx[39] = constants_0;
+  const constants_1 = new Date(
+    /*task*/
+    child_ctx[38].deadline || ""
+  ).getTime() - /*now*/
+  child_ctx[3];
+  child_ctx[35] = constants_1;
+  return child_ctx;
+}
+function get_each_context_3(ctx, list, i) {
+  const child_ctx = ctx.slice();
+  child_ctx[42] = list[i];
+  return child_ctx;
+}
+function get_each_context3(ctx, list, i) {
+  const child_ctx = ctx.slice();
+  child_ctx[30] = list[i];
+  const constants_0 = (
+    /*deadlinedTasks*/
+    child_ctx[0].filter(function func(...args) {
+      return (
+        /*func*/
+        ctx[26](
+          /*cell*/
+          child_ctx[30],
+          ...args
+        )
+      );
+    })
+  );
+  child_ctx[31] = constants_0;
   return child_ctx;
 }
 function get_each_context_12(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[19] = list[i];
-  const constants_0 = (
-    /*deadlinedTasks*/
-    child_ctx[1].filter(function func(...args) {
-      return (
-        /*func*/
-        ctx[13](
-          /*d*/
-          child_ctx[19],
-          ...args
-        )
-      );
-    }).length
-  );
-  child_ctx[20] = constants_0;
-  const constants_1 = new Date(
-    /*d*/
-    child_ctx[19]
+  child_ctx[34] = list[i];
+  const constants_0 = new Date(
+    /*t*/
+    child_ctx[34].deadline || ""
   ).getTime() - /*now*/
-  child_ctx[2];
-  child_ctx[21] = constants_1;
+  child_ctx[3];
+  child_ctx[35] = constants_0;
   return child_ctx;
 }
+function create_if_block_62(ctx) {
+  let div;
+  let button0;
+  let t1;
+  let span;
+  let t2;
+  let t3;
+  let t4;
+  let t5;
+  let button1;
+  let t7;
+  let button2;
+  let mounted;
+  let dispose;
+  return {
+    c() {
+      div = element("div");
+      button0 = element("button");
+      button0.textContent = "\u2190";
+      t1 = space();
+      span = element("span");
+      t2 = text(
+        /*monthName*/
+        ctx[7]
+      );
+      t3 = space();
+      t4 = text(
+        /*year*/
+        ctx[1]
+      );
+      t5 = space();
+      button1 = element("button");
+      button1.textContent = "\u2192";
+      t7 = space();
+      button2 = element("button");
+      button2.textContent = "Today";
+      attr(button0, "class", "pos-nav-btn");
+      set_style(button0, "padding", "4px 8px");
+      set_style(button0, "font-size", "0.82em");
+      set_style(button0, "background", "var(--background-secondary)");
+      set_style(button0, "border", "1px solid var(--background-modifier-border)");
+      set_style(button0, "border-radius", "4px");
+      set_style(button0, "cursor", "pointer");
+      set_style(span, "font-weight", "700");
+      set_style(span, "font-size", "0.9em");
+      set_style(span, "min-width", "120px");
+      set_style(span, "text-align", "center");
+      set_style(span, "color", "var(--text-normal)");
+      attr(button1, "class", "pos-nav-btn");
+      set_style(button1, "padding", "4px 8px");
+      set_style(button1, "font-size", "0.82em");
+      set_style(button1, "background", "var(--background-secondary)");
+      set_style(button1, "border", "1px solid var(--background-modifier-border)");
+      set_style(button1, "border-radius", "4px");
+      set_style(button1, "cursor", "pointer");
+      attr(button2, "class", "pos-nav-btn");
+      set_style(button2, "padding", "4px 10px");
+      set_style(button2, "font-size", "0.82em");
+      set_style(button2, "font-weight", "600");
+      set_style(button2, "background", "var(--background-secondary)");
+      set_style(button2, "border", "1px solid var(--background-modifier-border)");
+      set_style(button2, "border-radius", "4px");
+      set_style(button2, "cursor", "pointer");
+      attr(div, "class", "pos-calendar-nav");
+      set_style(div, "display", "flex");
+      set_style(div, "align-items", "center");
+      set_style(div, "gap", "8px");
+    },
+    m(target, anchor) {
+      insert(target, div, anchor);
+      append(div, button0);
+      append(div, t1);
+      append(div, span);
+      append(span, t2);
+      append(span, t3);
+      append(span, t4);
+      append(div, t5);
+      append(div, button1);
+      append(div, t7);
+      append(div, button2);
+      if (!mounted) {
+        dispose = [
+          listen(
+            button0,
+            "click",
+            /*prevMonth*/
+            ctx[8]
+          ),
+          listen(
+            button1,
+            "click",
+            /*nextMonth*/
+            ctx[9]
+          ),
+          listen(
+            button2,
+            "click",
+            /*goToToday*/
+            ctx[10]
+          )
+        ];
+        mounted = true;
+      }
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*monthName*/
+      128)
+        set_data(
+          t2,
+          /*monthName*/
+          ctx2[7]
+        );
+      if (dirty[0] & /*year*/
+      2)
+        set_data(
+          t4,
+          /*year*/
+          ctx2[1]
+        );
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div);
+      }
+      mounted = false;
+      run_all(dispose);
+    }
+  };
+}
 function create_else_block2(ctx) {
-  let div0;
-  let t;
-  let div1;
+  let div;
   let each_blocks = [];
-  let each1_lookup = /* @__PURE__ */ new Map();
-  let each_value_1 = ensure_array_like(
-    /*uniqueDates*/
-    ctx[3]
-  );
-  let each_blocks_1 = [];
-  for (let i = 0; i < each_value_1.length; i += 1) {
-    each_blocks_1[i] = create_each_block_12(get_each_context_12(ctx, each_value_1, i));
-  }
-  let each_value = ensure_array_like(
-    /*sortedTasks*/
+  let each_1_lookup = /* @__PURE__ */ new Map();
+  let each_value_4 = ensure_array_like(
+    /*countdownTasks*/
     ctx[4]
   );
   const get_key = (ctx2) => (
     /*task*/
-    ctx2[15].id
+    ctx2[38].id
   );
-  for (let i = 0; i < each_value.length; i += 1) {
-    let child_ctx = get_each_context3(ctx, each_value, i);
+  for (let i = 0; i < each_value_4.length; i += 1) {
+    let child_ctx = get_each_context_4(ctx, each_value_4, i);
     let key = get_key(child_ctx);
-    each1_lookup.set(key, each_blocks[i] = create_each_block3(key, child_ctx));
+    each_1_lookup.set(key, each_blocks[i] = create_each_block_4(key, child_ctx));
   }
   return {
     c() {
+      div = element("div");
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        each_blocks[i].c();
+      }
+      attr(div, "class", "pos-deadlines-list");
+      set_style(div, "display", "flex");
+      set_style(div, "flex-direction", "column");
+      set_style(div, "gap", "8px");
+    },
+    m(target, anchor) {
+      insert(target, div, anchor);
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        if (each_blocks[i]) {
+          each_blocks[i].m(div, null);
+        }
+      }
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*countdownTasks, now, openTaskFile*/
+      4120) {
+        each_value_4 = ensure_array_like(
+          /*countdownTasks*/
+          ctx2[4]
+        );
+        each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx2, each_value_4, each_1_lookup, div, destroy_block, create_each_block_4, null, get_each_context_4);
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div);
+      }
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        each_blocks[i].d();
+      }
+    }
+  };
+}
+function create_if_block_33(ctx) {
+  let div4;
+  let div3;
+  let div0;
+  let t0;
+  let div2;
+  let div1;
+  let t1;
+  let each_value_3 = ensure_array_like(
+    /*timelineDates*/
+    ctx[5]
+  );
+  let each_blocks_1 = [];
+  for (let i = 0; i < each_value_3.length; i += 1) {
+    each_blocks_1[i] = create_each_block_3(get_each_context_3(ctx, each_value_3, i));
+  }
+  let each_value_2 = ensure_array_like(
+    /*deadlinedTasks*/
+    ctx[0]
+  );
+  let each_blocks = [];
+  for (let i = 0; i < each_value_2.length; i += 1) {
+    each_blocks[i] = create_each_block_22(get_each_context_22(ctx, each_value_2, i));
+  }
+  return {
+    c() {
+      div4 = element("div");
+      div3 = element("div");
       div0 = element("div");
       for (let i = 0; i < each_blocks_1.length; i += 1) {
         each_blocks_1[i].c();
       }
-      t = space();
+      t0 = space();
+      div2 = element("div");
       div1 = element("div");
+      t1 = space();
       for (let i = 0; i < each_blocks.length; i += 1) {
         each_blocks[i].c();
       }
-      attr(div0, "class", "pos-mini-cal");
-      attr(div1, "class", "pos-deadlines-list");
+      attr(div0, "class", "pos-gantt-header");
+      set_style(div0, "display", "grid");
+      set_style(div0, "grid-template-columns", "repeat(14, 1fr)");
+      set_style(div0, "border-bottom", "1px solid var(--background-modifier-border)");
+      set_style(div0, "background", "var(--background-secondary)");
+      set_style(div0, "padding", "10px 0");
+      set_style(div0, "text-align", "center");
+      set_style(div0, "font-weight", "700");
+      set_style(div0, "font-size", "0.8em");
+      set_style(div0, "color", "var(--text-muted)");
+      attr(div1, "class", "pos-gantt-today-line");
+      set_style(div1, "position", "absolute");
+      set_style(div1, "top", "0");
+      set_style(div1, "bottom", "0");
+      set_style(div1, "left", "calc(100% / 14 * 2)");
+      set_style(div1, "border-left", "2px dashed #E5484D");
+      set_style(div1, "z-index", "5");
+      set_style(div1, "pointer-events", "none");
+      set_style(div1, "box-shadow", "0 0 4px rgba(229,72,77,0.2)");
+      attr(div2, "class", "pos-gantt-rows");
+      set_style(div2, "display", "flex");
+      set_style(div2, "flex-direction", "column");
+      set_style(div2, "position", "relative");
+      set_style(div2, "min-height", "200px");
+      attr(div3, "class", "pos-gantt-chart-container");
+      set_style(div3, "min-width", "800px");
+      set_style(div3, "display", "flex");
+      set_style(div3, "flex-direction", "column");
+      set_style(div3, "position", "relative");
+      attr(div4, "class", "pos-gantt-scroll-wrapper");
+      set_style(div4, "overflow-x", "auto");
+      set_style(div4, "width", "100%");
+      set_style(div4, "border", "1px solid var(--background-modifier-border)");
+      set_style(div4, "border-radius", "8px");
+      set_style(div4, "background", "var(--background-primary)");
     },
     m(target, anchor) {
-      insert(target, div0, anchor);
+      insert(target, div4, anchor);
+      append(div4, div3);
+      append(div3, div0);
       for (let i = 0; i < each_blocks_1.length; i += 1) {
         if (each_blocks_1[i]) {
           each_blocks_1[i].m(div0, null);
         }
       }
-      insert(target, t, anchor);
-      insert(target, div1, anchor);
+      append(div3, t0);
+      append(div3, div2);
+      append(div2, div1);
+      append(div2, t1);
       for (let i = 0; i < each_blocks.length; i += 1) {
         if (each_blocks[i]) {
-          each_blocks[i].m(div1, null);
+          each_blocks[i].m(div2, null);
         }
       }
     },
     p(ctx2, dirty) {
-      if (dirty & /*Date, uniqueDates, now, selectedDateStr, toggleDateFilter, deadlinedTasks*/
-      47) {
-        each_value_1 = ensure_array_like(
-          /*uniqueDates*/
-          ctx2[3]
+      if (dirty[0] & /*timelineDates*/
+      32) {
+        each_value_3 = ensure_array_like(
+          /*timelineDates*/
+          ctx2[5]
         );
         let i;
-        for (i = 0; i < each_value_1.length; i += 1) {
-          const child_ctx = get_each_context_12(ctx2, each_value_1, i);
+        for (i = 0; i < each_value_3.length; i += 1) {
+          const child_ctx = get_each_context_3(ctx2, each_value_3, i);
           if (each_blocks_1[i]) {
             each_blocks_1[i].p(child_ctx, dirty);
           } else {
-            each_blocks_1[i] = create_each_block_12(child_ctx);
+            each_blocks_1[i] = create_each_block_3(child_ctx);
             each_blocks_1[i].c();
             each_blocks_1[i].m(div0, null);
           }
@@ -4454,27 +4709,134 @@ function create_else_block2(ctx) {
         for (; i < each_blocks_1.length; i += 1) {
           each_blocks_1[i].d(1);
         }
-        each_blocks_1.length = each_value_1.length;
+        each_blocks_1.length = each_value_3.length;
       }
-      if (dirty & /*Date, sortedTasks, now*/
-      20) {
-        each_value = ensure_array_like(
-          /*sortedTasks*/
-          ctx2[4]
+      if (dirty[0] & /*getGanttPosition, deadlinedTasks, now, openTaskFile*/
+      6153) {
+        each_value_2 = ensure_array_like(
+          /*deadlinedTasks*/
+          ctx2[0]
         );
-        each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx2, each_value, each1_lookup, div1, destroy_block, create_each_block3, null, get_each_context3);
+        let i;
+        for (i = 0; i < each_value_2.length; i += 1) {
+          const child_ctx = get_each_context_22(ctx2, each_value_2, i);
+          if (each_blocks[i]) {
+            each_blocks[i].p(child_ctx, dirty);
+          } else {
+            each_blocks[i] = create_each_block_22(child_ctx);
+            each_blocks[i].c();
+            each_blocks[i].m(div2, null);
+          }
+        }
+        for (; i < each_blocks.length; i += 1) {
+          each_blocks[i].d(1);
+        }
+        each_blocks.length = each_value_2.length;
       }
     },
     d(detaching) {
       if (detaching) {
-        detach(div0);
-        detach(t);
-        detach(div1);
+        detach(div4);
       }
       destroy_each(each_blocks_1, detaching);
+      destroy_each(each_blocks, detaching);
+    }
+  };
+}
+function create_if_block_14(ctx) {
+  let div10;
+  let div9;
+  let div7;
+  let t7;
+  let div8;
+  let each_value = ensure_array_like(
+    /*gridCells*/
+    ctx[6]
+  );
+  let each_blocks = [];
+  for (let i = 0; i < each_value.length; i += 1) {
+    each_blocks[i] = create_each_block3(get_each_context3(ctx, each_value, i));
+  }
+  return {
+    c() {
+      div10 = element("div");
+      div9 = element("div");
+      div7 = element("div");
+      div7.innerHTML = `<div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>`;
+      t7 = space();
+      div8 = element("div");
       for (let i = 0; i < each_blocks.length; i += 1) {
-        each_blocks[i].d();
+        each_blocks[i].c();
       }
+      attr(div7, "class", "pos-calendar-weekdays");
+      set_style(div7, "display", "grid");
+      set_style(div7, "grid-template-columns", "repeat(7, 1fr)");
+      set_style(div7, "border-bottom", "1px solid var(--background-modifier-border)");
+      set_style(div7, "background", "var(--background-secondary)");
+      set_style(div7, "padding", "8px 0");
+      set_style(div7, "text-align", "center");
+      set_style(div7, "font-weight", "700");
+      set_style(div7, "font-size", "0.82em");
+      set_style(div7, "color", "var(--text-muted)");
+      set_style(div7, "text-transform", "uppercase");
+      attr(div8, "class", "pos-calendar-cells");
+      set_style(div8, "display", "grid");
+      set_style(div8, "grid-template-columns", "repeat(7, 1fr)");
+      set_style(div8, "grid-auto-rows", "minmax(90px, 1fr)");
+      set_style(div8, "background", "var(--background-modifier-border)");
+      set_style(div8, "gap", "1px");
+      attr(div9, "class", "pos-calendar-grid-container");
+      set_style(div9, "min-width", "720px");
+      set_style(div9, "display", "flex");
+      set_style(div9, "flex-direction", "column");
+      attr(div10, "class", "pos-calendar-scroll-wrapper");
+      set_style(div10, "overflow-x", "auto");
+      set_style(div10, "width", "100%");
+      set_style(div10, "border", "1px solid var(--background-modifier-border)");
+      set_style(div10, "border-radius", "8px");
+      set_style(div10, "background", "var(--background-primary)");
+    },
+    m(target, anchor) {
+      insert(target, div10, anchor);
+      append(div10, div9);
+      append(div9, div7);
+      append(div9, t7);
+      append(div9, div8);
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        if (each_blocks[i]) {
+          each_blocks[i].m(div8, null);
+        }
+      }
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*gridCells, deadlinedTasks, now, openTaskFile*/
+      4169) {
+        each_value = ensure_array_like(
+          /*gridCells*/
+          ctx2[6]
+        );
+        let i;
+        for (i = 0; i < each_value.length; i += 1) {
+          const child_ctx = get_each_context3(ctx2, each_value, i);
+          if (each_blocks[i]) {
+            each_blocks[i].p(child_ctx, dirty);
+          } else {
+            each_blocks[i] = create_each_block3(child_ctx);
+            each_blocks[i].c();
+            each_blocks[i].m(div8, null);
+          }
+        }
+        for (; i < each_blocks.length; i += 1) {
+          each_blocks[i].d(1);
+        }
+        each_blocks.length = each_value.length;
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div10);
+      }
+      destroy_each(each_blocks, detaching);
     }
   };
 }
@@ -4483,7 +4845,7 @@ function create_if_block3(ctx) {
   return {
     c() {
       p = element("p");
-      p.textContent = "No upcoming deadlines.";
+      p.textContent = "No active tasks with upcoming deadlines in this project.";
       attr(p, "class", "pos-empty");
     },
     m(target, anchor) {
@@ -4497,95 +4859,709 @@ function create_if_block3(ctx) {
     }
   };
 }
-function create_each_block_12(ctx) {
-  let div2;
+function create_if_block_52(ctx) {
+  let div;
+  let t_1_value = (
+    /*task*/
+    ctx[38].description + ""
+  );
+  let t_1;
+  return {
+    c() {
+      div = element("div");
+      t_1 = text(t_1_value);
+      set_style(div, "font-size", "0.8em");
+      set_style(div, "color", "var(--text-muted)");
+      set_style(div, "margin-top", "2px");
+    },
+    m(target, anchor) {
+      insert(target, div, anchor);
+      append(div, t_1);
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*countdownTasks*/
+      16 && t_1_value !== (t_1_value = /*task*/
+      ctx2[38].description + ""))
+        set_data(t_1, t_1_value);
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div);
+      }
+    }
+  };
+}
+function create_each_block_4(key_1, ctx) {
+  let div3;
+  let div1;
   let div0;
   let t0_value = (
-    /*d*/
-    ctx[19].slice(5) + ""
+    /*task*/
+    ctx[38].name + ""
   );
   let t0;
   let t1;
-  let div1;
-  let t2_value = (
-    /*count*/
-    ctx[20] + ""
-  );
   let t2;
+  let div2;
+  let t3_value = formatCountdown(
+    /*diff*/
+    ctx[45]
+  ) + "";
   let t3;
+  let t4;
   let mounted;
   let dispose;
-  function click_handler() {
+  function click_handler_5() {
     return (
-      /*click_handler*/
-      ctx[12](
-        /*d*/
-        ctx[19]
+      /*click_handler_5*/
+      ctx[28](
+        /*task*/
+        ctx[38]
       )
     );
   }
+  let if_block = (
+    /*task*/
+    ctx[38].description && create_if_block_52(ctx)
+  );
   return {
+    key: key_1,
+    first: null,
     c() {
-      div2 = element("div");
+      div3 = element("div");
+      div1 = element("div");
       div0 = element("div");
       t0 = text(t0_value);
       t1 = space();
-      div1 = element("div");
-      t2 = text(t2_value);
-      t3 = space();
-      attr(div0, "class", "pos-cal-date");
-      attr(div1, "class", "pos-cal-count");
-      attr(div2, "class", "pos-cal-day");
-      set_style(div2, "background-color", deadlineHue(
-        /*dMs*/
-        ctx[21]
+      if (if_block)
+        if_block.c();
+      t2 = space();
+      div2 = element("div");
+      t3 = text(t3_value);
+      t4 = space();
+      attr(div0, "class", "pos-card-name");
+      set_style(div0, "font-weight", "700");
+      set_style(div0, "color", "var(--text-normal)");
+      set_style(div0, "cursor", "pointer");
+      attr(div2, "class", "pos-countdown");
+      set_style(div2, "font-family", "var(--font-monospace), monospace");
+      set_style(div2, "font-weight", "700");
+      set_style(div2, "font-size", "0.9em");
+      set_style(div2, "color", deadlineHue(
+        /*diff*/
+        ctx[45]
       ));
-      toggle_class(
-        div2,
-        "selected",
-        /*selectedDateStr*/
-        ctx[0] === /*d*/
-        ctx[19]
-      );
+      set_style(div2, "text-shadow", "0 0 1px rgba(0,0,0,0.05)");
+      attr(div3, "class", "pos-card pos-deadline-card");
+      set_style(div3, "border-left", "4px solid " + deadlineHue(
+        /*diff*/
+        ctx[45]
+      ), 1);
+      set_style(div3, "background", "var(--background-secondary)");
+      set_style(div3, "border", "1px solid var(--background-modifier-border)");
+      set_style(div3, "border-radius", "8px");
+      set_style(div3, "padding", "12px 16px");
+      set_style(div3, "display", "flex");
+      set_style(div3, "justify-content", "space-between");
+      set_style(div3, "align-items", "center");
+      this.first = div3;
     },
     m(target, anchor) {
-      insert(target, div2, anchor);
-      append(div2, div0);
+      insert(target, div3, anchor);
+      append(div3, div1);
+      append(div1, div0);
       append(div0, t0);
-      append(div2, t1);
-      append(div2, div1);
-      append(div1, t2);
+      append(div1, t1);
+      if (if_block)
+        if_block.m(div1, null);
+      append(div3, t2);
+      append(div3, div2);
       append(div2, t3);
+      append(div3, t4);
       if (!mounted) {
-        dispose = listen(div2, "click", click_handler);
+        dispose = listen(div0, "click", click_handler_5);
         mounted = true;
       }
     },
     p(new_ctx, dirty) {
       ctx = new_ctx;
-      if (dirty & /*uniqueDates*/
-      8 && t0_value !== (t0_value = /*d*/
-      ctx[19].slice(5) + ""))
+      if (dirty[0] & /*countdownTasks*/
+      16 && t0_value !== (t0_value = /*task*/
+      ctx[38].name + ""))
         set_data(t0, t0_value);
-      if (dirty & /*deadlinedTasks, uniqueDates*/
-      10 && t2_value !== (t2_value = /*count*/
-      ctx[20] + ""))
-        set_data(t2, t2_value);
-      if (dirty & /*uniqueDates, now*/
-      12) {
-        set_style(div2, "background-color", deadlineHue(
-          /*dMs*/
-          ctx[21]
+      if (
+        /*task*/
+        ctx[38].description
+      ) {
+        if (if_block) {
+          if_block.p(ctx, dirty);
+        } else {
+          if_block = create_if_block_52(ctx);
+          if_block.c();
+          if_block.m(div1, null);
+        }
+      } else if (if_block) {
+        if_block.d(1);
+        if_block = null;
+      }
+      if (dirty[0] & /*countdownTasks, now*/
+      24 && t3_value !== (t3_value = formatCountdown(
+        /*diff*/
+        ctx[45]
+      ) + ""))
+        set_data(t3, t3_value);
+      if (dirty[0] & /*countdownTasks, now*/
+      24) {
+        set_style(div2, "color", deadlineHue(
+          /*diff*/
+          ctx[45]
         ));
       }
-      if (dirty & /*selectedDateStr, uniqueDates*/
+      if (dirty[0] & /*countdownTasks, now*/
+      24) {
+        set_style(div3, "border-left", "4px solid " + deadlineHue(
+          /*diff*/
+          ctx[45]
+        ), 1);
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div3);
+      }
+      if (if_block)
+        if_block.d();
+      mounted = false;
+      dispose();
+    }
+  };
+}
+function create_if_block_42(ctx) {
+  let div;
+  return {
+    c() {
+      div = element("div");
+      div.textContent = "Today";
+      set_style(div, "font-size", "0.7em");
+      set_style(div, "text-transform", "uppercase");
+      set_style(div, "margin-top", "1px");
+    },
+    m(target, anchor) {
+      insert(target, div, anchor);
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div);
+      }
+    }
+  };
+}
+function create_each_block_3(ctx) {
+  let div;
+  let t0_value = (
+    /*td*/
+    ctx[42].label + ""
+  );
+  let t0;
+  let t1;
+  let t2;
+  let if_block = (
+    /*td*/
+    ctx[42].isToday && create_if_block_42(ctx)
+  );
+  return {
+    c() {
+      div = element("div");
+      t0 = text(t0_value);
+      t1 = space();
+      if (if_block)
+        if_block.c();
+      t2 = space();
+      set_style(
+        div,
+        "color",
+        /*td*/
+        ctx[42].isToday ? "#A7C957" : "var(--text-muted)"
+      );
+      set_style(
+        div,
+        "font-weight",
+        /*td*/
+        ctx[42].isToday ? "800" : "600"
+      );
+      set_style(div, "font-size", "0.95em");
+    },
+    m(target, anchor) {
+      insert(target, div, anchor);
+      append(div, t0);
+      append(div, t1);
+      if (if_block)
+        if_block.m(div, null);
+      append(div, t2);
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*timelineDates*/
+      32 && t0_value !== (t0_value = /*td*/
+      ctx2[42].label + ""))
+        set_data(t0, t0_value);
+      if (
+        /*td*/
+        ctx2[42].isToday
+      ) {
+        if (if_block) {
+        } else {
+          if_block = create_if_block_42(ctx2);
+          if_block.c();
+          if_block.m(div, t2);
+        }
+      } else if (if_block) {
+        if_block.d(1);
+        if_block = null;
+      }
+      if (dirty[0] & /*timelineDates*/
+      32) {
+        set_style(
+          div,
+          "color",
+          /*td*/
+          ctx2[42].isToday ? "#A7C957" : "var(--text-muted)"
+        );
+      }
+      if (dirty[0] & /*timelineDates*/
+      32) {
+        set_style(
+          div,
+          "font-weight",
+          /*td*/
+          ctx2[42].isToday ? "800" : "600"
+        );
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div);
+      }
+      if (if_block)
+        if_block.d();
+    }
+  };
+}
+function create_each_block_22(ctx) {
+  let div1;
+  let div0;
+  let t0;
+  let t1_value = (
+    /*task*/
+    ctx[38].name + ""
+  );
+  let t1;
+  let div0_title_value;
+  let t2;
+  let mounted;
+  let dispose;
+  function click_handler_4() {
+    return (
+      /*click_handler_4*/
+      ctx[27](
+        /*task*/
+        ctx[38]
+      )
+    );
+  }
+  return {
+    c() {
+      div1 = element("div");
+      div0 = element("div");
+      t0 = text("\u{1F680} ");
+      t1 = text(t1_value);
+      t2 = space();
+      attr(div0, "class", "pos-gantt-bar-pill");
+      set_style(
+        div0,
+        "grid-column",
+        /*pos*/
+        ctx[39].gridStart + " / " + /*pos*/
+        ctx[39].gridEnd
+      );
+      set_style(div0, "background", "linear-gradient(135deg, hsl(" + /*diffMs*/
+      (ctx[35] > 0 ? getHueForRemaining(
+        /*diffMs*/
+        ctx[35]
+      ) : 0) + ", 85%, 85%), hsl(" + /*diffMs*/
+      (ctx[35] > 0 ? getHueForRemaining(
+        /*diffMs*/
+        ctx[35]
+      ) : 0) + ", 80%, 90%))");
+      set_style(div0, "color", "#101010");
+      set_style(div0, "border", "1px solid rgba(0,0,0,0.12)");
+      set_style(div0, "padding", "6px 12px");
+      set_style(div0, "border-radius", "9999px");
+      set_style(div0, "font-weight", "700");
+      set_style(div0, "font-size", "0.78em");
+      set_style(div0, "cursor", "pointer");
+      set_style(div0, "text-overflow", "ellipsis");
+      set_style(div0, "white-space", "nowrap");
+      set_style(div0, "overflow", "hidden");
+      set_style(div0, "box-shadow", "0 1px 3px rgba(0,0,0,0.05)");
+      set_style(div0, "margin", "0 4px");
+      set_style(div0, "transition", "transform 0.2s");
+      attr(div0, "title", div0_title_value = `${/*task*/
+      ctx[38].name} (Ends: ${/*task*/
+      ctx[38].deadline})`);
+      attr(div1, "class", "pos-gantt-row");
+      set_style(div1, "display", "grid");
+      set_style(div1, "grid-template-columns", "repeat(14, 1fr)");
+      set_style(div1, "align-items", "center");
+      set_style(div1, "border-bottom", "1px solid var(--background-modifier-border)");
+      set_style(div1, "padding", "12px 0");
+      set_style(
+        div1,
+        "background",
+        /*idx*/
+        ctx[41] % 2 === 0 ? "rgba(0,0,0,0.01)" : "transparent"
+      );
+    },
+    m(target, anchor) {
+      insert(target, div1, anchor);
+      append(div1, div0);
+      append(div0, t0);
+      append(div0, t1);
+      append(div1, t2);
+      if (!mounted) {
+        dispose = listen(div0, "click", click_handler_4);
+        mounted = true;
+      }
+    },
+    p(new_ctx, dirty) {
+      ctx = new_ctx;
+      if (dirty[0] & /*deadlinedTasks*/
+      1 && t1_value !== (t1_value = /*task*/
+      ctx[38].name + ""))
+        set_data(t1, t1_value);
+      if (dirty[0] & /*deadlinedTasks*/
+      1) {
+        set_style(
+          div0,
+          "grid-column",
+          /*pos*/
+          ctx[39].gridStart + " / " + /*pos*/
+          ctx[39].gridEnd
+        );
+      }
+      if (dirty[0] & /*deadlinedTasks, now*/
       9) {
-        toggle_class(
+        set_style(div0, "background", "linear-gradient(135deg, hsl(" + /*diffMs*/
+        (ctx[35] > 0 ? getHueForRemaining(
+          /*diffMs*/
+          ctx[35]
+        ) : 0) + ", 85%, 85%), hsl(" + /*diffMs*/
+        (ctx[35] > 0 ? getHueForRemaining(
+          /*diffMs*/
+          ctx[35]
+        ) : 0) + ", 80%, 90%))");
+      }
+      if (dirty[0] & /*deadlinedTasks*/
+      1 && div0_title_value !== (div0_title_value = `${/*task*/
+      ctx[38].name} (Ends: ${/*task*/
+      ctx[38].deadline})`)) {
+        attr(div0, "title", div0_title_value);
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div1);
+      }
+      mounted = false;
+      dispose();
+    }
+  };
+}
+function create_if_block_23(ctx) {
+  let span;
+  return {
+    c() {
+      span = element("span");
+      span.textContent = "Today";
+      set_style(span, "font-size", "0.75em");
+      set_style(span, "text-transform", "uppercase");
+      set_style(span, "color", "#A7C957");
+      set_style(span, "font-weight", "700");
+      set_style(span, "padding-right", "2px");
+    },
+    m(target, anchor) {
+      insert(target, span, anchor);
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(span);
+      }
+    }
+  };
+}
+function create_each_block_12(ctx) {
+  let div;
+  let t0_value = (
+    /*t*/
+    ctx[34].name + ""
+  );
+  let t0;
+  let t1;
+  let div_title_value;
+  let mounted;
+  let dispose;
+  function click_handler_3() {
+    return (
+      /*click_handler_3*/
+      ctx[25](
+        /*t*/
+        ctx[34]
+      )
+    );
+  }
+  return {
+    c() {
+      div = element("div");
+      t0 = text(t0_value);
+      t1 = space();
+      attr(div, "class", "pos-cal-task-pill");
+      set_style(div, "font-size", "0.75em");
+      set_style(div, "font-weight", "600");
+      set_style(div, "padding", "2px 6px");
+      set_style(div, "border-radius", "3px");
+      set_style(div, "background", "hsl(" + (new Date(
+        /*t*/
+        ctx[34].deadline || ""
+      ).getTime() - /*now*/
+      ctx[3] > 0 ? getHueForRemaining(
+        /*diffMs*/
+        ctx[35]
+      ) : 0) + ", 80%, 85%)");
+      set_style(div, "color", "#101010");
+      set_style(div, "border", "1px solid rgba(0,0,0,0.08)");
+      set_style(div, "cursor", "pointer");
+      set_style(div, "text-overflow", "ellipsis");
+      set_style(div, "white-space", "nowrap");
+      set_style(div, "overflow", "hidden");
+      attr(div, "title", div_title_value = `${/*t*/
+      ctx[34].name} (Deadline: ${/*t*/
+      ctx[34].deadline})`);
+    },
+    m(target, anchor) {
+      insert(target, div, anchor);
+      append(div, t0);
+      append(div, t1);
+      if (!mounted) {
+        dispose = listen(div, "click", click_handler_3);
+        mounted = true;
+      }
+    },
+    p(new_ctx, dirty) {
+      ctx = new_ctx;
+      if (dirty[0] & /*deadlinedTasks, gridCells*/
+      65 && t0_value !== (t0_value = /*t*/
+      ctx[34].name + ""))
+        set_data(t0, t0_value);
+      if (dirty[0] & /*deadlinedTasks, gridCells, now*/
+      73) {
+        set_style(div, "background", "hsl(" + (new Date(
+          /*t*/
+          ctx[34].deadline || ""
+        ).getTime() - /*now*/
+        ctx[3] > 0 ? getHueForRemaining(
+          /*diffMs*/
+          ctx[35]
+        ) : 0) + ", 80%, 85%)");
+      }
+      if (dirty[0] & /*deadlinedTasks, gridCells*/
+      65 && div_title_value !== (div_title_value = `${/*t*/
+      ctx[34].name} (Deadline: ${/*t*/
+      ctx[34].deadline})`)) {
+        attr(div, "title", div_title_value);
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div);
+      }
+      mounted = false;
+      dispose();
+    }
+  };
+}
+function create_each_block3(ctx) {
+  let div2;
+  let div0;
+  let span;
+  let t0_value = (
+    /*cell*/
+    ctx[30].dayNum + ""
+  );
+  let t0;
+  let t1;
+  let t2;
+  let div1;
+  let t3;
+  let if_block = (
+    /*cell*/
+    ctx[30].isToday && create_if_block_23(ctx)
+  );
+  let each_value_1 = ensure_array_like(
+    /*cellTasks*/
+    ctx[31]
+  );
+  let each_blocks = [];
+  for (let i = 0; i < each_value_1.length; i += 1) {
+    each_blocks[i] = create_each_block_12(get_each_context_12(ctx, each_value_1, i));
+  }
+  return {
+    c() {
+      div2 = element("div");
+      div0 = element("div");
+      span = element("span");
+      t0 = text(t0_value);
+      t1 = space();
+      if (if_block)
+        if_block.c();
+      t2 = space();
+      div1 = element("div");
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        each_blocks[i].c();
+      }
+      t3 = space();
+      attr(div0, "class", "pos-day-number");
+      set_style(
+        div0,
+        "font-weight",
+        /*cell*/
+        ctx[30].isToday ? "700" : "600"
+      );
+      set_style(div0, "font-size", "0.82em");
+      set_style(
+        div0,
+        "color",
+        /*cell*/
+        ctx[30].isCurrentMonth ? "var(--text-normal)" : "var(--text-muted)"
+      );
+      set_style(div0, "display", "flex");
+      set_style(div0, "justify-content", "space-between");
+      set_style(div0, "align-items", "center");
+      attr(div1, "class", "pos-day-tasks");
+      set_style(div1, "display", "flex");
+      set_style(div1, "flex-direction", "column");
+      set_style(div1, "gap", "3px");
+      set_style(div1, "overflow-y", "auto");
+      set_style(div1, "flex", "1");
+      attr(div2, "class", "pos-calendar-day-cell");
+      set_style(
+        div2,
+        "background",
+        /*cell*/
+        ctx[30].isToday ? "var(--background-modifier-hover)" : "var(--background-primary)"
+      );
+      set_style(div2, "padding", "6px");
+      set_style(div2, "display", "flex");
+      set_style(div2, "flex-direction", "column");
+      set_style(div2, "gap", "4px");
+      set_style(div2, "min-height", "90px");
+      set_style(
+        div2,
+        "border-top",
+        /*cell*/
+        ctx[30].isToday ? "2px solid #A7C957" : "none"
+      );
+    },
+    m(target, anchor) {
+      insert(target, div2, anchor);
+      append(div2, div0);
+      append(div0, span);
+      append(span, t0);
+      append(div0, t1);
+      if (if_block)
+        if_block.m(div0, null);
+      append(div2, t2);
+      append(div2, div1);
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        if (each_blocks[i]) {
+          each_blocks[i].m(div1, null);
+        }
+      }
+      append(div2, t3);
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*gridCells*/
+      64 && t0_value !== (t0_value = /*cell*/
+      ctx2[30].dayNum + ""))
+        set_data(t0, t0_value);
+      if (
+        /*cell*/
+        ctx2[30].isToday
+      ) {
+        if (if_block) {
+        } else {
+          if_block = create_if_block_23(ctx2);
+          if_block.c();
+          if_block.m(div0, null);
+        }
+      } else if (if_block) {
+        if_block.d(1);
+        if_block = null;
+      }
+      if (dirty[0] & /*gridCells*/
+      64) {
+        set_style(
+          div0,
+          "font-weight",
+          /*cell*/
+          ctx2[30].isToday ? "700" : "600"
+        );
+      }
+      if (dirty[0] & /*gridCells*/
+      64) {
+        set_style(
+          div0,
+          "color",
+          /*cell*/
+          ctx2[30].isCurrentMonth ? "var(--text-normal)" : "var(--text-muted)"
+        );
+      }
+      if (dirty[0] & /*deadlinedTasks, gridCells, now, openTaskFile*/
+      4169) {
+        each_value_1 = ensure_array_like(
+          /*cellTasks*/
+          ctx2[31]
+        );
+        let i;
+        for (i = 0; i < each_value_1.length; i += 1) {
+          const child_ctx = get_each_context_12(ctx2, each_value_1, i);
+          if (each_blocks[i]) {
+            each_blocks[i].p(child_ctx, dirty);
+          } else {
+            each_blocks[i] = create_each_block_12(child_ctx);
+            each_blocks[i].c();
+            each_blocks[i].m(div1, null);
+          }
+        }
+        for (; i < each_blocks.length; i += 1) {
+          each_blocks[i].d(1);
+        }
+        each_blocks.length = each_value_1.length;
+      }
+      if (dirty[0] & /*gridCells*/
+      64) {
+        set_style(
           div2,
-          "selected",
-          /*selectedDateStr*/
-          ctx[0] === /*d*/
-          ctx[19]
+          "background",
+          /*cell*/
+          ctx2[30].isToday ? "var(--background-modifier-hover)" : "var(--background-primary)"
+        );
+      }
+      if (dirty[0] & /*gridCells*/
+      64) {
+        set_style(
+          div2,
+          "border-top",
+          /*cell*/
+          ctx2[30].isToday ? "2px solid #A7C957" : "none"
         );
       }
     },
@@ -4593,114 +5569,202 @@ function create_each_block_12(ctx) {
       if (detaching) {
         detach(div2);
       }
-      mounted = false;
-      dispose();
-    }
-  };
-}
-function create_each_block3(key_1, ctx) {
-  let div2;
-  let div0;
-  let t0_value = (
-    /*task*/
-    ctx[15].name + ""
-  );
-  let t0;
-  let t1;
-  let div1;
-  let t2_value = formatCountdown(
-    /*diff*/
-    ctx[16]
-  ) + "";
-  let t2;
-  let t3;
-  return {
-    key: key_1,
-    first: null,
-    c() {
-      div2 = element("div");
-      div0 = element("div");
-      t0 = text(t0_value);
-      t1 = space();
-      div1 = element("div");
-      t2 = text(t2_value);
-      t3 = space();
-      attr(div0, "class", "pos-card-name");
-      attr(div1, "class", "pos-countdown");
-      attr(div2, "class", "pos-card pos-deadline-card");
-      set_style(div2, "border-left-color", deadlineHue(
-        /*diff*/
-        ctx[16]
-      ));
-      this.first = div2;
-    },
-    m(target, anchor) {
-      insert(target, div2, anchor);
-      append(div2, div0);
-      append(div0, t0);
-      append(div2, t1);
-      append(div2, div1);
-      append(div1, t2);
-      append(div2, t3);
-    },
-    p(new_ctx, dirty) {
-      ctx = new_ctx;
-      if (dirty & /*sortedTasks*/
-      16 && t0_value !== (t0_value = /*task*/
-      ctx[15].name + ""))
-        set_data(t0, t0_value);
-      if (dirty & /*sortedTasks, now*/
-      20 && t2_value !== (t2_value = formatCountdown(
-        /*diff*/
-        ctx[16]
-      ) + ""))
-        set_data(t2, t2_value);
-      if (dirty & /*sortedTasks, now*/
-      20) {
-        set_style(div2, "border-left-color", deadlineHue(
-          /*diff*/
-          ctx[16]
-        ));
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(div2);
-      }
+      if (if_block)
+        if_block.d();
+      destroy_each(each_blocks, detaching);
     }
   };
 }
 function create_fragment3(ctx) {
-  let div;
+  let div3;
+  let div1;
+  let div0;
+  let button0;
+  let t1;
+  let button1;
+  let t3;
+  let button2;
+  let t5;
+  let t6;
+  let div2;
+  let mounted;
+  let dispose;
+  let if_block0 = (
+    /*viewMode*/
+    ctx[2] === "calendar" && create_if_block_62(ctx)
+  );
   function select_block_type(ctx2, dirty) {
     if (
       /*deadlinedTasks*/
-      ctx2[1].length === 0
+      ctx2[0].length === 0
     )
       return create_if_block3;
+    if (
+      /*viewMode*/
+      ctx2[2] === "calendar"
+    )
+      return create_if_block_14;
+    if (
+      /*viewMode*/
+      ctx2[2] === "timeline"
+    )
+      return create_if_block_33;
     return create_else_block2;
   }
-  let current_block_type = select_block_type(ctx, -1);
-  let if_block = current_block_type(ctx);
+  let current_block_type = select_block_type(ctx, [-1, -1]);
+  let if_block1 = current_block_type(ctx);
   return {
     c() {
-      div = element("div");
-      if_block.c();
-      attr(div, "class", "pos-deadlines-view");
+      div3 = element("div");
+      div1 = element("div");
+      div0 = element("div");
+      button0 = element("button");
+      button0.textContent = "\u{1F4C5} Calendar";
+      t1 = space();
+      button1 = element("button");
+      button1.textContent = "\u{1F4CA} Timeline";
+      t3 = space();
+      button2 = element("button");
+      button2.textContent = "\u23F3 Countdowns";
+      t5 = space();
+      if (if_block0)
+        if_block0.c();
+      t6 = space();
+      div2 = element("div");
+      if_block1.c();
+      attr(button0, "class", "pos-tab-btn");
+      toggle_class(
+        button0,
+        "active",
+        /*viewMode*/
+        ctx[2] === "calendar"
+      );
+      attr(button1, "class", "pos-tab-btn");
+      toggle_class(
+        button1,
+        "active",
+        /*viewMode*/
+        ctx[2] === "timeline"
+      );
+      attr(button2, "class", "pos-tab-btn");
+      toggle_class(
+        button2,
+        "active",
+        /*viewMode*/
+        ctx[2] === "list"
+      );
+      attr(div0, "class", "pos-deadlines-modes");
+      set_style(div0, "display", "flex");
+      set_style(div0, "gap", "8px");
+      attr(div1, "class", "pos-deadlines-header");
+      set_style(div1, "display", "flex");
+      set_style(div1, "justify-content", "space-between");
+      set_style(div1, "align-items", "center");
+      set_style(div1, "border-bottom", "1px solid var(--background-modifier-border)");
+      set_style(div1, "padding-bottom", "10px");
+      set_style(div1, "margin-bottom", "16px");
+      set_style(div1, "flex-shrink", "0");
+      set_style(div1, "flex-wrap", "wrap");
+      set_style(div1, "gap", "10px");
+      attr(div2, "class", "pos-deadlines-body");
+      set_style(div2, "flex", "1");
+      set_style(div2, "min-height", "0");
+      set_style(div2, "overflow-y", "auto");
+      attr(div3, "class", "pos-deadlines-workspace");
+      set_style(div3, "display", "flex");
+      set_style(div3, "flex-direction", "column");
+      set_style(div3, "height", "100%");
     },
     m(target, anchor) {
-      insert(target, div, anchor);
-      if_block.m(div, null);
+      insert(target, div3, anchor);
+      append(div3, div1);
+      append(div1, div0);
+      append(div0, button0);
+      append(div0, t1);
+      append(div0, button1);
+      append(div0, t3);
+      append(div0, button2);
+      append(div1, t5);
+      if (if_block0)
+        if_block0.m(div1, null);
+      append(div3, t6);
+      append(div3, div2);
+      if_block1.m(div2, null);
+      if (!mounted) {
+        dispose = [
+          listen(
+            button0,
+            "click",
+            /*click_handler*/
+            ctx[22]
+          ),
+          listen(
+            button1,
+            "click",
+            /*click_handler_1*/
+            ctx[23]
+          ),
+          listen(
+            button2,
+            "click",
+            /*click_handler_2*/
+            ctx[24]
+          )
+        ];
+        mounted = true;
+      }
     },
-    p(ctx2, [dirty]) {
-      if (current_block_type === (current_block_type = select_block_type(ctx2, dirty)) && if_block) {
-        if_block.p(ctx2, dirty);
+    p(ctx2, dirty) {
+      if (dirty[0] & /*viewMode*/
+      4) {
+        toggle_class(
+          button0,
+          "active",
+          /*viewMode*/
+          ctx2[2] === "calendar"
+        );
+      }
+      if (dirty[0] & /*viewMode*/
+      4) {
+        toggle_class(
+          button1,
+          "active",
+          /*viewMode*/
+          ctx2[2] === "timeline"
+        );
+      }
+      if (dirty[0] & /*viewMode*/
+      4) {
+        toggle_class(
+          button2,
+          "active",
+          /*viewMode*/
+          ctx2[2] === "list"
+        );
+      }
+      if (
+        /*viewMode*/
+        ctx2[2] === "calendar"
+      ) {
+        if (if_block0) {
+          if_block0.p(ctx2, dirty);
+        } else {
+          if_block0 = create_if_block_62(ctx2);
+          if_block0.c();
+          if_block0.m(div1, null);
+        }
+      } else if (if_block0) {
+        if_block0.d(1);
+        if_block0 = null;
+      }
+      if (current_block_type === (current_block_type = select_block_type(ctx2, dirty)) && if_block1) {
+        if_block1.p(ctx2, dirty);
       } else {
-        if_block.d(1);
-        if_block = current_block_type(ctx2);
-        if (if_block) {
-          if_block.c();
-          if_block.m(div, null);
+        if_block1.d(1);
+        if_block1 = current_block_type(ctx2);
+        if (if_block1) {
+          if_block1.c();
+          if_block1.m(div2, null);
         }
       }
     },
@@ -4708,30 +5772,56 @@ function create_fragment3(ctx) {
     o: noop,
     d(detaching) {
       if (detaching) {
-        detach(div);
+        detach(div3);
       }
-      if_block.d();
+      if (if_block0)
+        if_block0.d();
+      if_block1.d();
+      mounted = false;
+      run_all(dispose);
     }
   };
+}
+function getHueForRemaining(diffMs) {
+  const daysLeft = diffMs / (1e3 * 60 * 60 * 24);
+  if (daysLeft <= 0)
+    return 0;
+  if (daysLeft >= 7)
+    return 120;
+  return 120 * (daysLeft / 7);
+}
+function getDaysInMonth(y, m) {
+  return new Date(y, m + 1, 0).getDate();
+}
+function getFirstDayOfWeek(y, m) {
+  return new Date(y, m, 1).getDay();
+}
+function isSameDay(d1, d2) {
+  return d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth() && d1.getDate() === d2.getDate();
 }
 function instance3($$self, $$props, $$invalidate) {
   let projectTasks;
   let deadlinedTasks;
-  let filteredTasks;
-  let sortedTasks;
-  let uniqueDates;
+  let year;
+  let month;
+  let monthName;
+  let daysInMonth;
+  let firstDayOfWeek;
+  let gridCells;
+  let timelineDates;
+  let countdownTasks;
   let $tasksStore;
-  component_subscribe($$self, tasksStore, ($$value) => $$invalidate(11, $tasksStore = $$value));
+  component_subscribe($$self, tasksStore, ($$value) => $$invalidate(21, $tasksStore = $$value));
   let { app } = $$props;
   let { fileManager } = $$props;
   let { projectId } = $$props;
-  let selectedDateStr = null;
+  let viewMode = "calendar";
   let now2 = Date.now();
   let timer;
   onMount(() => {
     timer = window.setInterval(
       () => {
-        $$invalidate(2, now2 = Date.now());
+        $$invalidate(3, now2 = Date.now());
       },
       1e3
     );
@@ -4739,67 +5829,195 @@ function instance3($$self, $$props, $$invalidate) {
   onDestroy(() => {
     window.clearInterval(timer);
   });
-  function toggleDateFilter(d) {
-    $$invalidate(0, selectedDateStr = selectedDateStr === d ? null : d);
+  let currentDate = /* @__PURE__ */ new Date();
+  function prevMonth() {
+    $$invalidate(16, currentDate = new Date(year, month - 1, 1));
   }
-  const click_handler = (d) => toggleDateFilter(d);
-  const func = (d, t) => (t.deadline || "").startsWith(d);
+  function nextMonth() {
+    $$invalidate(16, currentDate = new Date(year, month + 1, 1));
+  }
+  function goToToday() {
+    $$invalidate(16, currentDate = /* @__PURE__ */ new Date());
+  }
+  function getGanttPosition(createdAtStr, deadlineStr) {
+    const startD = createdAtStr ? new Date(createdAtStr) : /* @__PURE__ */ new Date();
+    const endD = new Date(deadlineStr);
+    const tStart = startD.toISOString().slice(0, 10);
+    const tEnd = endD.toISOString().slice(0, 10);
+    let startIndex = timelineDates.findIndex((td) => td.dateStr === tStart);
+    let endIndex = timelineDates.findIndex((td) => td.dateStr === tEnd);
+    if (startIndex === -1) {
+      if (startD < timelineDates[0].d)
+        startIndex = 0;
+      else
+        startIndex = 13;
+    }
+    if (endIndex === -1) {
+      if (endD > timelineDates[13].d)
+        endIndex = 13;
+      else
+        endIndex = 0;
+    }
+    if (startIndex > endIndex)
+      startIndex = endIndex;
+    return {
+      gridStart: startIndex + 1,
+      gridEnd: endIndex + 2
+    };
+  }
+  function openTaskFile(taskId) {
+    const file = app.vault.getAbstractFileByPath(`tasks/${taskId}.md`);
+    if (file) {
+      app.workspace.getLeaf("tab").openFile(file);
+    }
+  }
+  const click_handler = () => $$invalidate(2, viewMode = "calendar");
+  const click_handler_1 = () => $$invalidate(2, viewMode = "timeline");
+  const click_handler_2 = () => $$invalidate(2, viewMode = "list");
+  const click_handler_3 = (t) => openTaskFile(t.id);
+  const func = (cell, t) => (t.deadline || "").startsWith(cell.dateStr);
+  const click_handler_4 = (task) => openTaskFile(task.id);
+  const click_handler_5 = (task) => openTaskFile(task.id);
   $$self.$$set = ($$props2) => {
     if ("app" in $$props2)
-      $$invalidate(6, app = $$props2.app);
+      $$invalidate(13, app = $$props2.app);
     if ("fileManager" in $$props2)
-      $$invalidate(7, fileManager = $$props2.fileManager);
+      $$invalidate(14, fileManager = $$props2.fileManager);
     if ("projectId" in $$props2)
-      $$invalidate(8, projectId = $$props2.projectId);
+      $$invalidate(15, projectId = $$props2.projectId);
   };
   $$self.$$.update = () => {
-    if ($$self.$$.dirty & /*$tasksStore, projectId*/
-    2304) {
+    if ($$self.$$.dirty[0] & /*$tasksStore, projectId*/
+    2129920) {
       $:
-        $$invalidate(10, projectTasks = getProjectTasks($tasksStore, projectId));
+        $$invalidate(20, projectTasks = getProjectTasks($tasksStore, projectId));
     }
-    if ($$self.$$.dirty & /*projectTasks*/
-    1024) {
+    if ($$self.$$.dirty[0] & /*projectTasks*/
+    1048576) {
       $:
-        $$invalidate(1, deadlinedTasks = projectTasks.filter((t) => t.deadline && !t.isCompleted));
+        $$invalidate(0, deadlinedTasks = projectTasks.filter((t) => t.deadline && !t.isCompleted));
     }
-    if ($$self.$$.dirty & /*selectedDateStr, deadlinedTasks*/
-    3) {
+    if ($$self.$$.dirty[0] & /*currentDate*/
+    65536) {
       $:
-        $$invalidate(9, filteredTasks = selectedDateStr ? deadlinedTasks.filter((t) => (t.deadline || "").startsWith(selectedDateStr || "")) : deadlinedTasks);
+        $$invalidate(1, year = currentDate.getFullYear());
     }
-    if ($$self.$$.dirty & /*filteredTasks*/
-    512) {
+    if ($$self.$$.dirty[0] & /*currentDate*/
+    65536) {
       $:
-        $$invalidate(4, sortedTasks = [...filteredTasks].sort((a, b) => new Date(a.deadline || "").getTime() - new Date(b.deadline || "").getTime()));
+        $$invalidate(17, month = currentDate.getMonth());
     }
-    if ($$self.$$.dirty & /*deadlinedTasks*/
-    2) {
+    if ($$self.$$.dirty[0] & /*currentDate*/
+    65536) {
       $:
-        $$invalidate(3, uniqueDates = Array.from(new Set(deadlinedTasks.map((t) => (t.deadline || "").slice(0, 10)))).sort());
+        $$invalidate(7, monthName = currentDate.toLocaleString("default", { month: "long" }));
+    }
+    if ($$self.$$.dirty[0] & /*year, month*/
+    131074) {
+      $:
+        $$invalidate(18, daysInMonth = getDaysInMonth(year, month));
+    }
+    if ($$self.$$.dirty[0] & /*year, month*/
+    131074) {
+      $:
+        $$invalidate(19, firstDayOfWeek = getFirstDayOfWeek(year, month));
+    }
+    if ($$self.$$.dirty[0] & /*year, month, firstDayOfWeek, daysInMonth*/
+    917506) {
+      $:
+        $$invalidate(6, gridCells = (() => {
+          const cells = [];
+          const prevMonthDays = getDaysInMonth(year, month - 1);
+          const startDay = firstDayOfWeek;
+          for (let i = startDay - 1; i >= 0; i--) {
+            const prevDay = prevMonthDays - i;
+            const d = new Date(year, month - 1, prevDay);
+            cells.push({
+              dateStr: d.toISOString().slice(0, 10),
+              dayNum: prevDay,
+              isCurrentMonth: false,
+              isToday: isSameDay(d, /* @__PURE__ */ new Date())
+            });
+          }
+          for (let i = 1; i <= daysInMonth; i++) {
+            const d = new Date(year, month, i);
+            cells.push({
+              dateStr: d.toISOString().slice(0, 10),
+              dayNum: i,
+              isCurrentMonth: true,
+              isToday: isSameDay(d, /* @__PURE__ */ new Date())
+            });
+          }
+          const remaining = 42 - cells.length;
+          for (let i = 1; i <= remaining; i++) {
+            const d = new Date(year, month + 1, i);
+            cells.push({
+              dateStr: d.toISOString().slice(0, 10),
+              dayNum: i,
+              isCurrentMonth: false,
+              isToday: isSameDay(d, /* @__PURE__ */ new Date())
+            });
+          }
+          return cells;
+        })());
+    }
+    if ($$self.$$.dirty[0] & /*deadlinedTasks*/
+    1) {
+      $:
+        $$invalidate(4, countdownTasks = [...deadlinedTasks].sort((a, b) => new Date(a.deadline || "").getTime() - new Date(b.deadline || "").getTime()));
     }
   };
+  $:
+    $$invalidate(5, timelineDates = (() => {
+      const dates = [];
+      const today = /* @__PURE__ */ new Date();
+      for (let i = -2; i < 12; i++) {
+        const d = new Date(today.getFullYear(), today.getMonth(), today.getDate() + i);
+        dates.push({
+          dateStr: d.toISOString().slice(0, 10),
+          label: `${d.getMonth() + 1}/${d.getDate()}`,
+          isToday: i === 0,
+          d
+        });
+      }
+      return dates;
+    })());
   return [
-    selectedDateStr,
     deadlinedTasks,
+    year,
+    viewMode,
     now2,
-    uniqueDates,
-    sortedTasks,
-    toggleDateFilter,
+    countdownTasks,
+    timelineDates,
+    gridCells,
+    monthName,
+    prevMonth,
+    nextMonth,
+    goToToday,
+    getGanttPosition,
+    openTaskFile,
     app,
     fileManager,
     projectId,
-    filteredTasks,
+    currentDate,
+    month,
+    daysInMonth,
+    firstDayOfWeek,
     projectTasks,
     $tasksStore,
     click_handler,
-    func
+    click_handler_1,
+    click_handler_2,
+    click_handler_3,
+    func,
+    click_handler_4,
+    click_handler_5
   ];
 }
 var DeadlinesView = class extends SvelteComponent {
   constructor(options) {
     super();
-    init(this, options, instance3, create_fragment3, safe_not_equal, { app: 6, fileManager: 7, projectId: 8 });
+    init(this, options, instance3, create_fragment3, safe_not_equal, { app: 13, fileManager: 14, projectId: 15 }, null, [-1, -1]);
   }
 };
 var DeadlinesView_default = DeadlinesView;
@@ -4810,7 +6028,7 @@ function get_each_context4(ctx, list, i) {
   child_ctx[12] = list[i];
   return child_ctx;
 }
-function create_if_block_33(ctx) {
+function create_if_block_34(ctx) {
   let div;
   let label;
   let t1;
@@ -4961,7 +6179,7 @@ function create_each_block4(key_1, ctx) {
     }
   };
 }
-function create_if_block_23(ctx) {
+function create_if_block_24(ctx) {
   let deadlinesview;
   let current;
   deadlinesview = new DeadlinesView_default({
@@ -5019,7 +6237,7 @@ function create_if_block_23(ctx) {
     }
   };
 }
-function create_if_block_14(ctx) {
+function create_if_block_15(ctx) {
   let elasticview;
   let current;
   elasticview = new ElasticView_default({
@@ -5161,9 +6379,9 @@ function create_fragment4(ctx) {
   let dispose;
   let if_block0 = (
     /*mode*/
-    ctx[3] !== "projects" && create_if_block_33(ctx)
+    ctx[3] !== "projects" && create_if_block_34(ctx)
   );
-  const if_block_creators = [create_if_block4, create_if_block_14, create_if_block_23];
+  const if_block_creators = [create_if_block4, create_if_block_15, create_if_block_24];
   const if_blocks = [];
   function select_block_type(ctx2, dirty) {
     if (
@@ -5306,7 +6524,7 @@ function create_fragment4(ctx) {
         if (if_block0) {
           if_block0.p(ctx2, dirty);
         } else {
-          if_block0 = create_if_block_33(ctx2);
+          if_block0 = create_if_block_34(ctx2);
           if_block0.c();
           if_block0.m(div0, null);
         }
@@ -5443,13 +6661,13 @@ function get_each_context_13(ctx, list, i) {
   child_ctx[57] = i;
   return child_ctx;
 }
-function get_each_context_22(ctx, list, i) {
+function get_each_context_23(ctx, list, i) {
   const child_ctx = ctx.slice();
   child_ctx[55] = list[i];
   child_ctx[57] = i;
   return child_ctx;
 }
-function get_each_context_3(ctx, list, i) {
+function get_each_context_32(ctx, list, i) {
   const child_ctx = ctx.slice();
   child_ctx[55] = list[i];
   child_ctx[57] = i;
@@ -5502,7 +6720,7 @@ function create_if_block_122(ctx) {
     }
   };
 }
-function create_each_block_3(key_1, ctx) {
+function create_each_block_32(key_1, ctx) {
   let first;
   let t0;
   let div5;
@@ -5807,7 +7025,7 @@ function create_if_block_92(ctx) {
     }
   };
 }
-function create_each_block_22(key_1, ctx) {
+function create_each_block_23(key_1, ctx) {
   let first;
   let t0;
   let div5;
@@ -6082,7 +7300,7 @@ function create_if_block_72(ctx) {
     }
   };
 }
-function create_if_block_62(ctx) {
+function create_if_block_63(ctx) {
   let div;
   let t_value = (
     /*task*/
@@ -6112,7 +7330,7 @@ function create_if_block_62(ctx) {
     }
   };
 }
-function create_if_block_52(ctx) {
+function create_if_block_53(ctx) {
   let span;
   let t0;
   let t1_value = (
@@ -6147,7 +7365,7 @@ function create_if_block_52(ctx) {
     }
   };
 }
-function create_if_block_42(ctx) {
+function create_if_block_43(ctx) {
   let input;
   let input_value_value;
   let mounted;
@@ -6267,12 +7485,12 @@ function create_each_block_13(key_1, ctx) {
   }
   let if_block1 = (
     /*task*/
-    ctx[55].description && create_if_block_62(ctx)
+    ctx[55].description && create_if_block_63(ctx)
   );
   let if_block2 = (
     /*task*/
     ctx[55].isFixedDuration && /*task*/
-    ctx[55].fixedDuration && create_if_block_52(ctx)
+    ctx[55].fixedDuration && create_if_block_53(ctx)
   );
   function click_handler_11() {
     return (
@@ -6304,7 +7522,7 @@ function create_each_block_13(key_1, ctx) {
   }
   let if_block3 = (
     /*task*/
-    ctx[55].isFixedDuration && create_if_block_42(ctx)
+    ctx[55].isFixedDuration && create_if_block_43(ctx)
   );
   function click_handler_13() {
     return (
@@ -6494,7 +7712,7 @@ function create_each_block_13(key_1, ctx) {
         if (if_block1) {
           if_block1.p(ctx, dirty);
         } else {
-          if_block1 = create_if_block_62(ctx);
+          if_block1 = create_if_block_63(ctx);
           if_block1.c();
           if_block1.m(div2, t3);
         }
@@ -6514,7 +7732,7 @@ function create_each_block_13(key_1, ctx) {
         if (if_block2) {
           if_block2.p(ctx, dirty);
         } else {
-          if_block2 = create_if_block_52(ctx);
+          if_block2 = create_if_block_53(ctx);
           if_block2.c();
           if_block2.m(div1, null);
         }
@@ -6538,7 +7756,7 @@ function create_each_block_13(key_1, ctx) {
         if (if_block3) {
           if_block3.p(ctx, dirty);
         } else {
-          if_block3 = create_if_block_42(ctx);
+          if_block3 = create_if_block_43(ctx);
           if_block3.c();
           if_block3.m(div4, t17);
         }
@@ -6576,7 +7794,7 @@ function create_each_block_13(key_1, ctx) {
     }
   };
 }
-function create_if_block_34(ctx) {
+function create_if_block_35(ctx) {
   let div;
   return {
     c() {
@@ -6593,7 +7811,7 @@ function create_if_block_34(ctx) {
     }
   };
 }
-function create_if_block_24(ctx) {
+function create_if_block_25(ctx) {
   let div;
   return {
     c() {
@@ -6610,7 +7828,7 @@ function create_if_block_24(ctx) {
     }
   };
 }
-function create_if_block_15(ctx) {
+function create_if_block_16(ctx) {
   let div;
   let t_value = (
     /*task*/
@@ -6673,7 +7891,7 @@ function create_each_block5(key_1, ctx) {
     /*dragOverStatus*/
     ctx[2] === "review" && /*dragOverIndex*/
     ctx[3] === /*i*/
-    ctx[57] && create_if_block_24(ctx)
+    ctx[57] && create_if_block_25(ctx)
   );
   function click_handler_15() {
     return (
@@ -6686,7 +7904,7 @@ function create_each_block5(key_1, ctx) {
   }
   let if_block1 = (
     /*task*/
-    ctx[55].description && create_if_block_15(ctx)
+    ctx[55].description && create_if_block_16(ctx)
   );
   function click_handler_16() {
     return (
@@ -6804,7 +8022,7 @@ function create_each_block5(key_1, ctx) {
       ) {
         if (if_block0) {
         } else {
-          if_block0 = create_if_block_24(ctx);
+          if_block0 = create_if_block_25(ctx);
           if_block0.c();
           if_block0.m(t0.parentNode, t0);
         }
@@ -6823,7 +8041,7 @@ function create_each_block5(key_1, ctx) {
         if (if_block1) {
           if_block1.p(ctx, dirty);
         } else {
-          if_block1 = create_if_block_15(ctx);
+          if_block1 = create_if_block_16(ctx);
           if_block1.c();
           if_block1.m(div2, t3);
         }
@@ -6958,9 +8176,9 @@ function create_fragment5(ctx) {
     ctx2[55].id
   );
   for (let i = 0; i < each_value_3.length; i += 1) {
-    let child_ctx = get_each_context_3(ctx, each_value_3, i);
+    let child_ctx = get_each_context_32(ctx, each_value_3, i);
     let key = get_key(child_ctx);
-    each0_lookup.set(key, each_blocks_3[i] = create_each_block_3(key, child_ctx));
+    each0_lookup.set(key, each_blocks_3[i] = create_each_block_32(key, child_ctx));
   }
   let if_block0 = (
     /*dragOverStatus*/
@@ -6977,9 +8195,9 @@ function create_fragment5(ctx) {
     ctx2[55].id
   );
   for (let i = 0; i < each_value_2.length; i += 1) {
-    let child_ctx = get_each_context_22(ctx, each_value_2, i);
+    let child_ctx = get_each_context_23(ctx, each_value_2, i);
     let key = get_key_1(child_ctx);
-    each1_lookup.set(key, each_blocks_2[i] = create_each_block_22(key, child_ctx));
+    each1_lookup.set(key, each_blocks_2[i] = create_each_block_23(key, child_ctx));
   }
   let if_block1 = (
     /*dragOverStatus*/
@@ -7004,7 +8222,7 @@ function create_fragment5(ctx) {
     /*dragOverStatus*/
     ctx[2] === "running" && /*dragOverIndex*/
     ctx[3] >= /*running*/
-    ctx[5].length && create_if_block_34(ctx)
+    ctx[5].length && create_if_block_35(ctx)
   );
   let each_value = ensure_array_like(
     /*review*/
@@ -7263,7 +8481,7 @@ function create_fragment5(ctx) {
           /*planned*/
           ctx2[7]
         );
-        each_blocks_3 = update_keyed_each(each_blocks_3, dirty, get_key, 1, ctx2, each_value_3, each0_lookup, div0, destroy_block, create_each_block_3, t4, get_each_context_3);
+        each_blocks_3 = update_keyed_each(each_blocks_3, dirty, get_key, 1, ctx2, each_value_3, each0_lookup, div0, destroy_block, create_each_block_32, t4, get_each_context_32);
       }
       if (
         /*dragOverStatus*/
@@ -7291,7 +8509,7 @@ function create_fragment5(ctx) {
           /*backlog*/
           ctx2[6]
         );
-        each_blocks_2 = update_keyed_each(each_blocks_2, dirty, get_key_1, 1, ctx2, each_value_2, each1_lookup, div3, destroy_block, create_each_block_22, t12, get_each_context_22);
+        each_blocks_2 = update_keyed_each(each_blocks_2, dirty, get_key_1, 1, ctx2, each_value_2, each1_lookup, div3, destroy_block, create_each_block_23, t12, get_each_context_23);
       }
       if (
         /*dragOverStatus*/
@@ -7329,7 +8547,7 @@ function create_fragment5(ctx) {
       ) {
         if (if_block2) {
         } else {
-          if_block2 = create_if_block_34(ctx2);
+          if_block2 = create_if_block_35(ctx2);
           if_block2.c();
           if_block2.m(div6, null);
         }
@@ -7683,7 +8901,7 @@ function get_each_context6(ctx, list, i) {
   child_ctx[31] = list[i];
   return child_ctx;
 }
-function create_if_block_25(ctx) {
+function create_if_block_26(ctx) {
   let div1;
   let span;
   let t0_value = (
@@ -7859,7 +9077,7 @@ function create_if_block6(ctx) {
     }
   };
 }
-function create_if_block_16(ctx) {
+function create_if_block_17(ctx) {
   let span;
   let t_value = (
     /*task*/
@@ -7956,7 +9174,7 @@ function create_each_block6(key_1, ctx) {
   }
   let if_block = (
     /*task*/
-    ctx[31].description && create_if_block_16(ctx)
+    ctx[31].description && create_if_block_17(ctx)
   );
   function click_handler_5() {
     return (
@@ -8105,7 +9323,7 @@ function create_each_block6(key_1, ctx) {
         if (if_block) {
           if_block.p(ctx, dirty);
         } else {
-          if_block = create_if_block_16(ctx);
+          if_block = create_if_block_17(ctx);
           if_block.c();
           if_block.m(div0, null);
         }
@@ -8235,7 +9453,7 @@ function create_fragment6(ctx) {
   let dispose;
   let if_block0 = (
     /*selectedTaskIds*/
-    ctx[5].size > 0 && create_if_block_25(ctx)
+    ctx[5].size > 0 && create_if_block_26(ctx)
   );
   function select_block_type(ctx2, dirty) {
     if (
@@ -8453,7 +9671,7 @@ function create_fragment6(ctx) {
         if (if_block0) {
           if_block0.p(ctx2, dirty);
         } else {
-          if_block0 = create_if_block_25(ctx2);
+          if_block0 = create_if_block_26(ctx2);
           if_block0.c();
           if_block0.m(div2, t6);
         }
@@ -8780,7 +9998,7 @@ function create_else_block4(ctx) {
   let current;
   let mounted;
   let dispose;
-  const if_block_creators = [create_if_block_17, create_else_block_1];
+  const if_block_creators = [create_if_block_18, create_else_block_1];
   const if_blocks = [];
   function select_block_type_1(ctx2, dirty) {
     if (
@@ -9063,7 +10281,7 @@ function create_else_block_1(ctx) {
   let if_block;
   let if_block_anchor;
   let current;
-  const if_block_creators = [create_if_block_26, create_else_block_2];
+  const if_block_creators = [create_if_block_27, create_else_block_2];
   const if_blocks = [];
   function select_block_type_2(ctx2, dirty) {
     if (
@@ -9125,7 +10343,7 @@ function create_else_block_1(ctx) {
     }
   };
 }
-function create_if_block_17(ctx) {
+function create_if_block_18(ctx) {
   let div4;
   let div0;
   let span;
@@ -9293,7 +10511,7 @@ function create_else_block_2(ctx) {
     }
   };
 }
-function create_if_block_26(ctx) {
+function create_if_block_27(ctx) {
   let projecttaskboard;
   let current;
   projecttaskboard = new ProjectTaskBoard_default({
