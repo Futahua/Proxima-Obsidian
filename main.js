@@ -1,67 +1,1141 @@
-// ═══════════════════════════════════════════════════════════════════
-// PROJECT OS — Obsidian Plugin v1.0.0
-// Mini project management dashboard: Aging · Elastic · Deadlines
-// ═══════════════════════════════════════════════════════════════════
+"use strict";
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+var __publicField = (obj, key, value) => {
+  __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
+  return value;
+};
 
-const { Plugin, ItemView, TFile, Modal, Notice } = require('obsidian');
+// src/main.ts
+var main_exports = {};
+__export(main_exports, {
+  default: () => ProjectOSPlugin
+});
+module.exports = __toCommonJS(main_exports);
+var import_obsidian4 = require("obsidian");
 
-const VIEW_TYPE = 'project-os-view';
-const PROJECTS_FOLDER = 'projects';
-const TASKS_FOLDER = 'tasks';
+// src/data/FileManager.ts
+var import_obsidian = require("obsidian");
 
-// ═══════════════════════════════════════════════════════════════════
-// SECTION 1 — Pure Utility Functions (kept from Elastic Scheduler)
-// ═══════════════════════════════════════════════════════════════════
+// node_modules/svelte/src/runtime/internal/utils.js
+function noop() {
+}
+function run(fn) {
+  return fn();
+}
+function blank_object() {
+  return /* @__PURE__ */ Object.create(null);
+}
+function run_all(fns) {
+  fns.forEach(run);
+}
+function is_function(thing) {
+  return typeof thing === "function";
+}
+function safe_not_equal(a, b) {
+  return a != a ? b == b : a !== b || a && typeof a === "object" || typeof a === "function";
+}
+function is_empty(obj) {
+  return Object.keys(obj).length === 0;
+}
+function subscribe(store, ...callbacks) {
+  if (store == null) {
+    for (const callback of callbacks) {
+      callback(void 0);
+    }
+    return noop;
+  }
+  const unsub = store.subscribe(...callbacks);
+  return unsub.unsubscribe ? () => unsub.unsubscribe() : unsub;
+}
+function component_subscribe(component, store, callback) {
+  component.$$.on_destroy.push(subscribe(store, callback));
+}
 
-/** Parse YAML frontmatter from markdown content into a plain object. */
+// node_modules/svelte/src/runtime/internal/globals.js
+var globals = typeof window !== "undefined" ? window : typeof globalThis !== "undefined" ? globalThis : (
+  // @ts-ignore Node typings have this
+  global
+);
+
+// node_modules/svelte/src/runtime/internal/ResizeObserverSingleton.js
+var ResizeObserverSingleton = class {
+  /** @param {ResizeObserverOptions} options */
+  constructor(options) {
+    /**
+     * @private
+     * @readonly
+     * @type {WeakMap<Element, import('./private.js').Listener>}
+     */
+    __publicField(this, "_listeners", "WeakMap" in globals ? /* @__PURE__ */ new WeakMap() : void 0);
+    /**
+     * @private
+     * @type {ResizeObserver}
+     */
+    __publicField(this, "_observer");
+    /** @type {ResizeObserverOptions} */
+    __publicField(this, "options");
+    this.options = options;
+  }
+  /**
+   * @param {Element} element
+   * @param {import('./private.js').Listener} listener
+   * @returns {() => void}
+   */
+  observe(element2, listener) {
+    this._listeners.set(element2, listener);
+    this._getObserver().observe(element2, this.options);
+    return () => {
+      this._listeners.delete(element2);
+      this._observer.unobserve(element2);
+    };
+  }
+  /**
+   * @private
+   */
+  _getObserver() {
+    var _a;
+    return (_a = this._observer) != null ? _a : this._observer = new ResizeObserver((entries) => {
+      var _a2;
+      for (const entry of entries) {
+        ResizeObserverSingleton.entries.set(entry.target, entry);
+        (_a2 = this._listeners.get(entry.target)) == null ? void 0 : _a2(entry);
+      }
+    });
+  }
+};
+ResizeObserverSingleton.entries = "WeakMap" in globals ? /* @__PURE__ */ new WeakMap() : void 0;
+
+// node_modules/svelte/src/runtime/internal/dom.js
+var is_hydrating = false;
+function start_hydrating() {
+  is_hydrating = true;
+}
+function end_hydrating() {
+  is_hydrating = false;
+}
+function append(target, node) {
+  target.appendChild(node);
+}
+function insert(target, node, anchor) {
+  target.insertBefore(node, anchor || null);
+}
+function detach(node) {
+  if (node.parentNode) {
+    node.parentNode.removeChild(node);
+  }
+}
+function destroy_each(iterations, detaching) {
+  for (let i = 0; i < iterations.length; i += 1) {
+    if (iterations[i])
+      iterations[i].d(detaching);
+  }
+}
+function element(name) {
+  return document.createElement(name);
+}
+function text(data) {
+  return document.createTextNode(data);
+}
+function space() {
+  return text(" ");
+}
+function empty() {
+  return text("");
+}
+function listen(node, event, handler, options) {
+  node.addEventListener(event, handler, options);
+  return () => node.removeEventListener(event, handler, options);
+}
+function stop_propagation(fn) {
+  return function(event) {
+    event.stopPropagation();
+    return fn.call(this, event);
+  };
+}
+function attr(node, attribute, value) {
+  if (value == null)
+    node.removeAttribute(attribute);
+  else if (node.getAttribute(attribute) !== value)
+    node.setAttribute(attribute, value);
+}
+function children(element2) {
+  return Array.from(element2.childNodes);
+}
+function set_data(text2, data) {
+  data = "" + data;
+  if (text2.data === data)
+    return;
+  text2.data = /** @type {string} */
+  data;
+}
+function set_input_value(input, value) {
+  input.value = value == null ? "" : value;
+}
+function set_style(node, key, value, important) {
+  if (value == null) {
+    node.style.removeProperty(key);
+  } else {
+    node.style.setProperty(key, value, important ? "important" : "");
+  }
+}
+function select_option(select, value, mounting) {
+  for (let i = 0; i < select.options.length; i += 1) {
+    const option = select.options[i];
+    if (option.__value === value) {
+      option.selected = true;
+      return;
+    }
+  }
+  if (!mounting || value !== void 0) {
+    select.selectedIndex = -1;
+  }
+}
+function select_value(select) {
+  const selected_option = select.querySelector(":checked");
+  return selected_option && selected_option.__value;
+}
+var crossorigin;
+function is_crossorigin() {
+  if (crossorigin === void 0) {
+    crossorigin = false;
+    try {
+      if (typeof window !== "undefined" && window.parent) {
+        void window.parent.document;
+      }
+    } catch (error) {
+      crossorigin = true;
+    }
+  }
+  return crossorigin;
+}
+function add_iframe_resize_listener(node, fn) {
+  const computed_style = getComputedStyle(node);
+  if (computed_style.position === "static") {
+    node.style.position = "relative";
+  }
+  const iframe = element("iframe");
+  iframe.setAttribute(
+    "style",
+    "display: block; position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; border: 0; opacity: 0; pointer-events: none; z-index: -1;"
+  );
+  iframe.setAttribute("aria-hidden", "true");
+  iframe.tabIndex = -1;
+  const crossorigin2 = is_crossorigin();
+  let unsubscribe;
+  if (crossorigin2) {
+    iframe.src = "data:text/html,<script>onresize=function(){parent.postMessage(0,'*')}<\/script>";
+    unsubscribe = listen(
+      window,
+      "message",
+      /** @param {MessageEvent} event */
+      (event) => {
+        if (event.source === iframe.contentWindow)
+          fn();
+      }
+    );
+  } else {
+    iframe.src = "about:blank";
+    iframe.onload = () => {
+      unsubscribe = listen(iframe.contentWindow, "resize", fn);
+      fn();
+    };
+  }
+  append(node, iframe);
+  return () => {
+    if (crossorigin2) {
+      unsubscribe();
+    } else if (unsubscribe && iframe.contentWindow) {
+      unsubscribe();
+    }
+    detach(iframe);
+  };
+}
+function toggle_class(element2, name, toggle) {
+  element2.classList.toggle(name, !!toggle);
+}
+function get_custom_elements_slots(element2) {
+  const result = {};
+  element2.childNodes.forEach(
+    /** @param {Element} node */
+    (node) => {
+      result[node.slot || "default"] = true;
+    }
+  );
+  return result;
+}
+
+// node_modules/svelte/src/runtime/internal/lifecycle.js
+var current_component;
+function set_current_component(component) {
+  current_component = component;
+}
+function get_current_component() {
+  if (!current_component)
+    throw new Error("Function called outside component initialization");
+  return current_component;
+}
+function onMount(fn) {
+  get_current_component().$$.on_mount.push(fn);
+}
+function onDestroy(fn) {
+  get_current_component().$$.on_destroy.push(fn);
+}
+function bubble(component, event) {
+  const callbacks = component.$$.callbacks[event.type];
+  if (callbacks) {
+    callbacks.slice().forEach((fn) => fn.call(this, event));
+  }
+}
+
+// node_modules/svelte/src/runtime/internal/scheduler.js
+var dirty_components = [];
+var binding_callbacks = [];
+var render_callbacks = [];
+var flush_callbacks = [];
+var resolved_promise = /* @__PURE__ */ Promise.resolve();
+var update_scheduled = false;
+function schedule_update() {
+  if (!update_scheduled) {
+    update_scheduled = true;
+    resolved_promise.then(flush);
+  }
+}
+function add_render_callback(fn) {
+  render_callbacks.push(fn);
+}
+var seen_callbacks = /* @__PURE__ */ new Set();
+var flushidx = 0;
+function flush() {
+  if (flushidx !== 0) {
+    return;
+  }
+  const saved_component = current_component;
+  do {
+    try {
+      while (flushidx < dirty_components.length) {
+        const component = dirty_components[flushidx];
+        flushidx++;
+        set_current_component(component);
+        update(component.$$);
+      }
+    } catch (e) {
+      dirty_components.length = 0;
+      flushidx = 0;
+      throw e;
+    }
+    set_current_component(null);
+    dirty_components.length = 0;
+    flushidx = 0;
+    while (binding_callbacks.length)
+      binding_callbacks.pop()();
+    for (let i = 0; i < render_callbacks.length; i += 1) {
+      const callback = render_callbacks[i];
+      if (!seen_callbacks.has(callback)) {
+        seen_callbacks.add(callback);
+        callback();
+      }
+    }
+    render_callbacks.length = 0;
+  } while (dirty_components.length);
+  while (flush_callbacks.length) {
+    flush_callbacks.pop()();
+  }
+  update_scheduled = false;
+  seen_callbacks.clear();
+  set_current_component(saved_component);
+}
+function update($$) {
+  if ($$.fragment !== null) {
+    $$.update();
+    run_all($$.before_update);
+    const dirty = $$.dirty;
+    $$.dirty = [-1];
+    $$.fragment && $$.fragment.p($$.ctx, dirty);
+    $$.after_update.forEach(add_render_callback);
+  }
+}
+function flush_render_callbacks(fns) {
+  const filtered = [];
+  const targets = [];
+  render_callbacks.forEach((c) => fns.indexOf(c) === -1 ? filtered.push(c) : targets.push(c));
+  targets.forEach((c) => c());
+  render_callbacks = filtered;
+}
+
+// node_modules/svelte/src/runtime/internal/transitions.js
+var outroing = /* @__PURE__ */ new Set();
+var outros;
+function group_outros() {
+  outros = {
+    r: 0,
+    c: [],
+    p: outros
+    // parent group
+  };
+}
+function check_outros() {
+  if (!outros.r) {
+    run_all(outros.c);
+  }
+  outros = outros.p;
+}
+function transition_in(block, local) {
+  if (block && block.i) {
+    outroing.delete(block);
+    block.i(local);
+  }
+}
+function transition_out(block, local, detach2, callback) {
+  if (block && block.o) {
+    if (outroing.has(block))
+      return;
+    outroing.add(block);
+    outros.c.push(() => {
+      outroing.delete(block);
+      if (callback) {
+        if (detach2)
+          block.d(1);
+        callback();
+      }
+    });
+    block.o(local);
+  } else if (callback) {
+    callback();
+  }
+}
+
+// node_modules/svelte/src/runtime/internal/each.js
+function ensure_array_like(array_like_or_iterator) {
+  return (array_like_or_iterator == null ? void 0 : array_like_or_iterator.length) !== void 0 ? array_like_or_iterator : Array.from(array_like_or_iterator);
+}
+function destroy_block(block, lookup) {
+  block.d(1);
+  lookup.delete(block.key);
+}
+function update_keyed_each(old_blocks, dirty, get_key, dynamic, ctx, list, lookup, node, destroy, create_each_block5, next, get_context) {
+  let o = old_blocks.length;
+  let n = list.length;
+  let i = o;
+  const old_indexes = {};
+  while (i--)
+    old_indexes[old_blocks[i].key] = i;
+  const new_blocks = [];
+  const new_lookup = /* @__PURE__ */ new Map();
+  const deltas = /* @__PURE__ */ new Map();
+  const updates = [];
+  i = n;
+  while (i--) {
+    const child_ctx = get_context(ctx, list, i);
+    const key = get_key(child_ctx);
+    let block = lookup.get(key);
+    if (!block) {
+      block = create_each_block5(key, child_ctx);
+      block.c();
+    } else if (dynamic) {
+      updates.push(() => block.p(child_ctx, dirty));
+    }
+    new_lookup.set(key, new_blocks[i] = block);
+    if (key in old_indexes)
+      deltas.set(key, Math.abs(i - old_indexes[key]));
+  }
+  const will_move = /* @__PURE__ */ new Set();
+  const did_move = /* @__PURE__ */ new Set();
+  function insert2(block) {
+    transition_in(block, 1);
+    block.m(node, next);
+    lookup.set(block.key, block);
+    next = block.first;
+    n--;
+  }
+  while (o && n) {
+    const new_block = new_blocks[n - 1];
+    const old_block = old_blocks[o - 1];
+    const new_key = new_block.key;
+    const old_key = old_block.key;
+    if (new_block === old_block) {
+      next = new_block.first;
+      o--;
+      n--;
+    } else if (!new_lookup.has(old_key)) {
+      destroy(old_block, lookup);
+      o--;
+    } else if (!lookup.has(new_key) || will_move.has(new_key)) {
+      insert2(new_block);
+    } else if (did_move.has(old_key)) {
+      o--;
+    } else if (deltas.get(new_key) > deltas.get(old_key)) {
+      did_move.add(new_key);
+      insert2(new_block);
+    } else {
+      will_move.add(old_key);
+      o--;
+    }
+  }
+  while (o--) {
+    const old_block = old_blocks[o];
+    if (!new_lookup.has(old_block.key))
+      destroy(old_block, lookup);
+  }
+  while (n)
+    insert2(new_blocks[n - 1]);
+  run_all(updates);
+  return new_blocks;
+}
+
+// node_modules/svelte/src/shared/boolean_attributes.js
+var _boolean_attributes = (
+  /** @type {const} */
+  [
+    "allowfullscreen",
+    "allowpaymentrequest",
+    "async",
+    "autofocus",
+    "autoplay",
+    "checked",
+    "controls",
+    "default",
+    "defer",
+    "disabled",
+    "formnovalidate",
+    "hidden",
+    "inert",
+    "ismap",
+    "loop",
+    "multiple",
+    "muted",
+    "nomodule",
+    "novalidate",
+    "open",
+    "playsinline",
+    "readonly",
+    "required",
+    "reversed",
+    "selected"
+  ]
+);
+var boolean_attributes = /* @__PURE__ */ new Set([..._boolean_attributes]);
+
+// node_modules/svelte/src/runtime/internal/Component.js
+function create_component(block) {
+  block && block.c();
+}
+function mount_component(component, target, anchor) {
+  const { fragment, after_update } = component.$$;
+  fragment && fragment.m(target, anchor);
+  add_render_callback(() => {
+    const new_on_destroy = component.$$.on_mount.map(run).filter(is_function);
+    if (component.$$.on_destroy) {
+      component.$$.on_destroy.push(...new_on_destroy);
+    } else {
+      run_all(new_on_destroy);
+    }
+    component.$$.on_mount = [];
+  });
+  after_update.forEach(add_render_callback);
+}
+function destroy_component(component, detaching) {
+  const $$ = component.$$;
+  if ($$.fragment !== null) {
+    flush_render_callbacks($$.after_update);
+    run_all($$.on_destroy);
+    $$.fragment && $$.fragment.d(detaching);
+    $$.on_destroy = $$.fragment = null;
+    $$.ctx = [];
+  }
+}
+function make_dirty(component, i) {
+  if (component.$$.dirty[0] === -1) {
+    dirty_components.push(component);
+    schedule_update();
+    component.$$.dirty.fill(0);
+  }
+  component.$$.dirty[i / 31 | 0] |= 1 << i % 31;
+}
+function init(component, options, instance5, create_fragment5, not_equal, props, append_styles = null, dirty = [-1]) {
+  const parent_component = current_component;
+  set_current_component(component);
+  const $$ = component.$$ = {
+    fragment: null,
+    ctx: [],
+    // state
+    props,
+    update: noop,
+    not_equal,
+    bound: blank_object(),
+    // lifecycle
+    on_mount: [],
+    on_destroy: [],
+    on_disconnect: [],
+    before_update: [],
+    after_update: [],
+    context: new Map(options.context || (parent_component ? parent_component.$$.context : [])),
+    // everything else
+    callbacks: blank_object(),
+    dirty,
+    skip_bound: false,
+    root: options.target || parent_component.$$.root
+  };
+  append_styles && append_styles($$.root);
+  let ready = false;
+  $$.ctx = instance5 ? instance5(component, options.props || {}, (i, ret, ...rest) => {
+    const value = rest.length ? rest[0] : ret;
+    if ($$.ctx && not_equal($$.ctx[i], $$.ctx[i] = value)) {
+      if (!$$.skip_bound && $$.bound[i])
+        $$.bound[i](value);
+      if (ready)
+        make_dirty(component, i);
+    }
+    return ret;
+  }) : [];
+  $$.update();
+  ready = true;
+  run_all($$.before_update);
+  $$.fragment = create_fragment5 ? create_fragment5($$.ctx) : false;
+  if (options.target) {
+    if (options.hydrate) {
+      start_hydrating();
+      const nodes = children(options.target);
+      $$.fragment && $$.fragment.l(nodes);
+      nodes.forEach(detach);
+    } else {
+      $$.fragment && $$.fragment.c();
+    }
+    if (options.intro)
+      transition_in(component.$$.fragment);
+    mount_component(component, options.target, options.anchor);
+    end_hydrating();
+    flush();
+  }
+  set_current_component(parent_component);
+}
+var SvelteElement;
+if (typeof HTMLElement === "function") {
+  SvelteElement = class extends HTMLElement {
+    constructor($$componentCtor, $$slots, use_shadow_dom) {
+      super();
+      /** The Svelte component constructor */
+      __publicField(this, "$$ctor");
+      /** Slots */
+      __publicField(this, "$$s");
+      /** The Svelte component instance */
+      __publicField(this, "$$c");
+      /** Whether or not the custom element is connected */
+      __publicField(this, "$$cn", false);
+      /** Component props data */
+      __publicField(this, "$$d", {});
+      /** `true` if currently in the process of reflecting component props back to attributes */
+      __publicField(this, "$$r", false);
+      /** @type {Record<string, CustomElementPropDefinition>} Props definition (name, reflected, type etc) */
+      __publicField(this, "$$p_d", {});
+      /** @type {Record<string, Function[]>} Event listeners */
+      __publicField(this, "$$l", {});
+      /** @type {Map<Function, Function>} Event listener unsubscribe functions */
+      __publicField(this, "$$l_u", /* @__PURE__ */ new Map());
+      this.$$ctor = $$componentCtor;
+      this.$$s = $$slots;
+      if (use_shadow_dom) {
+        this.attachShadow({ mode: "open" });
+      }
+    }
+    addEventListener(type, listener, options) {
+      this.$$l[type] = this.$$l[type] || [];
+      this.$$l[type].push(listener);
+      if (this.$$c) {
+        const unsub = this.$$c.$on(type, listener);
+        this.$$l_u.set(listener, unsub);
+      }
+      super.addEventListener(type, listener, options);
+    }
+    removeEventListener(type, listener, options) {
+      super.removeEventListener(type, listener, options);
+      if (this.$$c) {
+        const unsub = this.$$l_u.get(listener);
+        if (unsub) {
+          unsub();
+          this.$$l_u.delete(listener);
+        }
+      }
+      if (this.$$l[type]) {
+        const idx = this.$$l[type].indexOf(listener);
+        if (idx >= 0) {
+          this.$$l[type].splice(idx, 1);
+        }
+      }
+    }
+    async connectedCallback() {
+      this.$$cn = true;
+      if (!this.$$c) {
+        let create_slot = function(name) {
+          return () => {
+            let node;
+            const obj = {
+              c: function create() {
+                node = element("slot");
+                if (name !== "default") {
+                  attr(node, "name", name);
+                }
+              },
+              /**
+               * @param {HTMLElement} target
+               * @param {HTMLElement} [anchor]
+               */
+              m: function mount(target, anchor) {
+                insert(target, node, anchor);
+              },
+              d: function destroy(detaching) {
+                if (detaching) {
+                  detach(node);
+                }
+              }
+            };
+            return obj;
+          };
+        };
+        await Promise.resolve();
+        if (!this.$$cn || this.$$c) {
+          return;
+        }
+        const $$slots = {};
+        const existing_slots = get_custom_elements_slots(this);
+        for (const name of this.$$s) {
+          if (name in existing_slots) {
+            $$slots[name] = [create_slot(name)];
+          }
+        }
+        for (const attribute of this.attributes) {
+          const name = this.$$g_p(attribute.name);
+          if (!(name in this.$$d)) {
+            this.$$d[name] = get_custom_element_value(name, attribute.value, this.$$p_d, "toProp");
+          }
+        }
+        for (const key in this.$$p_d) {
+          if (!(key in this.$$d) && this[key] !== void 0) {
+            this.$$d[key] = this[key];
+            delete this[key];
+          }
+        }
+        this.$$c = new this.$$ctor({
+          target: this.shadowRoot || this,
+          props: {
+            ...this.$$d,
+            $$slots,
+            $$scope: {
+              ctx: []
+            }
+          }
+        });
+        const reflect_attributes = () => {
+          this.$$r = true;
+          for (const key in this.$$p_d) {
+            this.$$d[key] = this.$$c.$$.ctx[this.$$c.$$.props[key]];
+            if (this.$$p_d[key].reflect) {
+              const attribute_value = get_custom_element_value(
+                key,
+                this.$$d[key],
+                this.$$p_d,
+                "toAttribute"
+              );
+              if (attribute_value == null) {
+                this.removeAttribute(this.$$p_d[key].attribute || key);
+              } else {
+                this.setAttribute(this.$$p_d[key].attribute || key, attribute_value);
+              }
+            }
+          }
+          this.$$r = false;
+        };
+        this.$$c.$$.after_update.push(reflect_attributes);
+        reflect_attributes();
+        for (const type in this.$$l) {
+          for (const listener of this.$$l[type]) {
+            const unsub = this.$$c.$on(type, listener);
+            this.$$l_u.set(listener, unsub);
+          }
+        }
+        this.$$l = {};
+      }
+    }
+    // We don't need this when working within Svelte code, but for compatibility of people using this outside of Svelte
+    // and setting attributes through setAttribute etc, this is helpful
+    attributeChangedCallback(attr2, _oldValue, newValue) {
+      var _a;
+      if (this.$$r)
+        return;
+      attr2 = this.$$g_p(attr2);
+      this.$$d[attr2] = get_custom_element_value(attr2, newValue, this.$$p_d, "toProp");
+      (_a = this.$$c) == null ? void 0 : _a.$set({ [attr2]: this.$$d[attr2] });
+    }
+    disconnectedCallback() {
+      this.$$cn = false;
+      Promise.resolve().then(() => {
+        if (!this.$$cn && this.$$c) {
+          this.$$c.$destroy();
+          this.$$c = void 0;
+        }
+      });
+    }
+    $$g_p(attribute_name) {
+      return Object.keys(this.$$p_d).find(
+        (key) => this.$$p_d[key].attribute === attribute_name || !this.$$p_d[key].attribute && key.toLowerCase() === attribute_name
+      ) || attribute_name;
+    }
+  };
+}
+function get_custom_element_value(prop, value, props_definition, transform) {
+  var _a;
+  const type = (_a = props_definition[prop]) == null ? void 0 : _a.type;
+  value = type === "Boolean" && typeof value !== "boolean" ? value != null : value;
+  if (!transform || !props_definition[prop]) {
+    return value;
+  } else if (transform === "toAttribute") {
+    switch (type) {
+      case "Object":
+      case "Array":
+        return value == null ? null : JSON.stringify(value);
+      case "Boolean":
+        return value ? "" : null;
+      case "Number":
+        return value == null ? null : value;
+      default:
+        return value;
+    }
+  } else {
+    switch (type) {
+      case "Object":
+      case "Array":
+        return value && JSON.parse(value);
+      case "Boolean":
+        return value;
+      case "Number":
+        return value != null ? +value : value;
+      default:
+        return value;
+    }
+  }
+}
+var SvelteComponent = class {
+  constructor() {
+    /**
+     * ### PRIVATE API
+     *
+     * Do not use, may change at any time
+     *
+     * @type {any}
+     */
+    __publicField(this, "$$");
+    /**
+     * ### PRIVATE API
+     *
+     * Do not use, may change at any time
+     *
+     * @type {any}
+     */
+    __publicField(this, "$$set");
+  }
+  /** @returns {void} */
+  $destroy() {
+    destroy_component(this, 1);
+    this.$destroy = noop;
+  }
+  /**
+   * @template {Extract<keyof Events, string>} K
+   * @param {K} type
+   * @param {((e: Events[K]) => void) | null | undefined} callback
+   * @returns {() => void}
+   */
+  $on(type, callback) {
+    if (!is_function(callback)) {
+      return noop;
+    }
+    const callbacks = this.$$.callbacks[type] || (this.$$.callbacks[type] = []);
+    callbacks.push(callback);
+    return () => {
+      const index = callbacks.indexOf(callback);
+      if (index !== -1)
+        callbacks.splice(index, 1);
+    };
+  }
+  /**
+   * @param {Partial<Props>} props
+   * @returns {void}
+   */
+  $set(props) {
+    if (this.$$set && !is_empty(props)) {
+      this.$$.skip_bound = true;
+      this.$$set(props);
+      this.$$.skip_bound = false;
+    }
+  }
+};
+
+// node_modules/svelte/src/shared/version.js
+var PUBLIC_VERSION = "4";
+
+// node_modules/svelte/src/runtime/store/index.js
+var subscriber_queue = [];
+function writable(value, start = noop) {
+  let stop;
+  const subscribers = /* @__PURE__ */ new Set();
+  function set(new_value) {
+    if (safe_not_equal(value, new_value)) {
+      value = new_value;
+      if (stop) {
+        const run_queue = !subscriber_queue.length;
+        for (const subscriber of subscribers) {
+          subscriber[1]();
+          subscriber_queue.push(subscriber, value);
+        }
+        if (run_queue) {
+          for (let i = 0; i < subscriber_queue.length; i += 2) {
+            subscriber_queue[i][0](subscriber_queue[i + 1]);
+          }
+          subscriber_queue.length = 0;
+        }
+      }
+    }
+  }
+  function update2(fn) {
+    set(fn(value));
+  }
+  function subscribe2(run2, invalidate = noop) {
+    const subscriber = [run2, invalidate];
+    subscribers.add(subscriber);
+    if (subscribers.size === 1) {
+      stop = start(set, update2) || noop;
+    }
+    run2(value);
+    return () => {
+      subscribers.delete(subscriber);
+      if (subscribers.size === 0 && stop) {
+        stop();
+        stop = null;
+      }
+    };
+  }
+  return { set, update: update2, subscribe: subscribe2 };
+}
+
+// src/stores/data.ts
+var projectsStore = writable([]);
+var tasksStore = writable([]);
+function getProjectTasks(tasks, projectId) {
+  if (projectId)
+    return tasks.filter((t) => t.project === projectId);
+  return tasks.filter((t) => !t.project);
+}
+
+// src/data/FileManager.ts
+var PROJECTS_FOLDER = "projects";
+var TASKS_FOLDER = "tasks";
 function parseFrontmatter(content) {
   const m = content.match(/^---\r?\n([\s\S]*?)\r?\n---/);
-  if (!m) return {};
+  if (!m)
+    return {};
   const data = {};
-  m[1].split('\n').forEach(line => {
-    const idx = line.indexOf(':');
-    if (idx === -1) return;
+  m[1].split("\n").forEach((line) => {
+    const idx = line.indexOf(":");
+    if (idx === -1)
+      return;
     const key = line.slice(0, idx).trim();
     let val = line.slice(idx + 1).trim();
-    if (val === 'true' || val === 'false') val = val === 'true';
-    else if (val === 'null' || val === 'undefined') val = null;
-    else if (!isNaN(val) && val !== '') val = Number(val);
+    if (val === "true" || val === "false")
+      val = val === "true";
+    else if (val === "null" || val === "undefined")
+      val = null;
+    else if (!isNaN(val) && val !== "")
+      val = Number(val);
     data[key] = val;
   });
   return data;
 }
-
-/** Serialize a plain object into YAML frontmatter string. */
 function serializeFrontmatter(fields) {
-  let s = '---\n';
-  for (const [k, v] of Object.entries(fields))
-    if (v !== undefined && v !== null) s += `${k}: ${v}\n`;
-  s += '---\n';
+  let s = "---\n";
+  for (const [k, v] of Object.entries(fields)) {
+    if (v !== void 0 && v !== null)
+      s += `${k}: ${v}
+`;
+  }
+  s += "---\n";
   return s;
 }
+var FileManager = class {
+  constructor(app) {
+    this.app = app;
+  }
+  async initialize() {
+    await this.ensureFolder(PROJECTS_FOLDER);
+    await this.ensureFolder(TASKS_FOLDER);
+    await this.loadAll();
+  }
+  async ensureFolder(folder) {
+    try {
+      const exists = await this.app.vault.adapter.exists(folder);
+      if (!exists) {
+        await this.app.vault.createFolder(folder);
+      }
+    } catch (e) {
+      console.log(`Folder ${folder} already exists or could not be created:`, e);
+    }
+  }
+  async loadAll() {
+    const projects = [];
+    const tasks = [];
+    const projectFiles = this.app.vault.getMarkdownFiles().filter((f) => f.path.startsWith(PROJECTS_FOLDER + "/"));
+    for (const f of projectFiles) {
+      const c = await this.app.vault.read(f);
+      const fm = parseFrontmatter(c);
+      if (fm.type !== "project")
+        continue;
+      projects.push({
+        id: f.basename,
+        name: fm.name || f.basename,
+        description: fm.description || "",
+        createdAt: fm.createdAt || new Date(f.stat.ctime).toISOString(),
+        status: fm.status || "active"
+      });
+    }
+    projects.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+    projectsStore.set(projects);
+    const taskFiles = this.app.vault.getMarkdownFiles().filter((f) => f.path.startsWith(TASKS_FOLDER + "/"));
+    for (const f of taskFiles) {
+      const c = await this.app.vault.read(f);
+      const fm = parseFrontmatter(c);
+      const body = c.replace(/^---\r?\n[\s\S]*?\r?\n---/, "").trim();
+      let deadline = null;
+      if (fm.deadline) {
+        const d = new Date(fm.deadline);
+        if (!isNaN(d.getTime()))
+          deadline = d.toISOString();
+      }
+      tasks.push({
+        id: f.basename,
+        name: fm.name || f.basename,
+        description: body || "",
+        project: fm.project || null,
+        status: fm.status || "backlog",
+        weight: fm.weight || 1,
+        orderIndex: fm.orderIndex || 0,
+        isFixedDuration: fm.isFixedDuration || false,
+        fixedDuration: fm.fixedDuration || null,
+        maxDuration: fm.maxDuration || null,
+        isCompleted: fm.isCompleted || false,
+        createdAt: fm.createdAt || new Date(f.stat.ctime).toISOString(),
+        deadline
+      });
+    }
+    tasks.sort((a, b) => a.orderIndex - b.orderIndex);
+    tasksStore.set(tasks);
+  }
+  async updateTask(id, updates) {
+    tasksStore.update((tasks) => {
+      const i = tasks.findIndex((t) => t.id === id);
+      if (i > -1) {
+        tasks[i] = { ...tasks[i], ...updates };
+      }
+      return tasks;
+    });
+    const file = this.app.vault.getAbstractFileByPath(`${TASKS_FOLDER}/${id}.md`);
+    if (!(file instanceof import_obsidian.TFile))
+      return;
+    const c = await this.app.vault.read(file);
+    const fm = parseFrontmatter(c);
+    const body = c.replace(/^---\r?\n[\s\S]*?\r?\n---/, "").trim();
+    let newBody = body;
+    if (updates.description !== void 0) {
+      newBody = updates.description;
+    }
+    const fmUpdates = { ...updates };
+    delete fmUpdates.id;
+    delete fmUpdates.description;
+    Object.assign(fm, fmUpdates);
+    for (const k in fm)
+      if (fm[k] === void 0)
+        delete fm[k];
+    await this.app.vault.modify(file, serializeFrontmatter(fm) + "\n" + newBody);
+  }
+  async createTask(data) {
+    const id = `task-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    const fm = {
+      name: data.name,
+      project: data.project || null,
+      status: "backlog",
+      weight: data.weight || 1,
+      orderIndex: 0,
+      isFixedDuration: data.isFixedDuration || false,
+      fixedDuration: data.isFixedDuration ? data.fixedDuration : null,
+      isCompleted: false,
+      createdAt: (/* @__PURE__ */ new Date()).toISOString()
+    };
+    if (data.deadline)
+      fm.deadline = data.deadline;
+    const c = serializeFrontmatter(fm) + "\n" + (data.description || "");
+    await this.app.vault.create(`${TASKS_FOLDER}/${id}.md`, c);
+    tasksStore.update((t) => [...t, {
+      ...data,
+      id,
+      project: fm.project,
+      status: "backlog",
+      weight: fm.weight,
+      orderIndex: 0,
+      isFixedDuration: fm.isFixedDuration,
+      fixedDuration: fm.fixedDuration,
+      isCompleted: false,
+      createdAt: fm.createdAt,
+      deadline: fm.deadline || null,
+      description: data.description || "",
+      name: fm.name
+    }]);
+    return id;
+  }
+  async deleteTask(id) {
+    tasksStore.update((tasks) => tasks.filter((t) => t.id !== id));
+    const file = this.app.vault.getAbstractFileByPath(`${TASKS_FOLDER}/${id}.md`);
+    if (file instanceof import_obsidian.TFile)
+      await this.app.vault.delete(file);
+  }
+};
 
-/**
- * Core scheduling algorithm — computes duration for each running task
- * based on weight and fixed duration, given a start time and deadline.
- * Preserved exactly from the original Elastic Scheduler.
- */
+// node_modules/svelte/src/runtime/internal/disclose-version/index.js
+if (typeof window !== "undefined")
+  (window.__svelte || (window.__svelte = { v: /* @__PURE__ */ new Set() })).v.add(PUBLIC_VERSION);
+
+// src/utils.ts
 function calculateLiquidTimeline(tasks, startTime, deadline) {
-  const totalMin = (deadline - startTime) / 60000;
-  if (totalMin <= 0) return [];
+  const totalMin = (deadline.getTime() - startTime.getTime()) / 6e4;
+  if (totalMin <= 0)
+    return [];
   let remaining = totalMin;
-  const durMap = new Map();
+  const durMap = /* @__PURE__ */ new Map();
   for (const t of tasks) {
-    if (t.isFixedDuration && t.fixedDuration > 0) {
+    if (t.isFixedDuration && t.fixedDuration && t.fixedDuration > 0) {
       durMap.set(t.id, t.fixedDuration);
       remaining -= t.fixedDuration;
     }
   }
-  const elastic = tasks.filter(t => !(t.isFixedDuration && t.fixedDuration > 0));
+  const elastic = tasks.filter((t) => !(t.isFixedDuration && t.fixedDuration && t.fixedDuration > 0));
   if (elastic.length && remaining > 0) {
     const tw = elastic.reduce((s, t) => s + t.weight, 0) || 1;
     for (const t of elastic) {
-      let d = (t.weight / tw) * remaining;
-      if (t.maxDuration && d > t.maxDuration) d = t.maxDuration;
+      let d = t.weight / tw * remaining;
+      if (t.maxDuration && d > t.maxDuration)
+        d = t.maxDuration;
       durMap.set(t.id, d);
     }
   }
@@ -69,1353 +1143,4330 @@ function calculateLiquidTimeline(tasks, startTime, deadline) {
   const tl = [];
   for (const t of tasks) {
     const dur = durMap.get(t.id) || 0;
-    const end = new Date(cur + dur * 60000);
+    const end = new Date(cur + dur * 6e4);
     tl.push({
       id: t.id,
       startTime: new Date(cur).toISOString(),
       endTime: end.toISOString(),
-      calculatedDuration: dur,
+      calculatedDuration: dur
     });
     cur = end.getTime();
   }
   return tl;
 }
-
-/** Human-readable age string: "just now", "5m ago", "3d ago", etc. */
-function formatAge(createdAtIso) {
-  const diff = Date.now() - new Date(createdAtIso).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return 'just now';
-  if (mins < 60) return `${mins}m ago`;
+function formatAge(createdAtIso, now2 = Date.now()) {
+  const diff = now2 - new Date(createdAtIso).getTime();
+  const mins = Math.floor(diff / 6e4);
+  if (mins < 1)
+    return "just now";
+  if (mins < 60)
+    return `${mins}m ago`;
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}h ago`;
+  if (hours < 24)
+    return `${hours}h ago`;
   const days = Math.floor(hours / 24);
-  if (days < 30) return `${days}d ago`;
+  if (days < 30)
+    return `${days}d ago`;
   const months = Math.floor(days / 30);
   return `${months}mo ago`;
 }
-
-/** Countdown string with overdue handling: "2d 3h 15m 42s" or "overdue by ...". */
 function formatCountdown(diffMs) {
   const isPast = diffMs < 0;
   const abs = Math.abs(diffMs);
-  const totalSecs = Math.floor(abs / 1000);
+  const totalSecs = Math.floor(abs / 1e3);
   const days = Math.floor(totalSecs / 86400);
-  const hours = Math.floor((totalSecs % 86400) / 3600);
-  const mins = Math.floor((totalSecs % 3600) / 60);
+  const hours = Math.floor(totalSecs % 86400 / 3600);
+  const mins = Math.floor(totalSecs % 3600 / 60);
   const secs = totalSecs % 60;
-  let str = '';
-  if (days > 0) str += `${days}d `;
-  if (hours > 0) str += `${hours}h `;
+  let str = "";
+  if (days > 0)
+    str += `${days}d `;
+  if (hours > 0)
+    str += `${hours}h `;
   str += `${mins}m ${secs}s`;
   return isPast ? `overdue by ${str}` : str;
 }
-
-/** HSL background color based on remaining time until deadline. */
 function deadlineHue(remainingMs) {
-  if (remainingMs < 0) return 'hsl(300, 60%, 85%)';   // purple — overdue
-  const days = remainingMs / 86400000;
-  if (days > 30) return 'hsl(210, 60%, 85%)';          // blue
-  if (days >= 7) return 'hsl(180, 60%, 85%)';           // cyan/green
-  if (days >= 3) return 'hsl(60, 70%, 85%)';            // yellow
-  if (days >= 1) return 'hsl(30, 90%, 80%)';            // orange
-  return 'hsl(0, 90%, 80%)';                            // red (<1 day)
+  if (remainingMs < 0)
+    return "hsl(300, 60%, 85%)";
+  const days = remainingMs / 864e5;
+  if (days > 30)
+    return "hsl(210, 60%, 85%)";
+  if (days >= 7)
+    return "hsl(180, 60%, 85%)";
+  if (days >= 3)
+    return "hsl(60, 70%, 85%)";
+  if (days >= 1)
+    return "hsl(30, 90%, 80%)";
+  return "hsl(0, 90%, 80%)";
 }
-
 function fmtDate(iso) {
-  return iso ? new Date(iso).toISOString().slice(0, 10) : '';
+  return iso ? new Date(iso).toISOString().slice(0, 10) : "";
 }
 function fmtTime(iso) {
-  if (!iso) return '';
+  if (!iso)
+    return "";
   const d = new Date(iso);
-  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
 }
 function fmtDur(m) {
   return m >= 60 ? `${Math.floor(m / 60)}h ${m % 60}m` : `${m}m`;
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// SECTION 2 — Data Managers (replace old TaskManager)
-// ═══════════════════════════════════════════════════════════════════
-
-/** Manages project files in the projects/ folder. */
-class ProjectManager {
-  constructor(app) {
-    this.app = app;
-    this.folder = PROJECTS_FOLDER;
-  }
-
-  async ensureFolder() {
-    if (!this.app.vault.getAbstractFileByPath(this.folder))
-      await this.app.vault.createFolder(this.folder);
-  }
-
-  async loadProjects(includeArchived = false) {
-    await this.ensureFolder();
-    const files = this.app.vault.getMarkdownFiles()
-      .filter(f => f.path.startsWith(this.folder + '/'));
-    const projects = [];
-    for (const f of files) {
-      const c = await this.app.vault.read(f);
-      const fm = parseFrontmatter(c);
-      if (fm.type !== 'project') continue;
-      if (!includeArchived && fm.status === 'archived') continue;
-      projects.push({
-        id: f.basename,
-        name: fm.name || f.basename,
-        description: fm.description || '',
-        createdAt: fm.createdAt || new Date().toISOString(),
-        status: fm.status || 'active',
-      });
-    }
-    projects.sort((a, b) =>
-      new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-    );
-    return projects;
-  }
-
-  async createProject(data) {
-    await this.ensureFolder();
-    const id = `proj-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`;
-    const fm = {
-      type: 'project',
-      name: data.name,
-      description: data.description || '',
-      createdAt: new Date().toISOString(),
-      status: 'active',
-    };
-    await this.app.vault.create(
-      `${this.folder}/${id}.md`,
-      serializeFrontmatter(fm) + '\n'
-    );
-    return id;
-  }
-
-  async updateProject(id, updates) {
-    const file = this.app.vault.getAbstractFileByPath(`${this.folder}/${id}.md`);
-    if (!(file instanceof TFile)) return;
-    const c = await this.app.vault.read(file);
-    const fm = parseFrontmatter(c);
-    const body = c.replace(/^---\r?\n[\s\S]*?\r?\n---/, '').trim();
-    Object.assign(fm, updates);
-    for (const k in fm) if (fm[k] === undefined) delete fm[k];
-    await this.app.vault.modify(file, serializeFrontmatter(fm) + '\n' + body);
-  }
-
-  async archiveProject(id) {
-    await this.updateProject(id, { status: 'archived' });
-  }
-
-  async deleteProject(id) {
-    const file = this.app.vault.getAbstractFileByPath(`${this.folder}/${id}.md`);
-    if (file instanceof TFile) await this.app.vault.delete(file);
-  }
-}
-
-/** Manages task files in the tasks/ folder. */
-class TaskDataManager {
-  constructor(app) {
-    this.app = app;
-    this.folder = TASKS_FOLDER;
-  }
-
-  async ensureFolder() {
-    if (!this.app.vault.getAbstractFileByPath(this.folder))
-      await this.app.vault.createFolder(this.folder);
-  }
-
-  /** Load every task file into an array of task objects, sorted by orderIndex. */
-  async loadAllTasks() {
-    await this.ensureFolder();
-    const files = this.app.vault.getMarkdownFiles()
-      .filter(f => f.path.startsWith(this.folder + '/'));
-    const tasks = [];
-    for (const f of files) {
-      const c = await this.app.vault.read(f);
-      const fm = parseFrontmatter(c);
-      const body = c.replace(/^---\r?\n[\s\S]*?\r?\n---/, '').trim();
-      let deadline = null;
-      if (fm.deadline) {
-        const d = new Date(fm.deadline);
-        if (!isNaN(d.getTime())) deadline = d.toISOString();
-      }
-      tasks.push({
-        id: f.basename,
-        name: fm.name || f.basename,
-        description: body || '',
-        project: fm.project || null,
-        status: fm.status || 'backlog',
-        weight: fm.weight || 1,
-        orderIndex: fm.orderIndex || 0,
-        isFixedDuration: fm.isFixedDuration || false,
-        fixedDuration: fm.fixedDuration || null,
-        maxDuration: fm.maxDuration || null,
-        isCompleted: fm.isCompleted || false,
-        createdAt: fm.createdAt || new Date().toISOString(),
-        deadline: deadline,
-      });
-    }
-    tasks.sort((a, b) => a.orderIndex - b.orderIndex);
-    return tasks;
-  }
-
-  /** Load tasks belonging to a specific project (null = uncategorized). */
-  async loadTasksForProject(projectId) {
-    const all = await this.loadAllTasks();
-    if (projectId) return all.filter(t => t.project === projectId);
-    return all.filter(t => !t.project);
-  }
-
-  async createTask(data) {
-    await this.ensureFolder();
-    const id = `task-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-    const fm = {
-      name: data.name,
-      project: data.project || null,
-      status: 'backlog',
-      weight: data.weight || 1,
-      orderIndex: 0,
-      isFixedDuration: data.isFixedDuration || false,
-      fixedDuration: data.isFixedDuration ? data.fixedDuration : null,
-      isCompleted: false,
-      createdAt: new Date().toISOString(),
-    };
-    if (data.deadline) fm.deadline = data.deadline;
-    const c = serializeFrontmatter(fm) + '\n' + (data.description || '');
-    await this.app.vault.create(`${this.folder}/${id}.md`, c);
-    return id;
-  }
-
-  async updateTask(id, updates) {
-    const file = this.app.vault.getAbstractFileByPath(`${this.folder}/${id}.md`);
-    if (!(file instanceof TFile)) return;
-    const c = await this.app.vault.read(file);
-    const fm = parseFrontmatter(c);
-    const body = c.replace(/^---\r?\n[\s\S]*?\r?\n---/, '').trim();
-    Object.assign(fm, updates);
-    for (const k in fm) if (fm[k] === undefined) delete fm[k];
-    await this.app.vault.modify(file, serializeFrontmatter(fm) + '\n' + body);
-  }
-
-  async deleteTask(id) {
-    const file = this.app.vault.getAbstractFileByPath(`${this.folder}/${id}.md`);
-    if (file instanceof TFile) await this.app.vault.delete(file);
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════════
-// SECTION 3 — Modals
-// ═══════════════════════════════════════════════════════════════════
-
-class NewProjectModal extends Modal {
-  constructor(app, onSubmit) { super(app); this.onSubmit = onSubmit; }
-  onOpen() {
-    const { contentEl } = this;
-    contentEl.empty();
-    contentEl.createEl('h3', { text: 'New Project' });
-    const inp = contentEl.createEl('input', {
-      type: 'text', placeholder: 'Project name', cls: 'pos-modal-input',
-    });
-    const desc = contentEl.createEl('textarea', {
-      placeholder: 'Description (optional)', cls: 'pos-modal-textarea',
-    });
-    const br = contentEl.createEl('div', { cls: 'pos-modal-buttons' });
-    br.createEl('button', { text: 'Cancel' })
-      .addEventListener('click', () => this.close());
-    br.createEl('button', { text: 'Create', cls: 'pos-modal-primary' })
-      .addEventListener('click', () => {
-        const name = inp.value.trim();
-        if (!name) { new Notice('Project name is required'); return; }
-        this.onSubmit({ name, description: desc.value.trim() });
-        this.close();
-      });
-  }
-  onClose() { this.contentEl.empty(); }
-}
-
-class EditProjectModal extends Modal {
-  constructor(app, project, onSave) {
-    super(app); this.project = project; this.onSave = onSave;
-  }
-  onOpen() {
-    const { contentEl, project } = this;
-    contentEl.empty();
-    contentEl.createEl('h3', { text: 'Edit Project' });
-    const inp = contentEl.createEl('input', {
-      type: 'text', placeholder: 'Project name', cls: 'pos-modal-input',
-    });
-    inp.value = project.name;
-    const desc = contentEl.createEl('textarea', {
-      placeholder: 'Description', cls: 'pos-modal-textarea',
-    });
-    desc.value = project.description;
-    const br = contentEl.createEl('div', { cls: 'pos-modal-buttons' });
-    br.createEl('button', { text: 'Cancel' })
-      .addEventListener('click', () => this.close());
-    br.createEl('button', { text: 'Save', cls: 'pos-modal-primary' })
-      .addEventListener('click', () => {
-        const name = inp.value.trim();
-        if (!name) { new Notice('Project name is required'); return; }
-        this.onSave({ name, description: desc.value.trim() });
-        this.close();
-      });
-  }
-  onClose() { this.contentEl.empty(); }
-}
-
-class NewTaskModal extends Modal {
-  constructor(app, onSubmit) { super(app); this.onSubmit = onSubmit; }
-  onOpen() {
-    const { contentEl } = this;
-    contentEl.empty();
-    contentEl.createEl('h3', { text: 'New Task' });
-    const inp = contentEl.createEl('input', {
-      type: 'text', placeholder: 'Task name', cls: 'pos-modal-input',
-    });
-    const desc = contentEl.createEl('textarea', {
-      placeholder: 'Description (optional)', cls: 'pos-modal-textarea',
-    });
-    // Weight
-    const wr = contentEl.createEl('div', { cls: 'pos-modal-row' });
-    wr.createEl('label', { text: 'Weight:' });
-    const wInp = wr.createEl('input', {
-      type: 'number', attr: { min: '1', value: '1' }, cls: 'pos-modal-number',
-    });
-    // Fixed duration
-    const fr = contentEl.createEl('div', { cls: 'pos-modal-row' });
-    const fChk = fr.createEl('input', { type: 'checkbox' });
-    fr.createEl('label', { text: ' Fixed duration (min):' });
-    const fInp = fr.createEl('input', {
-      type: 'number', attr: { min: '1', value: '30', disabled: true }, cls: 'pos-modal-number',
-    });
-    fChk.addEventListener('change', () => { fInp.disabled = !fChk.checked; });
-    // Deadline
-    const dr = contentEl.createEl('div', { cls: 'pos-modal-row' });
-    const dChk = dr.createEl('input', { type: 'checkbox' });
-    dr.createEl('label', { text: ' Deadline:' });
-    const dInp = dr.createEl('input', { type: 'datetime-local', cls: 'pos-modal-datetime' });
-    dInp.disabled = true;
-    dChk.addEventListener('change', () => { dInp.disabled = !dChk.checked; });
-    // Buttons
-    const br = contentEl.createEl('div', { cls: 'pos-modal-buttons' });
-    br.createEl('button', { text: 'Cancel' })
-      .addEventListener('click', () => this.close());
-    br.createEl('button', { text: 'Create', cls: 'pos-modal-primary' })
-      .addEventListener('click', () => {
-        const name = inp.value.trim();
-        if (!name) { new Notice('Task name is required'); return; }
-        let deadline = null;
-        if (dChk.checked && dInp.value) {
-          const dlDate = new Date(dInp.value);
-          if (!isNaN(dlDate.getTime())) deadline = dlDate.toISOString();
-        }
-        this.onSubmit({
-          name,
-          description: desc.value.trim(),
-          weight: Math.max(1, Number(wInp.value) || 1),
-          isFixedDuration: fChk.checked,
-          fixedDuration: fChk.checked ? (Number(fInp.value) || 30) : null,
-          deadline,
-        });
-        this.close();
-      });
-  }
-  onClose() { this.contentEl.empty(); }
-}
-
-class EditTaskModal extends Modal {
+// src/modals/Modals.ts
+var import_obsidian2 = require("obsidian");
+var EditTaskModal = class extends import_obsidian2.Modal {
   constructor(app, task, onSave) {
-    super(app); this.task = task; this.onSave = onSave;
+    super(app);
+    this.task = task;
+    this.onSave = onSave;
   }
   onOpen() {
     const { contentEl, task } = this;
     contentEl.empty();
-    contentEl.createEl('h3', { text: 'Edit Task' });
-    const inp = contentEl.createEl('input', {
-      type: 'text', placeholder: 'Task name', cls: 'pos-modal-input',
+    contentEl.createEl("h3", { text: "Edit Task" });
+    const inp = contentEl.createEl("input", {
+      type: "text",
+      placeholder: "Task name",
+      cls: "pos-modal-input"
     });
     inp.value = task.name;
-    const desc = contentEl.createEl('textarea', {
-      placeholder: 'Description', cls: 'pos-modal-textarea',
+    const desc = contentEl.createEl("textarea", {
+      placeholder: "Description",
+      cls: "pos-modal-textarea"
     });
     desc.value = task.description;
-    // Weight
-    const wr = contentEl.createEl('div', { cls: 'pos-modal-row' });
-    wr.createEl('label', { text: 'Weight:' });
-    const wInp = wr.createEl('input', {
-      type: 'number', attr: { min: '1' }, cls: 'pos-modal-number',
+    const wr = contentEl.createEl("div", { cls: "pos-modal-row" });
+    wr.createEl("label", { text: "Weight:" });
+    const wInp = wr.createEl("input", {
+      type: "number",
+      attr: { min: "1" },
+      cls: "pos-modal-number"
     });
-    wInp.value = task.weight;
-    // Fixed duration
-    const fr = contentEl.createEl('div', { cls: 'pos-modal-row' });
-    const fChk = fr.createEl('input', { type: 'checkbox' });
+    wInp.value = task.weight.toString();
+    const fr = contentEl.createEl("div", { cls: "pos-modal-row" });
+    const fChk = fr.createEl("input", { type: "checkbox" });
     fChk.checked = task.isFixedDuration;
-    fr.createEl('label', { text: ' Fixed duration (min):' });
-    const fInp = fr.createEl('input', {
-      type: 'number', attr: { min: '1' }, cls: 'pos-modal-number',
+    fr.createEl("label", { text: " Fixed duration (min):" });
+    const fInp = fr.createEl("input", {
+      type: "number",
+      attr: { min: "1" },
+      cls: "pos-modal-number"
     });
-    fInp.value = task.fixedDuration || 30;
+    fInp.value = (task.fixedDuration || 30).toString();
     fInp.disabled = !task.isFixedDuration;
-    fChk.addEventListener('change', () => { fInp.disabled = !fChk.checked; });
-    // Deadline
-    const dr = contentEl.createEl('div', { cls: 'pos-modal-row' });
-    const dChk = dr.createEl('input', { type: 'checkbox' });
+    fChk.addEventListener("change", () => {
+      fInp.disabled = !fChk.checked;
+    });
+    const dr = contentEl.createEl("div", { cls: "pos-modal-row" });
+    const dChk = dr.createEl("input", { type: "checkbox" });
     dChk.checked = !!task.deadline;
-    dr.createEl('label', { text: ' Deadline:' });
-    const dInp = dr.createEl('input', { type: 'datetime-local', cls: 'pos-modal-datetime' });
+    dr.createEl("label", { text: " Deadline:" });
+    const dInp = dr.createEl("input", { type: "datetime-local", cls: "pos-modal-datetime" });
     dInp.disabled = !task.deadline;
     if (task.deadline) {
       const dlDate = new Date(task.deadline);
-      if (!isNaN(dlDate.getTime())) dInp.value = dlDate.toISOString().slice(0, 16);
+      if (!isNaN(dlDate.getTime()))
+        dInp.value = dlDate.toISOString().slice(0, 16);
     }
-    dChk.addEventListener('change', () => { dInp.disabled = !dChk.checked; });
-    // Buttons
-    const br = contentEl.createEl('div', { cls: 'pos-modal-buttons' });
-    br.createEl('button', { text: 'Cancel' })
-      .addEventListener('click', () => this.close());
-    br.createEl('button', { text: 'Save', cls: 'pos-modal-primary' })
-      .addEventListener('click', () => {
-        const name = inp.value.trim();
-        if (!name) { new Notice('Task name is required'); return; }
-        const updates = {
-          name,
-          weight: Math.max(1, Number(wInp.value) || 1),
-          isFixedDuration: fChk.checked,
-          fixedDuration: fChk.checked ? (Number(fInp.value) || 30) : null,
-        };
-        if (dChk.checked && dInp.value) {
-          const dlDate = new Date(dInp.value);
-          if (!isNaN(dlDate.getTime())) updates.deadline = dlDate.toISOString();
-        } else {
-          updates.deadline = null;
-        }
-        this.onSave(updates);
-        this.close();
-      });
-  }
-  onClose() { this.contentEl.empty(); }
-}
-
-// ═══════════════════════════════════════════════════════════════════
-// SECTION 4 — View Renderers
-// ═══════════════════════════════════════════════════════════════════
-
-// ── 4a. Aging Renderer (Projects view) ──────────────────────────
-
-class AgingRenderer {
-  constructor(view) {
-    this.view = view;
-    this._ageSpans = [];
-  }
-
-  async render(container) {
-    container.empty();
-    const projects = await this.view.plugin.projectManager.loadProjects();
-    const allTasks = await this.view.plugin.taskManager.loadAllTasks();
-
-    // New project button
-    const btnRow = container.createEl('div', { cls: 'pos-newtask-row' });
-    btnRow.createEl('button', { text: '+ New Project', cls: 'pos-newtask-btn' })
-      .addEventListener('click', () => {
-        new NewProjectModal(this.view.app, async (data) => {
-          await this.view.plugin.projectManager.createProject(data);
-          this.view.refresh();
-        }).open();
-      });
-
-    if (projects.length === 0) {
-      container.createEl('p', { text: 'No projects yet. Create one!', cls: 'pos-empty' });
-      return;
-    }
-
-    // Age range for coloring
-    const allTimes = projects.map(p => new Date(p.createdAt).getTime());
-    const minTime = Math.min(...allTimes);
-    const maxTime = Math.max(...allTimes);
-    const range = maxTime - minTime || 1;
-
-    const list = container.createEl('div', { cls: 'pos-project-list' });
-    this._ageSpans = [];
-
-    for (const project of projects) {
-      const card = list.createEl('div', {
-        cls: 'pos-card pos-project-card',
-        attr: { 'data-project-id': project.id },
-      });
-
-      // Green (newest) → Red (oldest)
-      const tMs = new Date(project.createdAt).getTime();
-      const ratio = range > 1 ? (tMs - minTime) / range : 0;
-      const hue = 120 * (1 - ratio);
-      card.style.backgroundColor = `hsl(${hue}, 70%, 90%)`;
-
-      // Name (clickable → edit)
-      const nameEl = card.createEl('div', { cls: 'pos-card-name', text: project.name });
-      nameEl.addEventListener('click', (e) => {
-        e.stopPropagation();
-        new EditProjectModal(this.view.app, project, async (updates) => {
-          await this.view.plugin.projectManager.updateProject(project.id, updates);
-          this.view.refresh();
-        }).open();
-      });
-
-      if (project.description) {
-        card.createEl('div', { cls: 'pos-card-desc', text: project.description });
+    dChk.addEventListener("change", () => {
+      dInp.disabled = !dChk.checked;
+    });
+    const br = contentEl.createEl("div", { cls: "pos-modal-buttons" });
+    br.createEl("button", { text: "Cancel" }).addEventListener("click", () => this.close());
+    br.createEl("button", { text: "Save", cls: "pos-modal-primary" }).addEventListener("click", () => {
+      const name = inp.value.trim();
+      if (!name) {
+        new import_obsidian2.Notice("Task name is required");
+        return;
       }
-
-      // Age
-      const ageEl = card.createEl('div', {
-        cls: 'pos-age', attr: { 'data-created': project.createdAt },
-      });
-      ageEl.textContent = formatAge(project.createdAt);
-      this._ageSpans.push(ageEl);
-
-      // Task counts (computed from pre-loaded data)
-      const projectTasks = allTasks.filter(t => t.project === project.id);
-      const counts = {
-        backlog: projectTasks.filter(t => t.status === 'backlog').length,
-        running: projectTasks.filter(t => t.status === 'running').length,
-        review: projectTasks.filter(t => t.status === 'review').length,
-        total: projectTasks.length,
+      const updates = {
+        name,
+        description: desc.value.trim(),
+        // BUG FIX: Included description in updates
+        weight: Math.max(1, Number(wInp.value) || 1),
+        isFixedDuration: fChk.checked,
+        fixedDuration: fChk.checked ? Number(fInp.value) || 30 : null
       };
-      const meta = card.createEl('div', { cls: 'pos-card-meta' });
-      meta.createEl('span', { text: `${counts.total} tasks` });
-      if (counts.running > 0) meta.createEl('span', { text: `${counts.running} running` });
-      if (counts.review > 0) meta.createEl('span', { text: `${counts.review} done` });
-
-      // Actions
-      const acts = card.createEl('div', { cls: 'pos-card-acts' });
-      acts.createEl('button', { text: 'Open' }).addEventListener('click', (e) => {
-        e.stopPropagation();
-        this.view.selectProject(project.id, 'elastic');
-      });
-      acts.createEl('button', { text: 'Deadlines' }).addEventListener('click', (e) => {
-        e.stopPropagation();
-        this.view.selectProject(project.id, 'deadlines');
-      });
-      acts.createEl('button', { text: 'Archive', cls: 'pos-del' }).addEventListener('click', async (e) => {
-        e.stopPropagation();
-        await this.view.plugin.projectManager.archiveProject(project.id);
-        this.view.refresh();
-      });
-    }
-  }
-
-  tick() {
-    for (const span of this._ageSpans) {
-      if (!span.isConnected) continue;
-      const created = span.dataset.created;
-      if (created) span.textContent = formatAge(created);
-    }
-  }
-}
-
-// ── 4b. Elastic Renderer (Kanban + Timeline) ────────────────────
-
-class ElasticRenderer {
-  constructor(view) {
-    this.view = view;
-    this.tasks = [];
-    this.dragPlaceholder = null;
-    this.dragTaskId = null;
-    this.ro = null;
-  }
-
-  async render(container) {
-    container.empty();
-    const projectId = this.view.session.selectedProjectId;
-    this.tasks = await this.view.plugin.taskManager.loadTasksForProject(projectId);
-    const session = this.view.session;
-
-    // Deadline controls + Lock
-    const hdr = container.createEl('div', { cls: 'pos-header' });
-    const dr = hdr.createEl('div', { cls: 'pos-deadline-controls' });
-    const dInp = dr.createEl('input', { type: 'date' });
-    dInp.value = fmtDate(session.deadline);
-    const tInp = dr.createEl('input', { type: 'time', attr: { step: '60' } });
-    tInp.value = fmtTime(session.deadline);
-    dr.createEl('button', { text: 'Apply' })
-      .addEventListener('click', () => this.setDeadline(dInp.value, tInp.value));
-    const lBtn = dr.createEl('button', {
-      cls: `pos-lock-btn ${session.isLocked ? 'locked' : ''}`,
-      text: session.isLocked ? 'Unlock' : 'Lock',
-    });
-    lBtn.addEventListener('click', () => this.toggleLock());
-
-    // Three columns
-    const cols = container.createEl('div', { cls: 'pos-columns' });
-    this.buildColumn(cols, 'Backlog', 'backlog');
-    this.buildColumn(cols, 'Running', 'running');
-    this.buildColumn(cols, 'Review', 'review');
-
-    requestAnimationFrame(() => {
-      this.applyHeights();
-      this.observeRunning();
-      if (session.isLocked) this.updateLockLine();
-    });
-  }
-
-  buildColumn(parent, title, status) {
-    const col = parent.createEl('div', { cls: 'pos-col' });
-    const tasks = this.tasks.filter(t => t.status === status);
-    col.createEl('h4', { text: `${title} (${tasks.length})`, cls: 'pos-col-title' });
-    const wrapper = col.createEl('div', { cls: 'pos-list-wrapper', attr: { 'data-status': status } });
-    const list = wrapper.createEl('div', { cls: 'pos-list' });
-    tasks.forEach(t => this.buildCard(list, t));
-
-    if (status === 'backlog') {
-      const btnRow = list.createEl('div', { cls: 'pos-newtask-row' });
-      btnRow.createEl('button', { text: '+ New Task', cls: 'pos-newtask-btn' })
-        .addEventListener('click', () => {
-          new NewTaskModal(this.view.app, async (d) => {
-            d.project = this.view.session.selectedProjectId;
-            await this.view.plugin.taskManager.createTask(d);
-            this.view.refresh();
-          }).open();
-        });
-    }
-    if (status === 'review' && tasks.length > 0) {
-      const bulk = list.createEl('div', { cls: 'pos-bulk-row' });
-      bulk.createEl('button', { text: 'Restore All' })
-        .addEventListener('click', () => this.restoreAllReview());
-      bulk.createEl('button', { text: 'Delete All' })
-        .addEventListener('click', () => this.deleteAllReview());
-    }
-    if (status === 'running') {
-      wrapper.createEl('div', { cls: 'pos-wipe' });
-      wrapper.createEl('div', { cls: 'pos-redline' });
-    }
-
-    wrapper.addEventListener('dragover', (e) => this.onDragOver(e, wrapper));
-    wrapper.addEventListener('drop', (e) => this.onDrop(e, wrapper));
-  }
-
-  buildCard(list, task) {
-    const card = list.createEl('div', {
-      cls: 'pos-card',
-      attr: { draggable: 'true', 'data-task-id': task.id, 'data-weight': task.weight },
-    });
-    card.addEventListener('dragstart', (e) => this.onDragStart(e, task));
-    card.addEventListener('dragend', () => this.onDragEnd());
-    if (task.isCompleted) card.classList.add('pos-completed');
-
-    const nameEl = card.createEl('div', { cls: 'pos-card-name', text: task.name });
-    nameEl.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const file = this.view.app.vault.getAbstractFileByPath(`${TASKS_FOLDER}/${task.id}.md`);
-      if (file) this.view.app.workspace.getLeaf().openFile(file);
-    });
-
-    if (task.description) card.createEl('div', { cls: 'pos-card-desc', text: task.description });
-
-    const meta = card.createEl('div', { cls: 'pos-card-meta' });
-    if (task.isFixedDuration && task.fixedDuration)
-      meta.createEl('span', { text: `Fixed ${task.fixedDuration}m` });
-    if (task.status === 'running') {
-      const tl = this.getTimeline();
-      const ti = tl.find(t => t.id === task.id);
-      if (ti) meta.createEl('span', {
-        text: `${fmtTime(ti.endTime)} (${fmtDur(Math.round(ti.calculatedDuration))})`,
-      });
-    }
-
-    const acts = card.createEl('div', { cls: 'pos-card-acts' });
-    if (task.status === 'backlog') {
-      acts.createEl('button', { text: 'Start' }).addEventListener('click', (e) => {
-        e.stopPropagation(); this.changeStatus(task.id, 'running');
-      });
-      acts.createEl('button', { text: 'Delete', cls: 'pos-del' }).addEventListener('click', (e) => {
-        e.stopPropagation(); this.deleteTask(task.id);
-      });
-    } else if (task.status === 'running') {
-      acts.createEl('button', { text: 'Done' }).addEventListener('click', (e) => {
-        e.stopPropagation(); this.handleCompleteTask(task);
-      });
-      acts.createEl('button', { text: 'Backlog' }).addEventListener('click', (e) => {
-        e.stopPropagation(); this.changeStatus(task.id, 'backlog');
-      });
-      // Weight controls
-      const wg = acts.createEl('span', { cls: 'pos-wg' });
-      wg.createEl('button', { text: '−' }).addEventListener('click', (e) => {
-        e.stopPropagation(); this.adjustWeight(task.id, -1);
-      });
-      wg.createEl('span', { text: String(task.weight) });
-      wg.createEl('button', { text: '+' }).addEventListener('click', (e) => {
-        e.stopPropagation(); this.adjustWeight(task.id, 1);
-      });
-      // Fixed toggle
-      const ft = acts.createEl('label', { cls: 'pos-fixed' });
-      const cb = ft.createEl('input', { type: 'checkbox' });
-      cb.checked = task.isFixedDuration;
-      cb.addEventListener('change', (e) => {
-        e.stopPropagation(); this.toggleFixed(task.id, cb.checked);
-      });
-      ft.createEl('span', { text: 'Fixed' });
-      if (task.isFixedDuration) {
-        const fi = ft.createEl('input', {
-          type: 'number', attr: { min: '1' }, cls: 'pos-fixed-input',
-        });
-        fi.value = task.fixedDuration || 30;
-        fi.addEventListener('change', (e) => {
-          e.stopPropagation(); this.setFixed(task.id, Number(fi.value));
-        });
+      if (dChk.checked && dInp.value) {
+        const dlDate = new Date(dInp.value);
+        if (!isNaN(dlDate.getTime()))
+          updates.deadline = dlDate.toISOString();
+      } else {
+        updates.deadline = null;
       }
-      acts.createEl('button', { text: 'Delete', cls: 'pos-del' }).addEventListener('click', (e) => {
-        e.stopPropagation(); this.deleteTask(task.id);
-      });
-    } else if (task.status === 'review') {
-      acts.createEl('button', { text: 'Restore' }).addEventListener('click', (e) => {
-        e.stopPropagation(); this.changeStatus(task.id, 'running');
-      });
-      acts.createEl('button', { text: 'Backlog' }).addEventListener('click', (e) => {
-        e.stopPropagation(); this.changeStatus(task.id, 'backlog');
-      });
-      acts.createEl('button', { text: 'Delete', cls: 'pos-del' }).addEventListener('click', (e) => {
-        e.stopPropagation(); this.deleteTask(task.id);
-      });
-    }
-  }
-
-  // ── Drag & Drop ──
-  onDragStart(e, task) {
-    e.dataTransfer.setData('text/plain', task.id);
-    this.dragTaskId = task.id;
-    const card = this.view.contentEl.querySelector(`.pos-card[data-task-id="${task.id}"]`);
-    if (card) card.classList.add('pos-dragging-source');
-  }
-  onDragEnd() {
-    this.clearDragPlaceholder();
-    if (this.dragTaskId) {
-      const card = this.view.contentEl.querySelector(`.pos-card[data-task-id="${this.dragTaskId}"]`);
-      if (card) card.classList.remove('pos-dragging-source');
-    }
-    this.dragTaskId = null;
-  }
-  onDragOver(e, wrapper) {
-    e.preventDefault();
-    if (!this.dragTaskId) return;
-    const task = this.tasks.find(t => t.id === this.dragTaskId);
-    if (!task) return;
-    const targetStatus = wrapper.dataset.status;
-    if (this.view.session.isLocked &&
-        (task.status === 'running' || targetStatus === 'running') &&
-        task.status !== targetStatus) {
-      e.dataTransfer.dropEffect = 'none';
-      return;
-    }
-    const cards = Array.from(wrapper.querySelectorAll('.pos-card:not(.pos-dragging-source)'));
-    const targetIndex = this.calculateTargetIndex(e.clientY, cards);
-    this.showPlaceholder(wrapper, targetIndex);
-  }
-  async onDrop(e, wrapper) {
-    e.preventDefault();
-    const taskId = e.dataTransfer.getData('text/plain');
-    if (!taskId) return;
-    const task = this.tasks.find(t => t.id === taskId);
-    if (!task) return;
-    let targetIndex = 0;
-    if (this.dragPlaceholder && this.dragPlaceholder.parentNode) {
-      const list = wrapper.querySelector('.pos-list');
-      const children = Array.from(list.children);
-      const placeholderIdx = children.indexOf(this.dragPlaceholder);
-      targetIndex = children.slice(0, placeholderIdx)
-        .filter(el => el.classList.contains('pos-card') && !el.classList.contains('pos-dragging-source'))
-        .length;
-    } else {
-      const cards = Array.from(wrapper.querySelectorAll('.pos-card'));
-      targetIndex = this.calculateTargetIndex(e.clientY, cards);
-    }
-    this.clearDragPlaceholder();
-    const targetStatus = wrapper.dataset.status;
-    if (task.status === targetStatus) {
-      await this.reorderTask(taskId, task.status, targetIndex);
-    } else {
-      await this.moveTaskToColumn(taskId, targetStatus, targetIndex);
-    }
-  }
-  calculateTargetIndex(clientY, cards) {
-    if (!cards.length) return 0;
-    for (let i = 0; i < cards.length; i++) {
-      const rect = cards[i].getBoundingClientRect();
-      if (clientY < rect.top + rect.height / 2) return i;
-    }
-    return cards.length;
-  }
-  showPlaceholder(wrapper, index) {
-    this.clearDragPlaceholder();
-    const list = wrapper.querySelector('.pos-list');
-    if (!list) return;
-    const line = document.createElement('div');
-    line.className = 'pos-drag-placeholder';
-    const cards = Array.from(list.querySelectorAll('.pos-card:not(.pos-dragging-source)'));
-    if (index >= cards.length) list.appendChild(line);
-    else list.insertBefore(line, cards[index]);
-    this.dragPlaceholder = line;
-  }
-  clearDragPlaceholder() {
-    if (this.dragPlaceholder && this.dragPlaceholder.parentNode) {
-      this.dragPlaceholder.parentNode.removeChild(this.dragPlaceholder);
-      this.dragPlaceholder = null;
-    }
-  }
-
-  // ── Reorder / Move ──
-  async reorderTask(taskId, status, newIndex) {
-    const colTasks = this.tasks.filter(t => t.status === status);
-    const oldIndex = colTasks.findIndex(t => t.id === taskId);
-    if (oldIndex === -1 || oldIndex === newIndex) return;
-    const ids = colTasks.map(t => t.id);
-    ids.splice(oldIndex, 1);
-    ids.splice(newIndex, 0, taskId);
-    for (let i = 0; i < ids.length; i++) {
-      await this.view.plugin.taskManager.updateTask(ids[i], { orderIndex: i });
-    }
-    this.view.refresh();
-  }
-  async moveTaskToColumn(taskId, newStatus, targetIndex) {
-    const task = this.tasks.find(t => t.id === taskId);
-    if (!task) return;
-    const oldStatus = task.status;
-    await this.view.plugin.taskManager.updateTask(taskId, {
-      status: newStatus, orderIndex: targetIndex, isCompleted: newStatus === 'review',
-    });
-    // Re-index destination
-    const destTasks = this.tasks.filter(t => t.status === newStatus && t.id !== taskId);
-    destTasks.splice(targetIndex, 0, { id: taskId });
-    for (let i = 0; i < destTasks.length; i++) {
-      await this.view.plugin.taskManager.updateTask(destTasks[i].id, { orderIndex: i });
-    }
-    // Re-index source
-    const srcTasks = this.tasks.filter(t => t.status === oldStatus && t.id !== taskId);
-    for (let i = 0; i < srcTasks.length; i++) {
-      await this.view.plugin.taskManager.updateTask(srcTasks[i].id, { orderIndex: i });
-    }
-    this.view.refresh();
-  }
-
-  // ── Actions ──
-  async changeStatus(id, status) {
-    await this.view.plugin.taskManager.updateTask(id, { status, isCompleted: status === 'review' });
-    this.view.refresh();
-  }
-  async handleCompleteTask(task) {
-    if (this.view.session.isLocked) {
-      await this.view.plugin.taskManager.updateTask(task.id, { isCompleted: !task.isCompleted });
-    } else {
-      await this.view.plugin.taskManager.updateTask(task.id, { status: 'review', isCompleted: true });
-    }
-    this.view.refresh();
-  }
-  async adjustWeight(id, d) {
-    const t = this.tasks.find(x => x.id === id);
-    if (!t) return;
-    await this.view.plugin.taskManager.updateTask(id, { weight: Math.max(1, t.weight + d) });
-    this.view.refresh();
-  }
-  async toggleFixed(id, v) {
-    const t = this.tasks.find(x => x.id === id);
-    await this.view.plugin.taskManager.updateTask(id, {
-      isFixedDuration: v, fixedDuration: v ? (t.fixedDuration || 30) : null,
-    });
-    this.view.refresh();
-  }
-  async setFixed(id, m) {
-    await this.view.plugin.taskManager.updateTask(id, { isFixedDuration: true, fixedDuration: m });
-    this.view.refresh();
-  }
-  async deleteTask(id) {
-    await this.view.plugin.taskManager.deleteTask(id);
-    this.view.refresh();
-  }
-  async restoreAllReview() {
-    const ts = this.tasks.filter(t => t.status === 'review');
-    for (const t of ts) await this.view.plugin.taskManager.updateTask(t.id, { status: 'running', isCompleted: false });
-    this.view.refresh();
-  }
-  async deleteAllReview() {
-    const ts = this.tasks.filter(t => t.status === 'review');
-    for (const t of ts) await this.view.plugin.taskManager.deleteTask(t.id);
-    this.view.refresh();
-  }
-
-  // ── Deadline / Lock ──
-  setDeadline(d, t) {
-    const dt = new Date(`${d}T${t}`);
-    if (isNaN(dt.getTime())) return;
-    const session = this.view.session;
-    session.deadline = dt.toISOString();
-    if (session.isLocked) {
-      session.isLocked = false;
-      session.lockedAt = null;
-      session.lockedDeadline = null;
-      session.lockedTimeline = [];
-    }
-    this.view.refresh();
-  }
-  toggleLock() {
-    const session = this.view.session;
-    if (session.isLocked) {
-      session.isLocked = false;
-      session.lockedAt = null;
-      session.lockedDeadline = null;
-      session.lockedTimeline = [];
-      this.view.refresh();
-      return;
-    }
-    const running = this.tasks.filter(t => t.status === 'running');
-    session.lockedAt = new Date().toISOString();
-    session.lockedDeadline = session.deadline;
-    session.lockedTimeline = calculateLiquidTimeline(running, new Date(), new Date(session.deadline));
-    session.isLocked = true;
-    this.view.refresh();
-  }
-  getTimeline() {
-    const s = this.view.session;
-    return s.isLocked
-      ? s.lockedTimeline
-      : calculateLiquidTimeline(
-          this.tasks.filter(t => t.status === 'running'),
-          new Date(), new Date(s.deadline)
-        );
-  }
-
-  // ── Proportional Heights ──
-  applyHeights() {
-    const wrapper = this.view.contentEl.querySelector('.pos-list-wrapper[data-status="running"]');
-    if (!wrapper || !wrapper.isConnected) return;
-    const cards = Array.from(wrapper.querySelectorAll('.pos-card'));
-    const tl = this.getTimeline();
-    const total = tl.reduce((s, t) => s + t.calculatedDuration, 0);
-    const H = wrapper.clientHeight;
-    if (total <= 0 || H <= 0) {
-      const tw = cards.reduce((s, el) => s + (parseFloat(el.dataset.weight) || 1), 0) || 1;
-      cards.forEach(el => {
-        el.style.height = Math.max(65, (parseFloat(el.dataset.weight) || 1) / tw * Math.max(H, 300)) + 'px';
-      });
-      return;
-    }
-    cards.forEach(el => {
-      const ti = tl.find(t => t.id === el.dataset.taskId);
-      const dur = ti ? ti.calculatedDuration : 0;
-      el.style.height = Math.max(65, (dur / total) * H) + 'px';
+      this.onSave(updates);
+      this.close();
     });
   }
-  observeRunning() {
-    const wrapper = this.view.contentEl.querySelector('.pos-list-wrapper[data-status="running"]');
-    if (!wrapper) return;
-    this.ro?.disconnect();
-    this.ro = new ResizeObserver(() => {
-      this.applyHeights();
-      if (this.view.session.isLocked) this.updateLockLine();
-    });
-    this.ro.observe(wrapper);
-  }
-  updateLockLine() {
-    const s = this.view.session;
-    if (!s.isLocked) return;
-    const wrapper = this.view.contentEl.querySelector('.pos-list-wrapper[data-status="running"]');
-    if (!wrapper || !wrapper.isConnected) return;
-    const line = wrapper.querySelector('.pos-redline');
-    const wipe = wrapper.querySelector('.pos-wipe');
-    if (!line || !wipe) return;
-    const start = new Date(s.lockedAt).getTime();
-    const end = new Date(s.lockedDeadline).getTime();
-    const p = Math.min(1, Math.max(0, (Date.now() - start) / (end - start)));
-    const top = p * wrapper.scrollHeight;
-    line.style.top = top + 'px';
-    wipe.style.top = '0';
-    wipe.style.height = top + 'px';
-  }
-
-  tick() {
-    if (this.view.session.isLocked) this.updateLockLine();
-  }
-
-  destroy() {
-    this.ro?.disconnect();
-    this.clearDragPlaceholder();
-  }
-}
-
-// ── 4c. Deadlines Renderer ──────────────────────────────────────
-
-class DeadlinesRenderer {
-  constructor(view) {
-    this.view = view;
-    this._countdownItems = [];
-  }
-
-  async render(container) {
-    container.empty();
-    const projectId = this.view.session.selectedProjectId;
-    let tasks = await this.view.plugin.taskManager.loadTasksForProject(projectId);
-    let deadlineTasks = tasks
-      .filter(t => t.deadline && t.status !== 'review')
-      .sort((a, b) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime());
-
-    // Mini calendar
-    this.renderCalendar(container, deadlineTasks);
-
-    // Filter row
-    const session = this.view.session;
-    const filterRow = container.createEl('div', { cls: 'pos-filter-row' });
-    if (session.deadlineFilterDate) {
-      filterRow.createEl('span', { text: `Showing: ${session.deadlineFilterDate}` });
-      filterRow.createEl('button', { text: 'Clear', cls: 'pos-clear-btn' })
-        .addEventListener('click', () => { session.deadlineFilterDate = null; this.view.refresh(); });
-    } else {
-      filterRow.createEl('span', { text: 'All deadlines' });
-    }
-
-    // Apply date filter
-    if (session.deadlineFilterDate) {
-      deadlineTasks = deadlineTasks.filter(t =>
-        new Date(t.deadline).toISOString().slice(0, 10) === session.deadlineFilterDate
-      );
-    }
-
-    // New task button
-    const btnRow = container.createEl('div', { cls: 'pos-newtask-row' });
-    btnRow.createEl('button', { text: '+ New Task with Deadline', cls: 'pos-newtask-btn' })
-      .addEventListener('click', () => {
-        new NewTaskModal(this.view.app, async (d) => {
-          d.project = this.view.session.selectedProjectId;
-          if (!d.deadline) {
-            const tomorrow = new Date();
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            d.deadline = tomorrow.toISOString();
-          }
-          await this.view.plugin.taskManager.createTask(d);
-          this.view.refresh();
-        }).open();
-      });
-
-    if (deadlineTasks.length === 0) {
-      container.createEl('p', { text: 'No tasks with deadlines.', cls: 'pos-empty' });
-      this._countdownItems = [];
-      return;
-    }
-
-    const list = container.createEl('div', { cls: 'pos-deadline-list' });
-    this._countdownItems = [];
-    const now = Date.now();
-
-    for (const task of deadlineTasks) {
-      const card = list.createEl('div', {
-        cls: 'pos-card pos-deadline-card',
-        attr: { 'data-task-id': task.id },
-      });
-      if (task.isCompleted) card.classList.add('pos-completed');
-
-      const dl = new Date(task.deadline).getTime();
-      const diff = dl - now;
-      card.style.backgroundColor = deadlineHue(diff);
-
-      const nameEl = card.createEl('div', { cls: 'pos-card-name', text: task.name });
-      nameEl.addEventListener('click', (e) => {
-        e.stopPropagation();
-        new EditTaskModal(this.view.app, task, async (updates) => {
-          await this.view.plugin.taskManager.updateTask(task.id, updates);
-          this.view.refresh();
-        }).open();
-      });
-
-      if (task.description) card.createEl('div', { cls: 'pos-card-desc', text: task.description });
-
-      const timer = card.createEl('div', { cls: 'pos-countdown' });
-      timer.textContent = formatCountdown(diff);
-
-      this._countdownItems.push({ el: timer, card, deadline: task.deadline });
-
-      const acts = card.createEl('div', { cls: 'pos-card-acts' });
-      acts.createEl('button', { text: '✓ Done' }).addEventListener('click', async (e) => {
-        e.stopPropagation();
-        await this.view.plugin.taskManager.updateTask(task.id, { status: 'review', isCompleted: true });
-        this.view.refresh();
-      });
-      acts.createEl('button', { text: 'Delete', cls: 'pos-del' }).addEventListener('click', async (e) => {
-        e.stopPropagation();
-        await this.view.plugin.taskManager.deleteTask(task.id);
-        this.view.refresh();
-      });
-    }
-  }
-
-  renderCalendar(parent, rawTasks) {
-    const session = this.view.session;
-    const year = session.calendarYear;
-    const month = session.calendarMonth;
-    const deadlineDays = new Set();
-    rawTasks.forEach(t => {
-      const d = new Date(t.deadline);
-      if (!isNaN(d.getTime())) deadlineDays.add(d.toISOString().slice(0, 10));
-    });
-
-    const calWrap = parent.createEl('div', { cls: 'pos-calendar' });
-    const navRow = calWrap.createEl('div', { cls: 'pos-cal-nav' });
-    navRow.createEl('button', { text: '‹' }).addEventListener('click', () => {
-      session.calendarMonth--;
-      if (session.calendarMonth < 0) { session.calendarYear--; session.calendarMonth = 11; }
-      this.view.refresh();
-    });
-    navRow.createEl('span', {
-      text: new Date(year, month).toLocaleString('default', { month: 'long', year: 'numeric' }),
-    });
-    navRow.createEl('button', { text: '›' }).addEventListener('click', () => {
-      session.calendarMonth++;
-      if (session.calendarMonth > 11) { session.calendarYear++; session.calendarMonth = 0; }
-      this.view.refresh();
-    });
-
-    const tbl = calWrap.createEl('table');
-    const thead = tbl.createEl('thead');
-    const tr = thead.createEl('tr');
-    ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].forEach(d => tr.createEl('th', { text: d }));
-
-    const tbody = tbl.createEl('tbody');
-    const firstDay = new Date(year, month, 1).getDay();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    let date = 1;
-    for (let row = 0; date <= daysInMonth; row++) {
-      const r = tbody.createEl('tr');
-      for (let col = 0; col < 7; col++) {
-        const cell = r.createEl('td');
-        if (row === 0 && col < firstDay) continue;
-        if (date > daysInMonth) continue;
-        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
-        cell.textContent = date;
-        cell.dataset.date = dateStr;
-        if (deadlineDays.has(dateStr)) cell.classList.add('has-deadline');
-        if (session.deadlineFilterDate === dateStr) cell.classList.add('selected');
-        cell.addEventListener('click', () => {
-          session.deadlineFilterDate = session.deadlineFilterDate === dateStr ? null : dateStr;
-          this.view.refresh();
-        });
-        date++;
-      }
-    }
-  }
-
-  tick() {
-    const now = Date.now();
-    for (const item of this._countdownItems) {
-      if (!item.el.isConnected) continue;
-      const diff = new Date(item.deadline).getTime() - now;
-      item.el.textContent = formatCountdown(diff);
-      if (item.card.isConnected) item.card.style.backgroundColor = deadlineHue(diff);
-    }
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════════
-// SECTION 5 — Main View
-// ═══════════════════════════════════════════════════════════════════
-
-class ProjectOSView extends ItemView {
-  constructor(leaf, plugin) {
-    super(leaf);
-    this.plugin = plugin;
-    this.session = {
-      mode: 'projects',
-      selectedProjectId: null,
-      deadline: new Date(Date.now() + 4 * 3600 * 1000).toISOString(),
-      isLocked: false,
-      lockedAt: null,
-      lockedDeadline: null,
-      lockedTimeline: [],
-      calendarYear: new Date().getFullYear(),
-      calendarMonth: new Date().getMonth(),
-      deadlineFilterDate: null,
-    };
-    this._eventRefs = [];
-    this._debounce = null;
-    this.agingRenderer = new AgingRenderer(this);
-    this.elasticRenderer = new ElasticRenderer(this);
-    this.deadlinesRenderer = new DeadlinesRenderer(this);
-  }
-
-  getViewType() { return VIEW_TYPE; }
-  getDisplayText() { return 'Project OS'; }
-  getIcon() { return 'layout-dashboard'; }
-
-  async onOpen() {
+  onClose() {
     this.contentEl.empty();
-    this.contentEl.addClass('pos-view');
-    await this.refresh();
-    this._eventRefs = [
-      this.app.metadataCache.on('changed', (file) => {
-        if (file?.path?.startsWith(TASKS_FOLDER + '/') || file?.path?.startsWith(PROJECTS_FOLDER + '/'))
-          this.debouncedRefresh();
-      }),
-      this.app.vault.on('delete', (file) => {
-        if (file?.path?.startsWith(TASKS_FOLDER + '/') || file?.path?.startsWith(PROJECTS_FOLDER + '/'))
-          this.debouncedRefresh();
-      }),
-      this.app.vault.on('rename', (file, old) => {
-        if (file?.path?.startsWith(TASKS_FOLDER + '/') || file?.path?.startsWith(PROJECTS_FOLDER + '/') ||
-            old?.startsWith(TASKS_FOLDER + '/') || old?.startsWith(PROJECTS_FOLDER + '/'))
-          this.debouncedRefresh();
-      }),
-    ];
   }
-
-  debouncedRefresh() {
-    clearTimeout(this._debounce);
-    this._debounce = setTimeout(() => this.refresh(), 250);
+};
+var ConfirmModal = class extends import_obsidian2.Modal {
+  constructor(app, title, message, onConfirm) {
+    super(app);
+    this.title = title;
+    this.message = message;
+    this.onConfirm = onConfirm;
   }
-
-  async onClose() {
-    this.elasticRenderer.destroy();
-    for (const ref of this._eventRefs) this.app.metadataCache.offref(ref);
-  }
-
-  selectProject(projectId, mode) {
-    this.session.selectedProjectId = projectId;
-    this.session.mode = mode || 'elastic';
-    this.refresh();
-  }
-
-  async refresh() {
-    const c = this.contentEl;
-    c.empty();
-    c.addClass('pos-view');
-
-    // ── Mode bar ──
-    const modeBar = c.createEl('div', { cls: 'pos-mode-bar' });
-    [
-      { key: 'projects', label: 'Projects' },
-      { key: 'elastic', label: 'Elastic' },
-      { key: 'deadlines', label: 'Deadlines' },
-    ].forEach(m => {
-      const btn = modeBar.createEl('button', {
-        text: m.label,
-        cls: `pos-mode-btn ${this.session.mode === m.key ? 'pos-mode-active' : ''}`,
-      });
-      btn.addEventListener('click', () => {
-        if (this.session.mode === m.key) return;
-        this.session.mode = m.key;
-        this.refresh();
-      });
+  onOpen() {
+    const { contentEl } = this;
+    contentEl.empty();
+    contentEl.createEl("h3", { text: this.title });
+    contentEl.createEl("p", { text: this.message });
+    const br = contentEl.createEl("div", { cls: "pos-modal-buttons" });
+    br.createEl("button", { text: "Cancel" }).addEventListener("click", () => this.close());
+    br.createEl("button", { text: "Confirm", cls: "pos-modal-primary pos-del" }).addEventListener("click", () => {
+      this.onConfirm();
+      this.close();
     });
-
-    // ── Project selector (elastic/deadlines only) ──
-    if (this.session.mode === 'elastic' || this.session.mode === 'deadlines') {
-      const projects = await this.plugin.projectManager.loadProjects();
-      const selRow = c.createEl('div', { cls: 'pos-project-selector-row' });
-      selRow.createEl('label', { text: 'Project: ' });
-      const sel = selRow.createEl('select', { cls: 'pos-project-selector' });
-      const uncatOpt = sel.createEl('option', { text: '— Uncategorized —' });
-      uncatOpt.value = '';
-      if (!this.session.selectedProjectId) uncatOpt.selected = true;
-      projects.forEach(p => {
-        const opt = sel.createEl('option', { text: p.name });
-        opt.value = p.id;
-        if (this.session.selectedProjectId === p.id) opt.selected = true;
-      });
-      sel.addEventListener('change', () => {
-        this.session.selectedProjectId = sel.value || null;
-        this.refresh();
-      });
-    }
-
-    // ── Content area ──
-    const content = c.createEl('div', { cls: 'pos-content' });
-    if (this.session.mode === 'projects') {
-      await this.agingRenderer.render(content);
-    } else if (this.session.mode === 'elastic') {
-      await this.elasticRenderer.render(content);
-    } else if (this.session.mode === 'deadlines') {
-      await this.deadlinesRenderer.render(content);
-    }
   }
-
-  /** Called by the global 1-second timer. */
-  tickActiveRenderer() {
-    if (!this.contentEl.isConnected) return;
-    if (this.session.mode === 'projects') this.agingRenderer.tick();
-    else if (this.session.mode === 'elastic') this.elasticRenderer.tick();
-    else if (this.session.mode === 'deadlines') this.deadlinesRenderer.tick();
+  onClose() {
+    this.contentEl.empty();
   }
+};
+var NewProjectModal = class extends import_obsidian2.Modal {
+  constructor(app, onCreate) {
+    super(app);
+    this.onCreate = onCreate;
+  }
+  onOpen() {
+    const { contentEl } = this;
+    contentEl.empty();
+    contentEl.createEl("h3", { text: "Create New Project" });
+    const inp = contentEl.createEl("input", {
+      type: "text",
+      placeholder: "Project name",
+      cls: "pos-modal-input"
+    });
+    const desc = contentEl.createEl("textarea", {
+      placeholder: "Description (optional)",
+      cls: "pos-modal-textarea"
+    });
+    const br = contentEl.createEl("div", { cls: "pos-modal-buttons" });
+    br.createEl("button", { text: "Cancel" }).addEventListener("click", () => this.close());
+    br.createEl("button", { text: "Create", cls: "pos-modal-primary" }).addEventListener("click", () => {
+      const name = inp.value.trim();
+      if (!name) {
+        new import_obsidian2.Notice("Project name is required");
+        return;
+      }
+      this.onCreate(name, desc.value.trim());
+      this.close();
+    });
+  }
+  onClose() {
+    this.contentEl.empty();
+  }
+};
+var NewTaskModal = class extends import_obsidian2.Modal {
+  constructor(app, onCreate) {
+    super(app);
+    this.onCreate = onCreate;
+  }
+  onOpen() {
+    const { contentEl } = this;
+    contentEl.empty();
+    contentEl.createEl("h3", { text: "Create New Task" });
+    const inp = contentEl.createEl("input", {
+      type: "text",
+      placeholder: "Task name",
+      cls: "pos-modal-input"
+    });
+    const br = contentEl.createEl("div", { cls: "pos-modal-buttons" });
+    br.createEl("button", { text: "Cancel" }).addEventListener("click", () => this.close());
+    br.createEl("button", { text: "Create", cls: "pos-modal-primary" }).addEventListener("click", () => {
+      const name = inp.value.trim();
+      if (!name) {
+        new import_obsidian2.Notice("Task name is required");
+        return;
+      }
+      this.onCreate(name);
+      this.close();
+    });
+  }
+  onClose() {
+    this.contentEl.empty();
+  }
+};
+
+// src/ui/views/AgingView.svelte
+function get_each_context(ctx, list, i) {
+  const child_ctx = ctx.slice();
+  child_ctx[20] = list[i];
+  const constants_0 = (
+    /*tasks*/
+    child_ctx[5].filter(function func(...args) {
+      return (
+        /*func*/
+        ctx[18](
+          /*project*/
+          child_ctx[20],
+          ...args
+        )
+      );
+    })
+  );
+  child_ctx[21] = constants_0;
+  const constants_1 = {
+    running: (
+      /*projectTasks*/
+      child_ctx[21].filter((t) => t.status === "running").length
+    ),
+    review: (
+      /*projectTasks*/
+      child_ctx[21].filter((t) => t.status === "review").length
+    ),
+    total: (
+      /*projectTasks*/
+      child_ctx[21].length
+    )
+  };
+  child_ctx[22] = constants_1;
+  return child_ctx;
 }
-
-// ═══════════════════════════════════════════════════════════════════
-// SECTION 6 — Plugin
-// ═══════════════════════════════════════════════════════════════════
-
-class ProjectOSPlugin extends Plugin {
-  async onload() {
-    this.projectManager = new ProjectManager(this.app);
-    this.taskManager = new TaskDataManager(this.app);
-
-    this.registerView(VIEW_TYPE, (leaf) => new ProjectOSView(leaf, this));
-    this.addRibbonIcon('layout-dashboard', 'Project OS', () => this.activateView());
-    this.addCommand({
-      id: 'open-project-os',
-      name: 'Open Project OS',
-      callback: () => this.activateView(),
-    });
-
-    // One-time migration
-    await this.runMigration();
-
-    // Global 1-second timer — dispatches to the active view's tick()
-    this.registerInterval(
-      window.setInterval(() => {
-        const leaves = this.app.workspace.getLeavesOfType(VIEW_TYPE);
-        for (const leaf of leaves) {
-          if (leaf.view && leaf.view.tickActiveRenderer) {
-            leaf.view.tickActiveRenderer();
-          }
+function create_else_block(ctx) {
+  let div;
+  let each_blocks = [];
+  let each_1_lookup = /* @__PURE__ */ new Map();
+  let each_value = ensure_array_like(
+    /*activeProjects*/
+    ctx[2]
+  );
+  const get_key = (ctx2) => (
+    /*project*/
+    ctx2[20].id
+  );
+  for (let i = 0; i < each_value.length; i += 1) {
+    let child_ctx = get_each_context(ctx, each_value, i);
+    let key = get_key(child_ctx);
+    each_1_lookup.set(key, each_blocks[i] = create_each_block(key, child_ctx));
+  }
+  return {
+    c() {
+      div = element("div");
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        each_blocks[i].c();
+      }
+      attr(div, "class", "pos-project-list");
+    },
+    m(target, anchor) {
+      insert(target, div, anchor);
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        if (each_blocks[i]) {
+          each_blocks[i].m(div, null);
         }
-      }, 1000)
+      }
+    },
+    p(ctx2, dirty) {
+      if (dirty & /*getHue, activeProjects, range, minTime, archiveProject, onSelect, tasks, now*/
+      383) {
+        each_value = ensure_array_like(
+          /*activeProjects*/
+          ctx2[2]
+        );
+        each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx2, each_value, each_1_lookup, div, destroy_block, create_each_block, null, get_each_context);
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div);
+      }
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        each_blocks[i].d();
+      }
+    }
+  };
+}
+function create_if_block(ctx) {
+  let p;
+  return {
+    c() {
+      p = element("p");
+      p.textContent = "No projects yet. Create one!";
+      attr(p, "class", "pos-empty");
+    },
+    m(target, anchor) {
+      insert(target, p, anchor);
+    },
+    p: noop,
+    d(detaching) {
+      if (detaching) {
+        detach(p);
+      }
+    }
+  };
+}
+function create_if_block_3(ctx) {
+  let div;
+  let t_value = (
+    /*project*/
+    ctx[20].description + ""
+  );
+  let t;
+  return {
+    c() {
+      div = element("div");
+      t = text(t_value);
+      attr(div, "class", "pos-card-desc");
+    },
+    m(target, anchor) {
+      insert(target, div, anchor);
+      append(div, t);
+    },
+    p(ctx2, dirty) {
+      if (dirty & /*activeProjects*/
+      4 && t_value !== (t_value = /*project*/
+      ctx2[20].description + ""))
+        set_data(t, t_value);
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div);
+      }
+    }
+  };
+}
+function create_if_block_2(ctx) {
+  let span;
+  let t0_value = (
+    /*counts*/
+    ctx[22].running + ""
+  );
+  let t0;
+  let t1;
+  return {
+    c() {
+      span = element("span");
+      t0 = text(t0_value);
+      t1 = text(" running");
+    },
+    m(target, anchor) {
+      insert(target, span, anchor);
+      append(span, t0);
+      append(span, t1);
+    },
+    p(ctx2, dirty) {
+      if (dirty & /*tasks, activeProjects*/
+      36 && t0_value !== (t0_value = /*counts*/
+      ctx2[22].running + ""))
+        set_data(t0, t0_value);
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(span);
+      }
+    }
+  };
+}
+function create_if_block_1(ctx) {
+  let span;
+  let t0_value = (
+    /*counts*/
+    ctx[22].review + ""
+  );
+  let t0;
+  let t1;
+  return {
+    c() {
+      span = element("span");
+      t0 = text(t0_value);
+      t1 = text(" done");
+    },
+    m(target, anchor) {
+      insert(target, span, anchor);
+      append(span, t0);
+      append(span, t1);
+    },
+    p(ctx2, dirty) {
+      if (dirty & /*tasks, activeProjects*/
+      36 && t0_value !== (t0_value = /*counts*/
+      ctx2[22].review + ""))
+        set_data(t0, t0_value);
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(span);
+      }
+    }
+  };
+}
+function create_each_block(key_1, ctx) {
+  let div4;
+  let div0;
+  let t0_value = (
+    /*project*/
+    ctx[20].name + ""
+  );
+  let t0;
+  let t1;
+  let t2;
+  let div1;
+  let t3_value = formatAge(
+    /*project*/
+    ctx[20].createdAt,
+    /*now*/
+    ctx[3]
+  ) + "";
+  let t3;
+  let t4;
+  let div2;
+  let span;
+  let t5_value = (
+    /*counts*/
+    ctx[22].total + ""
+  );
+  let t5;
+  let t6;
+  let t7;
+  let t8;
+  let t9;
+  let div3;
+  let button0;
+  let t11;
+  let button1;
+  let t13;
+  let button2;
+  let t15;
+  let mounted;
+  let dispose;
+  let if_block0 = (
+    /*project*/
+    ctx[20].description && create_if_block_3(ctx)
+  );
+  let if_block1 = (
+    /*counts*/
+    ctx[22].running > 0 && create_if_block_2(ctx)
+  );
+  let if_block2 = (
+    /*counts*/
+    ctx[22].review > 0 && create_if_block_1(ctx)
+  );
+  function click_handler() {
+    return (
+      /*click_handler*/
+      ctx[15](
+        /*project*/
+        ctx[20]
+      )
     );
   }
-
-  /**
-   * One-time migration: ensures every task file has a createdAt field.
-   * Reads file stat birthtime if missing. Records completion in plugin data.
-   */
-  async runMigration() {
-    const settings = (await this.loadData()) || {};
-    if (settings.migrationDone) return;
-
-    try {
-      const tasksFolder = this.app.vault.getAbstractFileByPath(TASKS_FOLDER);
-      if (tasksFolder) {
-        const files = this.app.vault.getMarkdownFiles()
-          .filter(f => f.path.startsWith(TASKS_FOLDER + '/'));
-        for (const f of files) {
-          const content = await this.app.vault.read(f);
-          const fm = parseFrontmatter(content);
-          if (!fm.createdAt) {
-            try {
-              const stat = await this.app.vault.adapter.stat(f.path);
-              fm.createdAt = new Date(stat?.ctime || Date.now()).toISOString();
-            } catch {
-              fm.createdAt = new Date().toISOString();
-            }
-            const body = content.replace(/^---\r?\n[\s\S]*?\r?\n---/, '').trim();
-            await this.app.vault.modify(f, serializeFrontmatter(fm) + '\n' + body);
-          }
+  function click_handler_1() {
+    return (
+      /*click_handler_1*/
+      ctx[16](
+        /*project*/
+        ctx[20]
+      )
+    );
+  }
+  function click_handler_2() {
+    return (
+      /*click_handler_2*/
+      ctx[17](
+        /*project*/
+        ctx[20]
+      )
+    );
+  }
+  return {
+    key: key_1,
+    first: null,
+    c() {
+      div4 = element("div");
+      div0 = element("div");
+      t0 = text(t0_value);
+      t1 = space();
+      if (if_block0)
+        if_block0.c();
+      t2 = space();
+      div1 = element("div");
+      t3 = text(t3_value);
+      t4 = space();
+      div2 = element("div");
+      span = element("span");
+      t5 = text(t5_value);
+      t6 = text(" tasks");
+      t7 = space();
+      if (if_block1)
+        if_block1.c();
+      t8 = space();
+      if (if_block2)
+        if_block2.c();
+      t9 = space();
+      div3 = element("div");
+      button0 = element("button");
+      button0.textContent = "Open";
+      t11 = space();
+      button1 = element("button");
+      button1.textContent = "Deadlines";
+      t13 = space();
+      button2 = element("button");
+      button2.textContent = "Archive";
+      t15 = space();
+      attr(div0, "class", "pos-card-name");
+      attr(div1, "class", "pos-age");
+      attr(div2, "class", "pos-card-meta");
+      attr(button2, "class", "pos-del");
+      attr(div3, "class", "pos-card-acts");
+      attr(div4, "class", "pos-card pos-project-card");
+      set_style(div4, "background-color", "hsl(" + /*getHue*/
+      ctx[6](
+        /*project*/
+        ctx[20].createdAt,
+        /*range*/
+        ctx[4],
+        /*minTime*/
+        ctx[1]
+      ) + ", 70%, 90%)");
+      this.first = div4;
+    },
+    m(target, anchor) {
+      insert(target, div4, anchor);
+      append(div4, div0);
+      append(div0, t0);
+      append(div4, t1);
+      if (if_block0)
+        if_block0.m(div4, null);
+      append(div4, t2);
+      append(div4, div1);
+      append(div1, t3);
+      append(div4, t4);
+      append(div4, div2);
+      append(div2, span);
+      append(span, t5);
+      append(span, t6);
+      append(div2, t7);
+      if (if_block1)
+        if_block1.m(div2, null);
+      append(div2, t8);
+      if (if_block2)
+        if_block2.m(div2, null);
+      append(div4, t9);
+      append(div4, div3);
+      append(div3, button0);
+      append(div3, t11);
+      append(div3, button1);
+      append(div3, t13);
+      append(div3, button2);
+      append(div4, t15);
+      if (!mounted) {
+        dispose = [
+          listen(button0, "click", click_handler),
+          listen(button1, "click", click_handler_1),
+          listen(button2, "click", click_handler_2)
+        ];
+        mounted = true;
+      }
+    },
+    p(new_ctx, dirty) {
+      ctx = new_ctx;
+      if (dirty & /*activeProjects*/
+      4 && t0_value !== (t0_value = /*project*/
+      ctx[20].name + ""))
+        set_data(t0, t0_value);
+      if (
+        /*project*/
+        ctx[20].description
+      ) {
+        if (if_block0) {
+          if_block0.p(ctx, dirty);
+        } else {
+          if_block0 = create_if_block_3(ctx);
+          if_block0.c();
+          if_block0.m(div4, t2);
+        }
+      } else if (if_block0) {
+        if_block0.d(1);
+        if_block0 = null;
+      }
+      if (dirty & /*activeProjects, now*/
+      12 && t3_value !== (t3_value = formatAge(
+        /*project*/
+        ctx[20].createdAt,
+        /*now*/
+        ctx[3]
+      ) + ""))
+        set_data(t3, t3_value);
+      if (dirty & /*tasks, activeProjects*/
+      36 && t5_value !== (t5_value = /*counts*/
+      ctx[22].total + ""))
+        set_data(t5, t5_value);
+      if (
+        /*counts*/
+        ctx[22].running > 0
+      ) {
+        if (if_block1) {
+          if_block1.p(ctx, dirty);
+        } else {
+          if_block1 = create_if_block_2(ctx);
+          if_block1.c();
+          if_block1.m(div2, t8);
+        }
+      } else if (if_block1) {
+        if_block1.d(1);
+        if_block1 = null;
+      }
+      if (
+        /*counts*/
+        ctx[22].review > 0
+      ) {
+        if (if_block2) {
+          if_block2.p(ctx, dirty);
+        } else {
+          if_block2 = create_if_block_1(ctx);
+          if_block2.c();
+          if_block2.m(div2, null);
+        }
+      } else if (if_block2) {
+        if_block2.d(1);
+        if_block2 = null;
+      }
+      if (dirty & /*activeProjects, range, minTime*/
+      22) {
+        set_style(div4, "background-color", "hsl(" + /*getHue*/
+        ctx[6](
+          /*project*/
+          ctx[20].createdAt,
+          /*range*/
+          ctx[4],
+          /*minTime*/
+          ctx[1]
+        ) + ", 70%, 90%)");
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div4);
+      }
+      if (if_block0)
+        if_block0.d();
+      if (if_block1)
+        if_block1.d();
+      if (if_block2)
+        if_block2.d();
+      mounted = false;
+      run_all(dispose);
+    }
+  };
+}
+function create_fragment(ctx) {
+  let div;
+  let button;
+  let t1;
+  let if_block_anchor;
+  let mounted;
+  let dispose;
+  function select_block_type(ctx2, dirty) {
+    if (
+      /*activeProjects*/
+      ctx2[2].length === 0
+    )
+      return create_if_block;
+    return create_else_block;
+  }
+  let current_block_type = select_block_type(ctx, -1);
+  let if_block = current_block_type(ctx);
+  return {
+    c() {
+      div = element("div");
+      button = element("button");
+      button.textContent = "+ New Project";
+      t1 = space();
+      if_block.c();
+      if_block_anchor = empty();
+      attr(button, "class", "pos-newtask-btn");
+      attr(div, "class", "pos-newtask-row");
+    },
+    m(target, anchor) {
+      insert(target, div, anchor);
+      append(div, button);
+      insert(target, t1, anchor);
+      if_block.m(target, anchor);
+      insert(target, if_block_anchor, anchor);
+      if (!mounted) {
+        dispose = listen(
+          button,
+          "click",
+          /*createProject*/
+          ctx[7]
+        );
+        mounted = true;
+      }
+    },
+    p(ctx2, [dirty]) {
+      if (current_block_type === (current_block_type = select_block_type(ctx2, dirty)) && if_block) {
+        if_block.p(ctx2, dirty);
+      } else {
+        if_block.d(1);
+        if_block = current_block_type(ctx2);
+        if (if_block) {
+          if_block.c();
+          if_block.m(if_block_anchor.parentNode, if_block_anchor);
         }
       }
-    } catch (e) {
-      console.error('Project OS migration error:', e);
+    },
+    i: noop,
+    o: noop,
+    d(detaching) {
+      if (detaching) {
+        detach(div);
+        detach(t1);
+        detach(if_block_anchor);
+      }
+      if_block.d(detaching);
+      mounted = false;
+      dispose();
     }
-
-    settings.migrationDone = true;
-    await this.saveData(settings);
+  };
+}
+function instance($$self, $$props, $$invalidate) {
+  let activeProjects;
+  let tasks;
+  let allTimes;
+  let minTime;
+  let maxTime;
+  let range;
+  let $tasksStore;
+  let $projectsStore;
+  component_subscribe($$self, tasksStore, ($$value) => $$invalidate(13, $tasksStore = $$value));
+  component_subscribe($$self, projectsStore, ($$value) => $$invalidate(14, $projectsStore = $$value));
+  let { app } = $$props;
+  let { fileManager } = $$props;
+  let { onSelect } = $$props;
+  let timer;
+  let now2 = Date.now();
+  onMount(() => {
+    timer = window.setInterval(
+      () => {
+        $$invalidate(3, now2 = Date.now());
+      },
+      6e4
+    );
+  });
+  onDestroy(() => {
+    window.clearInterval(timer);
+  });
+  function getHue(createdAt, range2, minTime2) {
+    const tMs = new Date(createdAt).getTime();
+    const ratio = range2 > 1 ? (tMs - minTime2) / range2 : 0;
+    return 120 * (1 - ratio);
   }
+  function createProject() {
+    new NewProjectModal(
+      app,
+      async (name, desc) => {
+        const id = `proj-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`;
+        const fm = {
+          type: "project",
+          name,
+          description: desc,
+          createdAt: (/* @__PURE__ */ new Date()).toISOString(),
+          status: "active"
+        };
+        const content = "---\n" + Object.entries(fm).map(([k, v]) => `${k}: ${v}`).join("\n") + "\n---\n";
+        await app.vault.create(`projects/${id}.md`, content);
+        await fileManager.loadAll();
+      }
+    ).open();
+  }
+  async function archiveProject(id) {
+    if (confirm("Archive this project?")) {
+      const file = app.vault.getAbstractFileByPath(`projects/${id}.md`);
+      if (file) {
+        let c = await app.vault.read(file);
+        c = c.replace(/status:\s*active/, "status: archived");
+        if (!c.includes("status:"))
+          c = c.replace(/---/, "---\nstatus: archived");
+        await app.vault.modify(file, c);
+        await fileManager.loadAll();
+      }
+    }
+  }
+  const click_handler = (project) => onSelect(project.id, "elastic");
+  const click_handler_1 = (project) => onSelect(project.id, "deadlines");
+  const click_handler_2 = (project) => archiveProject(project.id);
+  const func = (project, t) => t.project === project.id;
+  $$self.$$set = ($$props2) => {
+    if ("app" in $$props2)
+      $$invalidate(9, app = $$props2.app);
+    if ("fileManager" in $$props2)
+      $$invalidate(10, fileManager = $$props2.fileManager);
+    if ("onSelect" in $$props2)
+      $$invalidate(0, onSelect = $$props2.onSelect);
+  };
+  $$self.$$.update = () => {
+    if ($$self.$$.dirty & /*$projectsStore*/
+    16384) {
+      $:
+        $$invalidate(2, activeProjects = $projectsStore.filter((p) => p.status === "active"));
+    }
+    if ($$self.$$.dirty & /*$tasksStore*/
+    8192) {
+      $:
+        $$invalidate(5, tasks = $tasksStore);
+    }
+    if ($$self.$$.dirty & /*activeProjects*/
+    4) {
+      $:
+        $$invalidate(12, allTimes = activeProjects.map((p) => new Date(p.createdAt).getTime()));
+    }
+    if ($$self.$$.dirty & /*allTimes*/
+    4096) {
+      $:
+        $$invalidate(1, minTime = Math.min(...allTimes));
+    }
+    if ($$self.$$.dirty & /*allTimes*/
+    4096) {
+      $:
+        $$invalidate(11, maxTime = Math.max(...allTimes));
+    }
+    if ($$self.$$.dirty & /*maxTime, minTime*/
+    2050) {
+      $:
+        $$invalidate(4, range = maxTime - minTime || 1);
+    }
+  };
+  return [
+    onSelect,
+    minTime,
+    activeProjects,
+    now2,
+    range,
+    tasks,
+    getHue,
+    createProject,
+    archiveProject,
+    app,
+    fileManager,
+    maxTime,
+    allTimes,
+    $tasksStore,
+    $projectsStore,
+    click_handler,
+    click_handler_1,
+    click_handler_2,
+    func
+  ];
+}
+var AgingView = class extends SvelteComponent {
+  constructor(options) {
+    super();
+    init(this, options, instance, create_fragment, safe_not_equal, { app: 9, fileManager: 10, onSelect: 0 });
+  }
+};
+var AgingView_default = AgingView;
 
+// src/ui/views/ElasticView.svelte
+var import_obsidian3 = require("obsidian");
+function get_each_context2(ctx, list, i) {
+  const child_ctx = ctx.slice();
+  child_ctx[72] = list[i];
+  child_ctx[74] = i;
+  return child_ctx;
+}
+function get_each_context_1(ctx, list, i) {
+  const child_ctx = ctx.slice();
+  child_ctx[72] = list[i];
+  child_ctx[74] = i;
+  const constants_0 = (
+    /*timeline*/
+    child_ctx[6].find(function func(...args) {
+      return (
+        /*func*/
+        ctx[55](
+          /*task*/
+          child_ctx[72],
+          ...args
+        )
+      );
+    })
+  );
+  child_ctx[75] = constants_0;
+  return child_ctx;
+}
+function get_each_context_2(ctx, list, i) {
+  const child_ctx = ctx.slice();
+  child_ctx[72] = list[i];
+  child_ctx[74] = i;
+  return child_ctx;
+}
+function create_if_block_12(ctx) {
+  let div;
+  return {
+    c() {
+      div = element("div");
+      attr(div, "class", "pos-drag-placeholder");
+    },
+    m(target, anchor) {
+      insert(target, div, anchor);
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div);
+      }
+    }
+  };
+}
+function create_if_block_11(ctx) {
+  let div;
+  let t_value = (
+    /*task*/
+    ctx[72].description + ""
+  );
+  let t;
+  return {
+    c() {
+      div = element("div");
+      t = text(t_value);
+      attr(div, "class", "pos-card-desc");
+    },
+    m(target, anchor) {
+      insert(target, div, anchor);
+      append(div, t);
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*backlog*/
+      16384 && t_value !== (t_value = /*task*/
+      ctx2[72].description + ""))
+        set_data(t, t_value);
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div);
+      }
+    }
+  };
+}
+function create_each_block_2(key_1, ctx) {
+  let first;
+  let t0;
+  let div2;
+  let div0;
+  let t1_value = (
+    /*task*/
+    ctx[72].name + ""
+  );
+  let t1;
+  let t2;
+  let t3;
+  let div1;
+  let button0;
+  let t5;
+  let button1;
+  let t7;
+  let button2;
+  let mounted;
+  let dispose;
+  let if_block0 = (
+    /*dragOverStatus*/
+    ctx[10] === "backlog" && /*dragOverIndex*/
+    ctx[11] === /*i*/
+    ctx[74] && create_if_block_12(ctx)
+  );
+  function click_handler_3() {
+    return (
+      /*click_handler_3*/
+      ctx[38](
+        /*task*/
+        ctx[72]
+      )
+    );
+  }
+  let if_block1 = (
+    /*task*/
+    ctx[72].description && create_if_block_11(ctx)
+  );
+  function click_handler_4() {
+    return (
+      /*click_handler_4*/
+      ctx[39](
+        /*task*/
+        ctx[72]
+      )
+    );
+  }
+  function click_handler_5() {
+    return (
+      /*click_handler_5*/
+      ctx[40](
+        /*task*/
+        ctx[72]
+      )
+    );
+  }
+  function click_handler_6() {
+    return (
+      /*click_handler_6*/
+      ctx[41](
+        /*task*/
+        ctx[72]
+      )
+    );
+  }
+  function dragstart_handler(...args) {
+    return (
+      /*dragstart_handler*/
+      ctx[42](
+        /*task*/
+        ctx[72],
+        ...args
+      )
+    );
+  }
+  return {
+    key: key_1,
+    first: null,
+    c() {
+      first = empty();
+      if (if_block0)
+        if_block0.c();
+      t0 = space();
+      div2 = element("div");
+      div0 = element("div");
+      t1 = text(t1_value);
+      t2 = space();
+      if (if_block1)
+        if_block1.c();
+      t3 = space();
+      div1 = element("div");
+      button0 = element("button");
+      button0.textContent = "Start";
+      t5 = space();
+      button1 = element("button");
+      button1.textContent = "Edit";
+      t7 = space();
+      button2 = element("button");
+      button2.textContent = "Delete";
+      attr(div0, "class", "pos-card-name");
+      attr(button2, "class", "pos-del");
+      attr(div1, "class", "pos-card-acts");
+      attr(div2, "class", "pos-card");
+      attr(div2, "draggable", "true");
+      toggle_class(
+        div2,
+        "pos-dragging-source",
+        /*dragId*/
+        ctx[9] === /*task*/
+        ctx[72].id
+      );
+      this.first = first;
+    },
+    m(target, anchor) {
+      insert(target, first, anchor);
+      if (if_block0)
+        if_block0.m(target, anchor);
+      insert(target, t0, anchor);
+      insert(target, div2, anchor);
+      append(div2, div0);
+      append(div0, t1);
+      append(div2, t2);
+      if (if_block1)
+        if_block1.m(div2, null);
+      append(div2, t3);
+      append(div2, div1);
+      append(div1, button0);
+      append(div1, t5);
+      append(div1, button1);
+      append(div1, t7);
+      append(div1, button2);
+      if (!mounted) {
+        dispose = [
+          listen(div0, "click", click_handler_3),
+          listen(button0, "click", click_handler_4),
+          listen(button1, "click", click_handler_5),
+          listen(button2, "click", click_handler_6),
+          listen(div2, "dragstart", dragstart_handler)
+        ];
+        mounted = true;
+      }
+    },
+    p(new_ctx, dirty) {
+      ctx = new_ctx;
+      if (
+        /*dragOverStatus*/
+        ctx[10] === "backlog" && /*dragOverIndex*/
+        ctx[11] === /*i*/
+        ctx[74]
+      ) {
+        if (if_block0) {
+        } else {
+          if_block0 = create_if_block_12(ctx);
+          if_block0.c();
+          if_block0.m(t0.parentNode, t0);
+        }
+      } else if (if_block0) {
+        if_block0.d(1);
+        if_block0 = null;
+      }
+      if (dirty[0] & /*backlog*/
+      16384 && t1_value !== (t1_value = /*task*/
+      ctx[72].name + ""))
+        set_data(t1, t1_value);
+      if (
+        /*task*/
+        ctx[72].description
+      ) {
+        if (if_block1) {
+          if_block1.p(ctx, dirty);
+        } else {
+          if_block1 = create_if_block_11(ctx);
+          if_block1.c();
+          if_block1.m(div2, t3);
+        }
+      } else if (if_block1) {
+        if_block1.d(1);
+        if_block1 = null;
+      }
+      if (dirty[0] & /*dragId, backlog*/
+      16896) {
+        toggle_class(
+          div2,
+          "pos-dragging-source",
+          /*dragId*/
+          ctx[9] === /*task*/
+          ctx[72].id
+        );
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(first);
+        detach(t0);
+        detach(div2);
+      }
+      if (if_block0)
+        if_block0.d(detaching);
+      if (if_block1)
+        if_block1.d();
+      mounted = false;
+      run_all(dispose);
+    }
+  };
+}
+function create_if_block_10(ctx) {
+  let div;
+  return {
+    c() {
+      div = element("div");
+      attr(div, "class", "pos-drag-placeholder");
+    },
+    m(target, anchor) {
+      insert(target, div, anchor);
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div);
+      }
+    }
+  };
+}
+function create_if_block_9(ctx) {
+  let div;
+  return {
+    c() {
+      div = element("div");
+      attr(div, "class", "pos-drag-placeholder");
+    },
+    m(target, anchor) {
+      insert(target, div, anchor);
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div);
+      }
+    }
+  };
+}
+function create_if_block_8(ctx) {
+  let div;
+  let t_value = (
+    /*task*/
+    ctx[72].description + ""
+  );
+  let t;
+  return {
+    c() {
+      div = element("div");
+      t = text(t_value);
+      attr(div, "class", "pos-card-desc");
+    },
+    m(target, anchor) {
+      insert(target, div, anchor);
+      append(div, t);
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*running*/
+      32 && t_value !== (t_value = /*task*/
+      ctx2[72].description + ""))
+        set_data(t, t_value);
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div);
+      }
+    }
+  };
+}
+function create_if_block_7(ctx) {
+  let span;
+  let t0;
+  let t1_value = (
+    /*task*/
+    ctx[72].fixedDuration + ""
+  );
+  let t1;
+  let t2;
+  return {
+    c() {
+      span = element("span");
+      t0 = text("Fixed ");
+      t1 = text(t1_value);
+      t2 = text("m");
+    },
+    m(target, anchor) {
+      insert(target, span, anchor);
+      append(span, t0);
+      append(span, t1);
+      append(span, t2);
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*running*/
+      32 && t1_value !== (t1_value = /*task*/
+      ctx2[72].fixedDuration + ""))
+        set_data(t1, t1_value);
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(span);
+      }
+    }
+  };
+}
+function create_if_block_6(ctx) {
+  let span;
+  let t0_value = fmtTime(
+    /*ti*/
+    ctx[75].endTime
+  ) + "";
+  let t0;
+  let t1;
+  let t2_value = fmtDur(Math.round(
+    /*ti*/
+    ctx[75].calculatedDuration
+  )) + "";
+  let t2;
+  let t3;
+  return {
+    c() {
+      span = element("span");
+      t0 = text(t0_value);
+      t1 = text(" (");
+      t2 = text(t2_value);
+      t3 = text(")");
+    },
+    m(target, anchor) {
+      insert(target, span, anchor);
+      append(span, t0);
+      append(span, t1);
+      append(span, t2);
+      append(span, t3);
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*timeline, running*/
+      96 && t0_value !== (t0_value = fmtTime(
+        /*ti*/
+        ctx2[75].endTime
+      ) + ""))
+        set_data(t0, t0_value);
+      if (dirty[0] & /*timeline, running*/
+      96 && t2_value !== (t2_value = fmtDur(Math.round(
+        /*ti*/
+        ctx2[75].calculatedDuration
+      )) + ""))
+        set_data(t2, t2_value);
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(span);
+      }
+    }
+  };
+}
+function create_if_block_5(ctx) {
+  let input;
+  let input_value_value;
+  let mounted;
+  let dispose;
+  function change_handler_1(...args) {
+    return (
+      /*change_handler_1*/
+      ctx[51](
+        /*task*/
+        ctx[72],
+        ...args
+      )
+    );
+  }
+  return {
+    c() {
+      input = element("input");
+      attr(input, "type", "number");
+      attr(input, "min", "1");
+      attr(input, "class", "pos-fixed-input");
+      input.value = input_value_value = /*task*/
+      ctx[72].fixedDuration || 30;
+    },
+    m(target, anchor) {
+      insert(target, input, anchor);
+      if (!mounted) {
+        dispose = [
+          listen(input, "click", stop_propagation(
+            /*click_handler_1*/
+            ctx[33]
+          )),
+          listen(input, "change", change_handler_1)
+        ];
+        mounted = true;
+      }
+    },
+    p(new_ctx, dirty) {
+      ctx = new_ctx;
+      if (dirty[0] & /*running*/
+      32 && input_value_value !== (input_value_value = /*task*/
+      ctx[72].fixedDuration || 30) && input.value !== input_value_value) {
+        input.value = input_value_value;
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(input);
+      }
+      mounted = false;
+      run_all(dispose);
+    }
+  };
+}
+function create_each_block_1(key_1, ctx) {
+  let first;
+  let t0;
+  let div3;
+  let div0;
+  let t1_value = (
+    /*task*/
+    ctx[72].name + ""
+  );
+  let t1;
+  let t2;
+  let t3;
+  let div1;
+  let t4;
+  let t5;
+  let div2;
+  let button0;
+  let t7;
+  let button1;
+  let t9;
+  let span1;
+  let button2;
+  let t11;
+  let span0;
+  let t12_value = (
+    /*task*/
+    ctx[72].weight + ""
+  );
+  let t12;
+  let t13;
+  let button3;
+  let t15;
+  let label;
+  let input;
+  let input_checked_value;
+  let t16;
+  let span2;
+  let t18;
+  let t19;
+  let button4;
+  let t21;
+  let button5;
+  let mounted;
+  let dispose;
+  let if_block0 = (
+    /*dragOverStatus*/
+    ctx[10] === "running" && /*dragOverIndex*/
+    ctx[11] === /*i*/
+    ctx[74] && create_if_block_9(ctx)
+  );
+  function click_handler_7() {
+    return (
+      /*click_handler_7*/
+      ctx[45](
+        /*task*/
+        ctx[72]
+      )
+    );
+  }
+  let if_block1 = (
+    /*task*/
+    ctx[72].description && create_if_block_8(ctx)
+  );
+  let if_block2 = (
+    /*task*/
+    ctx[72].isFixedDuration && /*task*/
+    ctx[72].fixedDuration && create_if_block_7(ctx)
+  );
+  let if_block3 = (
+    /*ti*/
+    ctx[75] && create_if_block_6(ctx)
+  );
+  function click_handler_8() {
+    return (
+      /*click_handler_8*/
+      ctx[46](
+        /*task*/
+        ctx[72]
+      )
+    );
+  }
+  function click_handler_9() {
+    return (
+      /*click_handler_9*/
+      ctx[47](
+        /*task*/
+        ctx[72]
+      )
+    );
+  }
+  function click_handler_10() {
+    return (
+      /*click_handler_10*/
+      ctx[48](
+        /*task*/
+        ctx[72]
+      )
+    );
+  }
+  function click_handler_11() {
+    return (
+      /*click_handler_11*/
+      ctx[49](
+        /*task*/
+        ctx[72]
+      )
+    );
+  }
+  function change_handler(...args) {
+    return (
+      /*change_handler*/
+      ctx[50](
+        /*task*/
+        ctx[72],
+        ...args
+      )
+    );
+  }
+  let if_block4 = (
+    /*task*/
+    ctx[72].isFixedDuration && create_if_block_5(ctx)
+  );
+  function click_handler_12() {
+    return (
+      /*click_handler_12*/
+      ctx[52](
+        /*task*/
+        ctx[72]
+      )
+    );
+  }
+  function click_handler_13() {
+    return (
+      /*click_handler_13*/
+      ctx[53](
+        /*task*/
+        ctx[72]
+      )
+    );
+  }
+  function dragstart_handler_1(...args) {
+    return (
+      /*dragstart_handler_1*/
+      ctx[54](
+        /*task*/
+        ctx[72],
+        ...args
+      )
+    );
+  }
+  return {
+    key: key_1,
+    first: null,
+    c() {
+      first = empty();
+      if (if_block0)
+        if_block0.c();
+      t0 = space();
+      div3 = element("div");
+      div0 = element("div");
+      t1 = text(t1_value);
+      t2 = space();
+      if (if_block1)
+        if_block1.c();
+      t3 = space();
+      div1 = element("div");
+      if (if_block2)
+        if_block2.c();
+      t4 = space();
+      if (if_block3)
+        if_block3.c();
+      t5 = space();
+      div2 = element("div");
+      button0 = element("button");
+      button0.textContent = "Done";
+      t7 = space();
+      button1 = element("button");
+      button1.textContent = "Backlog";
+      t9 = space();
+      span1 = element("span");
+      button2 = element("button");
+      button2.textContent = "\u2212";
+      t11 = space();
+      span0 = element("span");
+      t12 = text(t12_value);
+      t13 = space();
+      button3 = element("button");
+      button3.textContent = "+";
+      t15 = space();
+      label = element("label");
+      input = element("input");
+      t16 = space();
+      span2 = element("span");
+      span2.textContent = "Fixed";
+      t18 = space();
+      if (if_block4)
+        if_block4.c();
+      t19 = space();
+      button4 = element("button");
+      button4.textContent = "Edit";
+      t21 = space();
+      button5 = element("button");
+      button5.textContent = "Delete";
+      attr(div0, "class", "pos-card-name");
+      attr(div1, "class", "pos-card-meta");
+      attr(span1, "class", "pos-wg");
+      attr(input, "type", "checkbox");
+      input.checked = input_checked_value = /*task*/
+      ctx[72].isFixedDuration;
+      attr(label, "class", "pos-fixed");
+      attr(button5, "class", "pos-del");
+      attr(div2, "class", "pos-card-acts");
+      attr(div3, "class", "pos-card");
+      set_style(
+        div3,
+        "height",
+        /*taskHeights*/
+        ctx[13][
+          /*task*/
+          ctx[72].id
+        ] ? (
+          /*taskHeights*/
+          ctx[13][
+            /*task*/
+            ctx[72].id
+          ] + "px"
+        ) : "auto"
+      );
+      attr(div3, "draggable", "true");
+      toggle_class(
+        div3,
+        "pos-dragging-source",
+        /*dragId*/
+        ctx[9] === /*task*/
+        ctx[72].id
+      );
+      this.first = first;
+    },
+    m(target, anchor) {
+      insert(target, first, anchor);
+      if (if_block0)
+        if_block0.m(target, anchor);
+      insert(target, t0, anchor);
+      insert(target, div3, anchor);
+      append(div3, div0);
+      append(div0, t1);
+      append(div3, t2);
+      if (if_block1)
+        if_block1.m(div3, null);
+      append(div3, t3);
+      append(div3, div1);
+      if (if_block2)
+        if_block2.m(div1, null);
+      append(div1, t4);
+      if (if_block3)
+        if_block3.m(div1, null);
+      append(div3, t5);
+      append(div3, div2);
+      append(div2, button0);
+      append(div2, t7);
+      append(div2, button1);
+      append(div2, t9);
+      append(div2, span1);
+      append(span1, button2);
+      append(span1, t11);
+      append(span1, span0);
+      append(span0, t12);
+      append(span1, t13);
+      append(span1, button3);
+      append(div2, t15);
+      append(div2, label);
+      append(label, input);
+      append(label, t16);
+      append(label, span2);
+      append(div2, t18);
+      if (if_block4)
+        if_block4.m(div2, null);
+      append(div2, t19);
+      append(div2, button4);
+      append(div2, t21);
+      append(div2, button5);
+      if (!mounted) {
+        dispose = [
+          listen(div0, "click", click_handler_7),
+          listen(button0, "click", click_handler_8),
+          listen(button1, "click", click_handler_9),
+          listen(button2, "click", click_handler_10),
+          listen(button3, "click", click_handler_11),
+          listen(input, "change", change_handler),
+          listen(label, "click", stop_propagation(
+            /*click_handler*/
+            ctx[34]
+          )),
+          listen(button4, "click", click_handler_12),
+          listen(button5, "click", click_handler_13),
+          listen(div3, "dragstart", dragstart_handler_1)
+        ];
+        mounted = true;
+      }
+    },
+    p(new_ctx, dirty) {
+      ctx = new_ctx;
+      if (
+        /*dragOverStatus*/
+        ctx[10] === "running" && /*dragOverIndex*/
+        ctx[11] === /*i*/
+        ctx[74]
+      ) {
+        if (if_block0) {
+        } else {
+          if_block0 = create_if_block_9(ctx);
+          if_block0.c();
+          if_block0.m(t0.parentNode, t0);
+        }
+      } else if (if_block0) {
+        if_block0.d(1);
+        if_block0 = null;
+      }
+      if (dirty[0] & /*running*/
+      32 && t1_value !== (t1_value = /*task*/
+      ctx[72].name + ""))
+        set_data(t1, t1_value);
+      if (
+        /*task*/
+        ctx[72].description
+      ) {
+        if (if_block1) {
+          if_block1.p(ctx, dirty);
+        } else {
+          if_block1 = create_if_block_8(ctx);
+          if_block1.c();
+          if_block1.m(div3, t3);
+        }
+      } else if (if_block1) {
+        if_block1.d(1);
+        if_block1 = null;
+      }
+      if (
+        /*task*/
+        ctx[72].isFixedDuration && /*task*/
+        ctx[72].fixedDuration
+      ) {
+        if (if_block2) {
+          if_block2.p(ctx, dirty);
+        } else {
+          if_block2 = create_if_block_7(ctx);
+          if_block2.c();
+          if_block2.m(div1, t4);
+        }
+      } else if (if_block2) {
+        if_block2.d(1);
+        if_block2 = null;
+      }
+      if (
+        /*ti*/
+        ctx[75]
+      ) {
+        if (if_block3) {
+          if_block3.p(ctx, dirty);
+        } else {
+          if_block3 = create_if_block_6(ctx);
+          if_block3.c();
+          if_block3.m(div1, null);
+        }
+      } else if (if_block3) {
+        if_block3.d(1);
+        if_block3 = null;
+      }
+      if (dirty[0] & /*running*/
+      32 && t12_value !== (t12_value = /*task*/
+      ctx[72].weight + ""))
+        set_data(t12, t12_value);
+      if (dirty[0] & /*running*/
+      32 && input_checked_value !== (input_checked_value = /*task*/
+      ctx[72].isFixedDuration)) {
+        input.checked = input_checked_value;
+      }
+      if (
+        /*task*/
+        ctx[72].isFixedDuration
+      ) {
+        if (if_block4) {
+          if_block4.p(ctx, dirty);
+        } else {
+          if_block4 = create_if_block_5(ctx);
+          if_block4.c();
+          if_block4.m(div2, t19);
+        }
+      } else if (if_block4) {
+        if_block4.d(1);
+        if_block4 = null;
+      }
+      if (dirty[0] & /*taskHeights, running*/
+      8224) {
+        set_style(
+          div3,
+          "height",
+          /*taskHeights*/
+          ctx[13][
+            /*task*/
+            ctx[72].id
+          ] ? (
+            /*taskHeights*/
+            ctx[13][
+              /*task*/
+              ctx[72].id
+            ] + "px"
+          ) : "auto"
+        );
+      }
+      if (dirty[0] & /*dragId, running*/
+      544) {
+        toggle_class(
+          div3,
+          "pos-dragging-source",
+          /*dragId*/
+          ctx[9] === /*task*/
+          ctx[72].id
+        );
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(first);
+        detach(t0);
+        detach(div3);
+      }
+      if (if_block0)
+        if_block0.d(detaching);
+      if (if_block1)
+        if_block1.d();
+      if (if_block2)
+        if_block2.d();
+      if (if_block3)
+        if_block3.d();
+      if (if_block4)
+        if_block4.d();
+      mounted = false;
+      run_all(dispose);
+    }
+  };
+}
+function create_if_block_4(ctx) {
+  let div;
+  return {
+    c() {
+      div = element("div");
+      attr(div, "class", "pos-drag-placeholder");
+    },
+    m(target, anchor) {
+      insert(target, div, anchor);
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div);
+      }
+    }
+  };
+}
+function create_if_block_32(ctx) {
+  let div0;
+  let t;
+  let div1;
+  return {
+    c() {
+      div0 = element("div");
+      t = space();
+      div1 = element("div");
+      attr(div0, "class", "pos-wipe");
+      set_style(div0, "top", "0px");
+      set_style(
+        div0,
+        "height",
+        /*lockWipeHeight*/
+        ctx[8] + "px"
+      );
+      attr(div1, "class", "pos-redline");
+      set_style(
+        div1,
+        "top",
+        /*lockLineTop*/
+        ctx[7] + "px"
+      );
+    },
+    m(target, anchor) {
+      insert(target, div0, anchor);
+      insert(target, t, anchor);
+      insert(target, div1, anchor);
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*lockWipeHeight*/
+      256) {
+        set_style(
+          div0,
+          "height",
+          /*lockWipeHeight*/
+          ctx2[8] + "px"
+        );
+      }
+      if (dirty[0] & /*lockLineTop*/
+      128) {
+        set_style(
+          div1,
+          "top",
+          /*lockLineTop*/
+          ctx2[7] + "px"
+        );
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div0);
+        detach(t);
+        detach(div1);
+      }
+    }
+  };
+}
+function create_if_block_22(ctx) {
+  let div;
+  return {
+    c() {
+      div = element("div");
+      attr(div, "class", "pos-drag-placeholder");
+    },
+    m(target, anchor) {
+      insert(target, div, anchor);
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div);
+      }
+    }
+  };
+}
+function create_each_block2(key_1, ctx) {
+  let first;
+  let t0;
+  let div2;
+  let div0;
+  let t1_value = (
+    /*task*/
+    ctx[72].name + ""
+  );
+  let t1;
+  let t2;
+  let div1;
+  let button0;
+  let t4;
+  let button1;
+  let t6;
+  let button2;
+  let mounted;
+  let dispose;
+  let if_block = (
+    /*dragOverStatus*/
+    ctx[10] === "review" && /*dragOverIndex*/
+    ctx[11] === /*i*/
+    ctx[74] && create_if_block_22(ctx)
+  );
+  function click_handler_14() {
+    return (
+      /*click_handler_14*/
+      ctx[59](
+        /*task*/
+        ctx[72]
+      )
+    );
+  }
+  function click_handler_15() {
+    return (
+      /*click_handler_15*/
+      ctx[60](
+        /*task*/
+        ctx[72]
+      )
+    );
+  }
+  function click_handler_16() {
+    return (
+      /*click_handler_16*/
+      ctx[61](
+        /*task*/
+        ctx[72]
+      )
+    );
+  }
+  function click_handler_17() {
+    return (
+      /*click_handler_17*/
+      ctx[62](
+        /*task*/
+        ctx[72]
+      )
+    );
+  }
+  function dragstart_handler_2(...args) {
+    return (
+      /*dragstart_handler_2*/
+      ctx[63](
+        /*task*/
+        ctx[72],
+        ...args
+      )
+    );
+  }
+  return {
+    key: key_1,
+    first: null,
+    c() {
+      first = empty();
+      if (if_block)
+        if_block.c();
+      t0 = space();
+      div2 = element("div");
+      div0 = element("div");
+      t1 = text(t1_value);
+      t2 = space();
+      div1 = element("div");
+      button0 = element("button");
+      button0.textContent = "Restore";
+      t4 = space();
+      button1 = element("button");
+      button1.textContent = "Edit";
+      t6 = space();
+      button2 = element("button");
+      button2.textContent = "Delete";
+      attr(div0, "class", "pos-card-name");
+      attr(button2, "class", "pos-del");
+      attr(div1, "class", "pos-card-acts");
+      attr(div2, "class", "pos-card pos-completed");
+      attr(div2, "draggable", "true");
+      toggle_class(
+        div2,
+        "pos-dragging-source",
+        /*dragId*/
+        ctx[9] === /*task*/
+        ctx[72].id
+      );
+      this.first = first;
+    },
+    m(target, anchor) {
+      insert(target, first, anchor);
+      if (if_block)
+        if_block.m(target, anchor);
+      insert(target, t0, anchor);
+      insert(target, div2, anchor);
+      append(div2, div0);
+      append(div0, t1);
+      append(div2, t2);
+      append(div2, div1);
+      append(div1, button0);
+      append(div1, t4);
+      append(div1, button1);
+      append(div1, t6);
+      append(div1, button2);
+      if (!mounted) {
+        dispose = [
+          listen(div0, "click", click_handler_14),
+          listen(button0, "click", click_handler_15),
+          listen(button1, "click", click_handler_16),
+          listen(button2, "click", click_handler_17),
+          listen(div2, "dragstart", dragstart_handler_2)
+        ];
+        mounted = true;
+      }
+    },
+    p(new_ctx, dirty) {
+      ctx = new_ctx;
+      if (
+        /*dragOverStatus*/
+        ctx[10] === "review" && /*dragOverIndex*/
+        ctx[11] === /*i*/
+        ctx[74]
+      ) {
+        if (if_block) {
+        } else {
+          if_block = create_if_block_22(ctx);
+          if_block.c();
+          if_block.m(t0.parentNode, t0);
+        }
+      } else if (if_block) {
+        if_block.d(1);
+        if_block = null;
+      }
+      if (dirty[0] & /*review*/
+      4096 && t1_value !== (t1_value = /*task*/
+      ctx[72].name + ""))
+        set_data(t1, t1_value);
+      if (dirty[0] & /*dragId, review*/
+      4608) {
+        toggle_class(
+          div2,
+          "pos-dragging-source",
+          /*dragId*/
+          ctx[9] === /*task*/
+          ctx[72].id
+        );
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(first);
+        detach(t0);
+        detach(div2);
+      }
+      if (if_block)
+        if_block.d(detaching);
+      mounted = false;
+      run_all(dispose);
+    }
+  };
+}
+function create_if_block_13(ctx) {
+  let div;
+  return {
+    c() {
+      div = element("div");
+      attr(div, "class", "pos-drag-placeholder");
+    },
+    m(target, anchor) {
+      insert(target, div, anchor);
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div);
+      }
+    }
+  };
+}
+function create_if_block2(ctx) {
+  let div;
+  let button0;
+  let t1;
+  let button1;
+  let mounted;
+  let dispose;
+  return {
+    c() {
+      div = element("div");
+      button0 = element("button");
+      button0.textContent = "Restore All";
+      t1 = space();
+      button1 = element("button");
+      button1.textContent = "Delete All";
+      attr(div, "class", "pos-bulk-row");
+    },
+    m(target, anchor) {
+      insert(target, div, anchor);
+      append(div, button0);
+      append(div, t1);
+      append(div, button1);
+      if (!mounted) {
+        dispose = [
+          listen(
+            button0,
+            "click",
+            /*confirmRestoreAll*/
+            ctx[22]
+          ),
+          listen(
+            button1,
+            "click",
+            /*confirmDeleteAll*/
+            ctx[23]
+          )
+        ];
+        mounted = true;
+      }
+    },
+    p: noop,
+    d(detaching) {
+      if (detaching) {
+        detach(div);
+      }
+      mounted = false;
+      run_all(dispose);
+    }
+  };
+}
+function create_fragment2(ctx) {
+  let div1;
+  let div0;
+  let input0;
+  let t0;
+  let input1;
+  let t1;
+  let button0;
+  let t3;
+  let button1;
+  let t4_value = (
+    /*isLocked*/
+    ctx[3] ? "Unlock" : "Lock"
+  );
+  let t4;
+  let t5;
+  let div12;
+  let div5;
+  let h40;
+  let t6;
+  let t7_value = (
+    /*backlog*/
+    ctx[14].length + ""
+  );
+  let t7;
+  let t8;
+  let t9;
+  let div4;
+  let div3;
+  let each_blocks_2 = [];
+  let each0_lookup = /* @__PURE__ */ new Map();
+  let t10;
+  let t11;
+  let div2;
+  let button2;
+  let t13;
+  let div8;
+  let h41;
+  let t14;
+  let t15_value = (
+    /*running*/
+    ctx[5].length + ""
+  );
+  let t15;
+  let t16;
+  let t17;
+  let div7;
+  let div6;
+  let each_blocks_1 = [];
+  let each1_lookup = /* @__PURE__ */ new Map();
+  let t18;
+  let t19;
+  let div7_resize_listener;
+  let t20;
+  let div11;
+  let h42;
+  let t21;
+  let t22_value = (
+    /*review*/
+    ctx[12].length + ""
+  );
+  let t22;
+  let t23;
+  let t24;
+  let div10;
+  let div9;
+  let each_blocks = [];
+  let each2_lookup = /* @__PURE__ */ new Map();
+  let t25;
+  let t26;
+  let mounted;
+  let dispose;
+  let each_value_2 = ensure_array_like(
+    /*backlog*/
+    ctx[14]
+  );
+  const get_key = (ctx2) => (
+    /*task*/
+    ctx2[72].id
+  );
+  for (let i = 0; i < each_value_2.length; i += 1) {
+    let child_ctx = get_each_context_2(ctx, each_value_2, i);
+    let key = get_key(child_ctx);
+    each0_lookup.set(key, each_blocks_2[i] = create_each_block_2(key, child_ctx));
+  }
+  let if_block0 = (
+    /*dragOverStatus*/
+    ctx[10] === "backlog" && /*dragOverIndex*/
+    ctx[11] >= /*backlog*/
+    ctx[14].length && create_if_block_10(ctx)
+  );
+  let each_value_1 = ensure_array_like(
+    /*running*/
+    ctx[5]
+  );
+  const get_key_1 = (ctx2) => (
+    /*task*/
+    ctx2[72].id
+  );
+  for (let i = 0; i < each_value_1.length; i += 1) {
+    let child_ctx = get_each_context_1(ctx, each_value_1, i);
+    let key = get_key_1(child_ctx);
+    each1_lookup.set(key, each_blocks_1[i] = create_each_block_1(key, child_ctx));
+  }
+  let if_block1 = (
+    /*dragOverStatus*/
+    ctx[10] === "running" && /*dragOverIndex*/
+    ctx[11] >= /*running*/
+    ctx[5].length && create_if_block_4(ctx)
+  );
+  let if_block2 = (
+    /*isLocked*/
+    ctx[3] && create_if_block_32(ctx)
+  );
+  let each_value = ensure_array_like(
+    /*review*/
+    ctx[12]
+  );
+  const get_key_2 = (ctx2) => (
+    /*task*/
+    ctx2[72].id
+  );
+  for (let i = 0; i < each_value.length; i += 1) {
+    let child_ctx = get_each_context2(ctx, each_value, i);
+    let key = get_key_2(child_ctx);
+    each2_lookup.set(key, each_blocks[i] = create_each_block2(key, child_ctx));
+  }
+  let if_block3 = (
+    /*dragOverStatus*/
+    ctx[10] === "review" && /*dragOverIndex*/
+    ctx[11] >= /*review*/
+    ctx[12].length && create_if_block_13(ctx)
+  );
+  let if_block4 = (
+    /*review*/
+    ctx[12].length > 0 && create_if_block2(ctx)
+  );
+  return {
+    c() {
+      div1 = element("div");
+      div0 = element("div");
+      input0 = element("input");
+      t0 = space();
+      input1 = element("input");
+      t1 = space();
+      button0 = element("button");
+      button0.textContent = "Apply";
+      t3 = space();
+      button1 = element("button");
+      t4 = text(t4_value);
+      t5 = space();
+      div12 = element("div");
+      div5 = element("div");
+      h40 = element("h4");
+      t6 = text("Backlog (");
+      t7 = text(t7_value);
+      t8 = text(")");
+      t9 = space();
+      div4 = element("div");
+      div3 = element("div");
+      for (let i = 0; i < each_blocks_2.length; i += 1) {
+        each_blocks_2[i].c();
+      }
+      t10 = space();
+      if (if_block0)
+        if_block0.c();
+      t11 = space();
+      div2 = element("div");
+      button2 = element("button");
+      button2.textContent = "+ New Task";
+      t13 = space();
+      div8 = element("div");
+      h41 = element("h4");
+      t14 = text("Running (");
+      t15 = text(t15_value);
+      t16 = text(")");
+      t17 = space();
+      div7 = element("div");
+      div6 = element("div");
+      for (let i = 0; i < each_blocks_1.length; i += 1) {
+        each_blocks_1[i].c();
+      }
+      t18 = space();
+      if (if_block1)
+        if_block1.c();
+      t19 = space();
+      if (if_block2)
+        if_block2.c();
+      t20 = space();
+      div11 = element("div");
+      h42 = element("h4");
+      t21 = text("Review (");
+      t22 = text(t22_value);
+      t23 = text(")");
+      t24 = space();
+      div10 = element("div");
+      div9 = element("div");
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        each_blocks[i].c();
+      }
+      t25 = space();
+      if (if_block3)
+        if_block3.c();
+      t26 = space();
+      if (if_block4)
+        if_block4.c();
+      attr(input0, "type", "date");
+      attr(input1, "type", "time");
+      attr(input1, "step", "60");
+      attr(button1, "class", "pos-lock-btn");
+      toggle_class(
+        button1,
+        "locked",
+        /*isLocked*/
+        ctx[3]
+      );
+      attr(div0, "class", "pos-deadline-controls");
+      attr(div1, "class", "pos-header");
+      attr(h40, "class", "pos-col-title");
+      attr(button2, "class", "pos-newtask-btn");
+      attr(div2, "class", "pos-newtask-row");
+      attr(div3, "class", "pos-list");
+      attr(div4, "class", "pos-list-wrapper");
+      attr(div5, "class", "pos-col");
+      attr(h41, "class", "pos-col-title");
+      attr(div6, "class", "pos-list");
+      attr(div7, "class", "pos-list-wrapper");
+      add_render_callback(() => (
+        /*div7_elementresize_handler*/
+        ctx[56].call(div7)
+      ));
+      attr(div8, "class", "pos-col");
+      attr(h42, "class", "pos-col-title");
+      attr(div9, "class", "pos-list");
+      attr(div10, "class", "pos-list-wrapper");
+      attr(div11, "class", "pos-col");
+      attr(div12, "class", "pos-columns");
+    },
+    m(target, anchor) {
+      insert(target, div1, anchor);
+      append(div1, div0);
+      append(div0, input0);
+      set_input_value(
+        input0,
+        /*dDate*/
+        ctx[1]
+      );
+      append(div0, t0);
+      append(div0, input1);
+      set_input_value(
+        input1,
+        /*dTime*/
+        ctx[2]
+      );
+      append(div0, t1);
+      append(div0, button0);
+      append(div0, t3);
+      append(div0, button1);
+      append(button1, t4);
+      insert(target, t5, anchor);
+      insert(target, div12, anchor);
+      append(div12, div5);
+      append(div5, h40);
+      append(h40, t6);
+      append(h40, t7);
+      append(h40, t8);
+      append(div5, t9);
+      append(div5, div4);
+      append(div4, div3);
+      for (let i = 0; i < each_blocks_2.length; i += 1) {
+        if (each_blocks_2[i]) {
+          each_blocks_2[i].m(div3, null);
+        }
+      }
+      append(div3, t10);
+      if (if_block0)
+        if_block0.m(div3, null);
+      append(div3, t11);
+      append(div3, div2);
+      append(div2, button2);
+      append(div12, t13);
+      append(div12, div8);
+      append(div8, h41);
+      append(h41, t14);
+      append(h41, t15);
+      append(h41, t16);
+      append(div8, t17);
+      append(div8, div7);
+      append(div7, div6);
+      for (let i = 0; i < each_blocks_1.length; i += 1) {
+        if (each_blocks_1[i]) {
+          each_blocks_1[i].m(div6, null);
+        }
+      }
+      append(div6, t18);
+      if (if_block1)
+        if_block1.m(div6, null);
+      append(div7, t19);
+      if (if_block2)
+        if_block2.m(div7, null);
+      div7_resize_listener = add_iframe_resize_listener(
+        div7,
+        /*div7_elementresize_handler*/
+        ctx[56].bind(div7)
+      );
+      append(div12, t20);
+      append(div12, div11);
+      append(div11, h42);
+      append(h42, t21);
+      append(h42, t22);
+      append(h42, t23);
+      append(div11, t24);
+      append(div11, div10);
+      append(div10, div9);
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        if (each_blocks[i]) {
+          each_blocks[i].m(div9, null);
+        }
+      }
+      append(div9, t25);
+      if (if_block3)
+        if_block3.m(div9, null);
+      append(div9, t26);
+      if (if_block4)
+        if_block4.m(div9, null);
+      if (!mounted) {
+        dispose = [
+          listen(
+            input0,
+            "input",
+            /*input0_input_handler*/
+            ctx[35]
+          ),
+          listen(
+            input1,
+            "input",
+            /*input1_input_handler*/
+            ctx[36]
+          ),
+          listen(
+            button0,
+            "click",
+            /*click_handler_2*/
+            ctx[37]
+          ),
+          listen(
+            button1,
+            "click",
+            /*toggleLock*/
+            ctx[24]
+          ),
+          listen(
+            button2,
+            "click",
+            /*createTask*/
+            ctx[15]
+          ),
+          listen(
+            div4,
+            "dragover",
+            /*dragover_handler*/
+            ctx[43]
+          ),
+          listen(
+            div4,
+            "drop",
+            /*drop_handler*/
+            ctx[44]
+          ),
+          listen(
+            div7,
+            "dragover",
+            /*dragover_handler_1*/
+            ctx[57]
+          ),
+          listen(
+            div7,
+            "drop",
+            /*drop_handler_1*/
+            ctx[58]
+          ),
+          listen(
+            div10,
+            "dragover",
+            /*dragover_handler_2*/
+            ctx[64]
+          ),
+          listen(
+            div10,
+            "drop",
+            /*drop_handler_2*/
+            ctx[65]
+          )
+        ];
+        mounted = true;
+      }
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*dDate*/
+      2) {
+        set_input_value(
+          input0,
+          /*dDate*/
+          ctx2[1]
+        );
+      }
+      if (dirty[0] & /*dTime*/
+      4) {
+        set_input_value(
+          input1,
+          /*dTime*/
+          ctx2[2]
+        );
+      }
+      if (dirty[0] & /*isLocked*/
+      8 && t4_value !== (t4_value = /*isLocked*/
+      ctx2[3] ? "Unlock" : "Lock"))
+        set_data(t4, t4_value);
+      if (dirty[0] & /*isLocked*/
+      8) {
+        toggle_class(
+          button1,
+          "locked",
+          /*isLocked*/
+          ctx2[3]
+        );
+      }
+      if (dirty[0] & /*backlog*/
+      16384 && t7_value !== (t7_value = /*backlog*/
+      ctx2[14].length + ""))
+        set_data(t7, t7_value);
+      if (dirty[0] & /*dragId, backlog, handleDragStart, deleteTask, editTask, updateStatus, openTaskFile, dragOverStatus, dragOverIndex*/
+      36130304) {
+        each_value_2 = ensure_array_like(
+          /*backlog*/
+          ctx2[14]
+        );
+        each_blocks_2 = update_keyed_each(each_blocks_2, dirty, get_key, 1, ctx2, each_value_2, each0_lookup, div3, destroy_block, create_each_block_2, t10, get_each_context_2);
+      }
+      if (
+        /*dragOverStatus*/
+        ctx2[10] === "backlog" && /*dragOverIndex*/
+        ctx2[11] >= /*backlog*/
+        ctx2[14].length
+      ) {
+        if (if_block0) {
+        } else {
+          if_block0 = create_if_block_10(ctx2);
+          if_block0.c();
+          if_block0.m(div3, t11);
+        }
+      } else if (if_block0) {
+        if_block0.d(1);
+        if_block0 = null;
+      }
+      if (dirty[0] & /*running*/
+      32 && t15_value !== (t15_value = /*running*/
+      ctx2[5].length + ""))
+        set_data(t15, t15_value);
+      if (dirty[0] & /*taskHeights, running, dragId, handleDragStart, deleteTask, editTask, setFixed, toggleFixed, fileManager, updateStatus, timeline, openTaskFile, dragOverStatus, dragOverIndex*/
+      37695073) {
+        each_value_1 = ensure_array_like(
+          /*running*/
+          ctx2[5]
+        );
+        each_blocks_1 = update_keyed_each(each_blocks_1, dirty, get_key_1, 1, ctx2, each_value_1, each1_lookup, div6, destroy_block, create_each_block_1, t18, get_each_context_1);
+      }
+      if (
+        /*dragOverStatus*/
+        ctx2[10] === "running" && /*dragOverIndex*/
+        ctx2[11] >= /*running*/
+        ctx2[5].length
+      ) {
+        if (if_block1) {
+        } else {
+          if_block1 = create_if_block_4(ctx2);
+          if_block1.c();
+          if_block1.m(div6, null);
+        }
+      } else if (if_block1) {
+        if_block1.d(1);
+        if_block1 = null;
+      }
+      if (
+        /*isLocked*/
+        ctx2[3]
+      ) {
+        if (if_block2) {
+          if_block2.p(ctx2, dirty);
+        } else {
+          if_block2 = create_if_block_32(ctx2);
+          if_block2.c();
+          if_block2.m(div7, null);
+        }
+      } else if (if_block2) {
+        if_block2.d(1);
+        if_block2 = null;
+      }
+      if (dirty[0] & /*review*/
+      4096 && t22_value !== (t22_value = /*review*/
+      ctx2[12].length + ""))
+        set_data(t22, t22_value);
+      if (dirty[0] & /*dragId, review, handleDragStart, deleteTask, editTask, updateStatus, openTaskFile, dragOverStatus, dragOverIndex*/
+      36118016) {
+        each_value = ensure_array_like(
+          /*review*/
+          ctx2[12]
+        );
+        each_blocks = update_keyed_each(each_blocks, dirty, get_key_2, 1, ctx2, each_value, each2_lookup, div9, destroy_block, create_each_block2, t25, get_each_context2);
+      }
+      if (
+        /*dragOverStatus*/
+        ctx2[10] === "review" && /*dragOverIndex*/
+        ctx2[11] >= /*review*/
+        ctx2[12].length
+      ) {
+        if (if_block3) {
+        } else {
+          if_block3 = create_if_block_13(ctx2);
+          if_block3.c();
+          if_block3.m(div9, t26);
+        }
+      } else if (if_block3) {
+        if_block3.d(1);
+        if_block3 = null;
+      }
+      if (
+        /*review*/
+        ctx2[12].length > 0
+      ) {
+        if (if_block4) {
+          if_block4.p(ctx2, dirty);
+        } else {
+          if_block4 = create_if_block2(ctx2);
+          if_block4.c();
+          if_block4.m(div9, null);
+        }
+      } else if (if_block4) {
+        if_block4.d(1);
+        if_block4 = null;
+      }
+    },
+    i: noop,
+    o: noop,
+    d(detaching) {
+      if (detaching) {
+        detach(div1);
+        detach(t5);
+        detach(div12);
+      }
+      for (let i = 0; i < each_blocks_2.length; i += 1) {
+        each_blocks_2[i].d();
+      }
+      if (if_block0)
+        if_block0.d();
+      for (let i = 0; i < each_blocks_1.length; i += 1) {
+        each_blocks_1[i].d();
+      }
+      if (if_block1)
+        if_block1.d();
+      if (if_block2)
+        if_block2.d();
+      div7_resize_listener();
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        each_blocks[i].d();
+      }
+      if (if_block3)
+        if_block3.d();
+      if (if_block4)
+        if_block4.d();
+      mounted = false;
+      run_all(dispose);
+    }
+  };
+}
+function instance2($$self, $$props, $$invalidate) {
+  let projectTasks;
+  let backlog;
+  let running;
+  let review;
+  let timeline;
+  let taskHeights;
+  let $tasksStore;
+  component_subscribe($$self, tasksStore, ($$value) => $$invalidate(32, $tasksStore = $$value));
+  let { app } = $$props;
+  let { fileManager } = $$props;
+  let { projectId } = $$props;
+  let deadline = /* @__PURE__ */ new Date();
+  deadline.setHours(17, 0, 0, 0);
+  let dDate = fmtDate(deadline.toISOString());
+  let dTime = fmtTime(deadline.toISOString());
+  let isLocked = false;
+  let lockAt = null;
+  let lockDeadline = null;
+  let lockedTimeline = [];
+  let now2 = Date.now();
+  let timer;
+  let runningWrapperHeight = 300;
+  let lockLineTop = 0;
+  let lockWipeHeight = 0;
+  function updateLockProgress() {
+    if (!isLocked || !lockAt || !lockDeadline)
+      return;
+    const start = new Date(lockAt).getTime();
+    const end = new Date(lockDeadline).getTime();
+    const p = Math.min(1, Math.max(0, (Date.now() - start) / (end - start)));
+    const totalHeight = runningWrapperHeight;
+    $$invalidate(7, lockLineTop = p * totalHeight);
+    $$invalidate(8, lockWipeHeight = lockLineTop);
+  }
+  onMount(() => {
+    timer = window.setInterval(
+      () => {
+        now2 = Date.now();
+        if (isLocked) {
+          updateLockProgress();
+        }
+      },
+      1e3
+    );
+  });
+  onDestroy(() => {
+    window.clearInterval(timer);
+  });
+  function createTask() {
+    new NewTaskModal(
+      app,
+      async (name) => {
+        await fileManager.createTask({ name, project: projectId });
+      }
+    ).open();
+  }
+  function editTask(task) {
+    new EditTaskModal(
+      app,
+      task,
+      async (updates) => {
+        await fileManager.updateTask(task.id, updates);
+      }
+    ).open();
+  }
+  function openTaskFile(taskId) {
+    const file = app.vault.getAbstractFileByPath(`tasks/${taskId}.md`);
+    if (file instanceof import_obsidian3.TFile) {
+      app.workspace.getLeaf().openFile(file);
+    }
+  }
+  async function updateStatus(task, status) {
+    await fileManager.updateTask(task.id, { status, isCompleted: status === "review" });
+  }
+  async function toggleFixed(task, isFixed) {
+    await fileManager.updateTask(task.id, {
+      isFixedDuration: isFixed,
+      fixedDuration: isFixed ? task.fixedDuration || 30 : null
+    });
+  }
+  async function setFixed(task, duration) {
+    await fileManager.updateTask(task.id, {
+      isFixedDuration: true,
+      fixedDuration: duration
+    });
+  }
+  async function deleteTask(id) {
+    await fileManager.deleteTask(id);
+  }
+  function confirmRestoreAll() {
+    new ConfirmModal(
+      app,
+      "Restore All",
+      "Move all review tasks back to running?",
+      () => {
+        review.forEach((t) => fileManager.updateTask(t.id, { status: "running", isCompleted: false }));
+      }
+    ).open();
+  }
+  function confirmDeleteAll() {
+    new ConfirmModal(
+      app,
+      "Delete All",
+      "Permanently delete all tasks in review?",
+      () => {
+        review.forEach((t) => fileManager.deleteTask(t.id));
+      }
+    ).open();
+  }
+  function toggleLock() {
+    if (isLocked) {
+      $$invalidate(3, isLocked = false);
+      lockAt = null;
+      lockDeadline = null;
+      $$invalidate(30, lockedTimeline = []);
+    } else {
+      const dl = /* @__PURE__ */ new Date(`${dDate}T${dTime}`);
+      lockAt = (/* @__PURE__ */ new Date()).toISOString();
+      lockDeadline = dl.toISOString();
+      $$invalidate(30, lockedTimeline = calculateLiquidTimeline(running, /* @__PURE__ */ new Date(), dl));
+      $$invalidate(3, isLocked = true);
+      updateLockProgress();
+    }
+  }
+  let dragId = null;
+  let dragOverStatus = null;
+  let dragOverIndex = -1;
+  function handleDragStart(e, id) {
+    $$invalidate(9, dragId = id);
+    if (e.dataTransfer) {
+      e.dataTransfer.setData("text/plain", id);
+    }
+  }
+  function handleDragOver(e, status) {
+    e.preventDefault();
+    if (!dragId)
+      return;
+    const task = $tasksStore.find((t) => t.id === dragId);
+    if (!task)
+      return;
+    if (isLocked && (task.status === "running" || status === "running") && task.status !== status) {
+      if (e.dataTransfer)
+        e.dataTransfer.dropEffect = "none";
+      return;
+    }
+    $$invalidate(10, dragOverStatus = status);
+    const listEl = e.currentTarget.querySelector(".pos-list");
+    if (!listEl)
+      return;
+    const cards = Array.from(listEl.querySelectorAll(".pos-card:not(.pos-dragging-source)"));
+    let index = 0;
+    for (let i = 0; i < cards.length; i++) {
+      const rect = cards[i].getBoundingClientRect();
+      if (e.clientY < rect.top + rect.height / 2) {
+        index = i;
+        break;
+      }
+      index = i + 1;
+    }
+    $$invalidate(11, dragOverIndex = index);
+  }
+  async function handleDrop(e, status) {
+    e.preventDefault();
+    if (!dragId)
+      return;
+    const task = $tasksStore.find((t) => t.id === dragId);
+    if (!task)
+      return;
+    const oldStatus = task.status;
+    const targetIndex = dragOverIndex;
+    $$invalidate(9, dragId = null);
+    $$invalidate(10, dragOverStatus = null);
+    $$invalidate(11, dragOverIndex = -1);
+    const allTasksOfProject = $tasksStore.filter((t) => t.project === projectId);
+    if (oldStatus === status) {
+      const colTasks = allTasksOfProject.filter((t) => t.status === status);
+      const cardToMove = colTasks.find((t) => t.id === task.id);
+      if (!cardToMove)
+        return;
+      const oldIndex = colTasks.indexOf(cardToMove);
+      if (oldIndex === targetIndex || oldIndex === targetIndex - 1)
+        return;
+      const newColTasks = [...colTasks];
+      newColTasks.splice(oldIndex, 1);
+      let adjustedTarget = targetIndex;
+      if (oldIndex < targetIndex)
+        adjustedTarget--;
+      newColTasks.splice(adjustedTarget, 0, cardToMove);
+      await Promise.all(newColTasks.map((t, idx) => fileManager.updateTask(t.id, { orderIndex: idx })));
+    } else {
+      if (isLocked && status === "running")
+        return;
+      const sourceCol = allTasksOfProject.filter((t) => t.status === oldStatus && t.id !== task.id);
+      const destCol = allTasksOfProject.filter((t) => t.status === status);
+      destCol.splice(targetIndex, 0, {
+        ...task,
+        status,
+        isCompleted: status === "review"
+      });
+      await Promise.all([
+        ...sourceCol.map((t, idx) => fileManager.updateTask(t.id, { orderIndex: idx })),
+        ...destCol.map((t, idx) => fileManager.updateTask(t.id, {
+          orderIndex: idx,
+          status: t.id === task.id ? status : t.status,
+          isCompleted: t.id === task.id ? status === "review" : t.isCompleted
+        }))
+      ]);
+    }
+  }
+  function click_handler_1(event) {
+    bubble.call(this, $$self, event);
+  }
+  function click_handler(event) {
+    bubble.call(this, $$self, event);
+  }
+  function input0_input_handler() {
+    dDate = this.value;
+    $$invalidate(1, dDate);
+  }
+  function input1_input_handler() {
+    dTime = this.value;
+    $$invalidate(2, dTime);
+  }
+  const click_handler_2 = () => {
+    if (isLocked)
+      return;
+    $$invalidate(1, dDate);
+  };
+  const click_handler_3 = (task) => openTaskFile(task.id);
+  const click_handler_4 = (task) => updateStatus(task, "running");
+  const click_handler_5 = (task) => editTask(task);
+  const click_handler_6 = (task) => deleteTask(task.id);
+  const dragstart_handler = (task, e) => handleDragStart(e, task.id);
+  const dragover_handler = (e) => handleDragOver(e, "backlog");
+  const drop_handler = (e) => handleDrop(e, "backlog");
+  const click_handler_7 = (task) => openTaskFile(task.id);
+  const click_handler_8 = (task) => updateStatus(task, "review");
+  const click_handler_9 = (task) => updateStatus(task, "backlog");
+  const click_handler_10 = (task) => fileManager.updateTask(task.id, { weight: Math.max(1, task.weight - 1) });
+  const click_handler_11 = (task) => fileManager.updateTask(task.id, { weight: task.weight + 1 });
+  const change_handler = (task, e) => toggleFixed(task, e.currentTarget.checked);
+  const change_handler_1 = (task, e) => setFixed(task, Number(e.currentTarget.value));
+  const click_handler_12 = (task) => editTask(task);
+  const click_handler_13 = (task) => deleteTask(task.id);
+  const dragstart_handler_1 = (task, e) => handleDragStart(e, task.id);
+  const func = (task, t) => t.id === task.id;
+  function div7_elementresize_handler() {
+    runningWrapperHeight = this.clientHeight;
+    $$invalidate(4, runningWrapperHeight);
+  }
+  const dragover_handler_1 = (e) => handleDragOver(e, "running");
+  const drop_handler_1 = (e) => handleDrop(e, "running");
+  const click_handler_14 = (task) => openTaskFile(task.id);
+  const click_handler_15 = (task) => updateStatus(task, "running");
+  const click_handler_16 = (task) => editTask(task);
+  const click_handler_17 = (task) => deleteTask(task.id);
+  const dragstart_handler_2 = (task, e) => handleDragStart(e, task.id);
+  const dragover_handler_2 = (e) => handleDragOver(e, "review");
+  const drop_handler_2 = (e) => handleDrop(e, "review");
+  $$self.$$set = ($$props2) => {
+    if ("app" in $$props2)
+      $$invalidate(28, app = $$props2.app);
+    if ("fileManager" in $$props2)
+      $$invalidate(0, fileManager = $$props2.fileManager);
+    if ("projectId" in $$props2)
+      $$invalidate(29, projectId = $$props2.projectId);
+  };
+  $$self.$$.update = () => {
+    if ($$self.$$.dirty[0] & /*projectId*/
+    536870912 | $$self.$$.dirty[1] & /*$tasksStore*/
+    2) {
+      $:
+        $$invalidate(31, projectTasks = getProjectTasks($tasksStore, projectId));
+    }
+    if ($$self.$$.dirty[1] & /*projectTasks*/
+    1) {
+      $:
+        $$invalidate(14, backlog = projectTasks.filter((t) => t.status === "backlog"));
+    }
+    if ($$self.$$.dirty[1] & /*projectTasks*/
+    1) {
+      $:
+        $$invalidate(5, running = projectTasks.filter((t) => t.status === "running"));
+    }
+    if ($$self.$$.dirty[1] & /*projectTasks*/
+    1) {
+      $:
+        $$invalidate(12, review = projectTasks.filter((t) => t.status === "review"));
+    }
+    if ($$self.$$.dirty[0] & /*isLocked, lockedTimeline, running, dDate, dTime*/
+    1073741870) {
+      $:
+        $$invalidate(6, timeline = isLocked ? lockedTimeline : calculateLiquidTimeline(running, /* @__PURE__ */ new Date(), /* @__PURE__ */ new Date(`${dDate}T${dTime}`)));
+    }
+    if ($$self.$$.dirty[0] & /*runningWrapperHeight, running, timeline*/
+    112) {
+      $:
+        $$invalidate(13, taskHeights = (() => {
+          const H = runningWrapperHeight;
+          const heights = {};
+          if (running.length === 0)
+            return heights;
+          const tl = timeline;
+          const total = tl.reduce((s, t) => s + t.calculatedDuration, 0);
+          if (total <= 0 || H <= 0) {
+            const tw = running.reduce((s, t) => s + t.weight, 0) || 1;
+            running.forEach((t) => {
+              heights[t.id] = Math.max(65, t.weight / tw * Math.max(H, 300));
+            });
+            return heights;
+          }
+          running.forEach((t) => {
+            const ti = tl.find((item) => item.id === t.id);
+            const dur = ti ? ti.calculatedDuration : 0;
+            heights[t.id] = Math.max(65, dur / total * H);
+          });
+          return heights;
+        })());
+    }
+  };
+  return [
+    fileManager,
+    dDate,
+    dTime,
+    isLocked,
+    runningWrapperHeight,
+    running,
+    timeline,
+    lockLineTop,
+    lockWipeHeight,
+    dragId,
+    dragOverStatus,
+    dragOverIndex,
+    review,
+    taskHeights,
+    backlog,
+    createTask,
+    editTask,
+    openTaskFile,
+    updateStatus,
+    toggleFixed,
+    setFixed,
+    deleteTask,
+    confirmRestoreAll,
+    confirmDeleteAll,
+    toggleLock,
+    handleDragStart,
+    handleDragOver,
+    handleDrop,
+    app,
+    projectId,
+    lockedTimeline,
+    projectTasks,
+    $tasksStore,
+    click_handler_1,
+    click_handler,
+    input0_input_handler,
+    input1_input_handler,
+    click_handler_2,
+    click_handler_3,
+    click_handler_4,
+    click_handler_5,
+    click_handler_6,
+    dragstart_handler,
+    dragover_handler,
+    drop_handler,
+    click_handler_7,
+    click_handler_8,
+    click_handler_9,
+    click_handler_10,
+    click_handler_11,
+    change_handler,
+    change_handler_1,
+    click_handler_12,
+    click_handler_13,
+    dragstart_handler_1,
+    func,
+    div7_elementresize_handler,
+    dragover_handler_1,
+    drop_handler_1,
+    click_handler_14,
+    click_handler_15,
+    click_handler_16,
+    click_handler_17,
+    dragstart_handler_2,
+    dragover_handler_2,
+    drop_handler_2
+  ];
+}
+var ElasticView = class extends SvelteComponent {
+  constructor(options) {
+    super();
+    init(this, options, instance2, create_fragment2, safe_not_equal, { app: 28, fileManager: 0, projectId: 29 }, null, [-1, -1, -1]);
+  }
+};
+var ElasticView_default = ElasticView;
+
+// src/ui/views/DeadlinesView.svelte
+function get_each_context3(ctx, list, i) {
+  const child_ctx = ctx.slice();
+  child_ctx[15] = list[i];
+  const constants_0 = new Date(
+    /*task*/
+    child_ctx[15].deadline || ""
+  ).getTime() - /*now*/
+  child_ctx[2];
+  child_ctx[16] = constants_0;
+  return child_ctx;
+}
+function get_each_context_12(ctx, list, i) {
+  const child_ctx = ctx.slice();
+  child_ctx[19] = list[i];
+  const constants_0 = (
+    /*deadlinedTasks*/
+    child_ctx[1].filter(function func(...args) {
+      return (
+        /*func*/
+        ctx[13](
+          /*d*/
+          child_ctx[19],
+          ...args
+        )
+      );
+    }).length
+  );
+  child_ctx[20] = constants_0;
+  const constants_1 = new Date(
+    /*d*/
+    child_ctx[19]
+  ).getTime() - /*now*/
+  child_ctx[2];
+  child_ctx[21] = constants_1;
+  return child_ctx;
+}
+function create_else_block2(ctx) {
+  let div0;
+  let t;
+  let div1;
+  let each_blocks = [];
+  let each1_lookup = /* @__PURE__ */ new Map();
+  let each_value_1 = ensure_array_like(
+    /*uniqueDates*/
+    ctx[3]
+  );
+  let each_blocks_1 = [];
+  for (let i = 0; i < each_value_1.length; i += 1) {
+    each_blocks_1[i] = create_each_block_12(get_each_context_12(ctx, each_value_1, i));
+  }
+  let each_value = ensure_array_like(
+    /*sortedTasks*/
+    ctx[4]
+  );
+  const get_key = (ctx2) => (
+    /*task*/
+    ctx2[15].id
+  );
+  for (let i = 0; i < each_value.length; i += 1) {
+    let child_ctx = get_each_context3(ctx, each_value, i);
+    let key = get_key(child_ctx);
+    each1_lookup.set(key, each_blocks[i] = create_each_block3(key, child_ctx));
+  }
+  return {
+    c() {
+      div0 = element("div");
+      for (let i = 0; i < each_blocks_1.length; i += 1) {
+        each_blocks_1[i].c();
+      }
+      t = space();
+      div1 = element("div");
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        each_blocks[i].c();
+      }
+      attr(div0, "class", "pos-mini-cal");
+      attr(div1, "class", "pos-deadlines-list");
+    },
+    m(target, anchor) {
+      insert(target, div0, anchor);
+      for (let i = 0; i < each_blocks_1.length; i += 1) {
+        if (each_blocks_1[i]) {
+          each_blocks_1[i].m(div0, null);
+        }
+      }
+      insert(target, t, anchor);
+      insert(target, div1, anchor);
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        if (each_blocks[i]) {
+          each_blocks[i].m(div1, null);
+        }
+      }
+    },
+    p(ctx2, dirty) {
+      if (dirty & /*Date, uniqueDates, now, selectedDateStr, toggleDateFilter, deadlinedTasks*/
+      47) {
+        each_value_1 = ensure_array_like(
+          /*uniqueDates*/
+          ctx2[3]
+        );
+        let i;
+        for (i = 0; i < each_value_1.length; i += 1) {
+          const child_ctx = get_each_context_12(ctx2, each_value_1, i);
+          if (each_blocks_1[i]) {
+            each_blocks_1[i].p(child_ctx, dirty);
+          } else {
+            each_blocks_1[i] = create_each_block_12(child_ctx);
+            each_blocks_1[i].c();
+            each_blocks_1[i].m(div0, null);
+          }
+        }
+        for (; i < each_blocks_1.length; i += 1) {
+          each_blocks_1[i].d(1);
+        }
+        each_blocks_1.length = each_value_1.length;
+      }
+      if (dirty & /*Date, sortedTasks, now*/
+      20) {
+        each_value = ensure_array_like(
+          /*sortedTasks*/
+          ctx2[4]
+        );
+        each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx2, each_value, each1_lookup, div1, destroy_block, create_each_block3, null, get_each_context3);
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div0);
+        detach(t);
+        detach(div1);
+      }
+      destroy_each(each_blocks_1, detaching);
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        each_blocks[i].d();
+      }
+    }
+  };
+}
+function create_if_block3(ctx) {
+  let p;
+  return {
+    c() {
+      p = element("p");
+      p.textContent = "No upcoming deadlines.";
+      attr(p, "class", "pos-empty");
+    },
+    m(target, anchor) {
+      insert(target, p, anchor);
+    },
+    p: noop,
+    d(detaching) {
+      if (detaching) {
+        detach(p);
+      }
+    }
+  };
+}
+function create_each_block_12(ctx) {
+  let div2;
+  let div0;
+  let t0_value = (
+    /*d*/
+    ctx[19].slice(5) + ""
+  );
+  let t0;
+  let t1;
+  let div1;
+  let t2_value = (
+    /*count*/
+    ctx[20] + ""
+  );
+  let t2;
+  let t3;
+  let mounted;
+  let dispose;
+  function click_handler() {
+    return (
+      /*click_handler*/
+      ctx[12](
+        /*d*/
+        ctx[19]
+      )
+    );
+  }
+  return {
+    c() {
+      div2 = element("div");
+      div0 = element("div");
+      t0 = text(t0_value);
+      t1 = space();
+      div1 = element("div");
+      t2 = text(t2_value);
+      t3 = space();
+      attr(div0, "class", "pos-cal-date");
+      attr(div1, "class", "pos-cal-count");
+      attr(div2, "class", "pos-cal-day");
+      set_style(div2, "background-color", deadlineHue(
+        /*dMs*/
+        ctx[21]
+      ));
+      toggle_class(
+        div2,
+        "selected",
+        /*selectedDateStr*/
+        ctx[0] === /*d*/
+        ctx[19]
+      );
+    },
+    m(target, anchor) {
+      insert(target, div2, anchor);
+      append(div2, div0);
+      append(div0, t0);
+      append(div2, t1);
+      append(div2, div1);
+      append(div1, t2);
+      append(div2, t3);
+      if (!mounted) {
+        dispose = listen(div2, "click", click_handler);
+        mounted = true;
+      }
+    },
+    p(new_ctx, dirty) {
+      ctx = new_ctx;
+      if (dirty & /*uniqueDates*/
+      8 && t0_value !== (t0_value = /*d*/
+      ctx[19].slice(5) + ""))
+        set_data(t0, t0_value);
+      if (dirty & /*deadlinedTasks, uniqueDates*/
+      10 && t2_value !== (t2_value = /*count*/
+      ctx[20] + ""))
+        set_data(t2, t2_value);
+      if (dirty & /*uniqueDates, now*/
+      12) {
+        set_style(div2, "background-color", deadlineHue(
+          /*dMs*/
+          ctx[21]
+        ));
+      }
+      if (dirty & /*selectedDateStr, uniqueDates*/
+      9) {
+        toggle_class(
+          div2,
+          "selected",
+          /*selectedDateStr*/
+          ctx[0] === /*d*/
+          ctx[19]
+        );
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div2);
+      }
+      mounted = false;
+      dispose();
+    }
+  };
+}
+function create_each_block3(key_1, ctx) {
+  let div2;
+  let div0;
+  let t0_value = (
+    /*task*/
+    ctx[15].name + ""
+  );
+  let t0;
+  let t1;
+  let div1;
+  let t2_value = formatCountdown(
+    /*diff*/
+    ctx[16]
+  ) + "";
+  let t2;
+  let t3;
+  return {
+    key: key_1,
+    first: null,
+    c() {
+      div2 = element("div");
+      div0 = element("div");
+      t0 = text(t0_value);
+      t1 = space();
+      div1 = element("div");
+      t2 = text(t2_value);
+      t3 = space();
+      attr(div0, "class", "pos-card-name");
+      attr(div1, "class", "pos-countdown");
+      attr(div2, "class", "pos-card pos-deadline-card");
+      set_style(div2, "border-left-color", deadlineHue(
+        /*diff*/
+        ctx[16]
+      ));
+      this.first = div2;
+    },
+    m(target, anchor) {
+      insert(target, div2, anchor);
+      append(div2, div0);
+      append(div0, t0);
+      append(div2, t1);
+      append(div2, div1);
+      append(div1, t2);
+      append(div2, t3);
+    },
+    p(new_ctx, dirty) {
+      ctx = new_ctx;
+      if (dirty & /*sortedTasks*/
+      16 && t0_value !== (t0_value = /*task*/
+      ctx[15].name + ""))
+        set_data(t0, t0_value);
+      if (dirty & /*sortedTasks, now*/
+      20 && t2_value !== (t2_value = formatCountdown(
+        /*diff*/
+        ctx[16]
+      ) + ""))
+        set_data(t2, t2_value);
+      if (dirty & /*sortedTasks, now*/
+      20) {
+        set_style(div2, "border-left-color", deadlineHue(
+          /*diff*/
+          ctx[16]
+        ));
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div2);
+      }
+    }
+  };
+}
+function create_fragment3(ctx) {
+  let div;
+  function select_block_type(ctx2, dirty) {
+    if (
+      /*deadlinedTasks*/
+      ctx2[1].length === 0
+    )
+      return create_if_block3;
+    return create_else_block2;
+  }
+  let current_block_type = select_block_type(ctx, -1);
+  let if_block = current_block_type(ctx);
+  return {
+    c() {
+      div = element("div");
+      if_block.c();
+      attr(div, "class", "pos-deadlines-view");
+    },
+    m(target, anchor) {
+      insert(target, div, anchor);
+      if_block.m(div, null);
+    },
+    p(ctx2, [dirty]) {
+      if (current_block_type === (current_block_type = select_block_type(ctx2, dirty)) && if_block) {
+        if_block.p(ctx2, dirty);
+      } else {
+        if_block.d(1);
+        if_block = current_block_type(ctx2);
+        if (if_block) {
+          if_block.c();
+          if_block.m(div, null);
+        }
+      }
+    },
+    i: noop,
+    o: noop,
+    d(detaching) {
+      if (detaching) {
+        detach(div);
+      }
+      if_block.d();
+    }
+  };
+}
+function instance3($$self, $$props, $$invalidate) {
+  let projectTasks;
+  let deadlinedTasks;
+  let filteredTasks;
+  let sortedTasks;
+  let uniqueDates;
+  let $tasksStore;
+  component_subscribe($$self, tasksStore, ($$value) => $$invalidate(11, $tasksStore = $$value));
+  let { app } = $$props;
+  let { fileManager } = $$props;
+  let { projectId } = $$props;
+  let selectedDateStr = null;
+  let now2 = Date.now();
+  let timer;
+  onMount(() => {
+    timer = window.setInterval(
+      () => {
+        $$invalidate(2, now2 = Date.now());
+      },
+      1e3
+    );
+  });
+  onDestroy(() => {
+    window.clearInterval(timer);
+  });
+  function toggleDateFilter(d) {
+    $$invalidate(0, selectedDateStr = selectedDateStr === d ? null : d);
+  }
+  const click_handler = (d) => toggleDateFilter(d);
+  const func = (d, t) => (t.deadline || "").startsWith(d);
+  $$self.$$set = ($$props2) => {
+    if ("app" in $$props2)
+      $$invalidate(6, app = $$props2.app);
+    if ("fileManager" in $$props2)
+      $$invalidate(7, fileManager = $$props2.fileManager);
+    if ("projectId" in $$props2)
+      $$invalidate(8, projectId = $$props2.projectId);
+  };
+  $$self.$$.update = () => {
+    if ($$self.$$.dirty & /*$tasksStore, projectId*/
+    2304) {
+      $:
+        $$invalidate(10, projectTasks = getProjectTasks($tasksStore, projectId));
+    }
+    if ($$self.$$.dirty & /*projectTasks*/
+    1024) {
+      $:
+        $$invalidate(1, deadlinedTasks = projectTasks.filter((t) => t.deadline && !t.isCompleted));
+    }
+    if ($$self.$$.dirty & /*selectedDateStr, deadlinedTasks*/
+    3) {
+      $:
+        $$invalidate(9, filteredTasks = selectedDateStr ? deadlinedTasks.filter((t) => (t.deadline || "").startsWith(selectedDateStr || "")) : deadlinedTasks);
+    }
+    if ($$self.$$.dirty & /*filteredTasks*/
+    512) {
+      $:
+        $$invalidate(4, sortedTasks = [...filteredTasks].sort((a, b) => new Date(a.deadline || "").getTime() - new Date(b.deadline || "").getTime()));
+    }
+    if ($$self.$$.dirty & /*deadlinedTasks*/
+    2) {
+      $:
+        $$invalidate(3, uniqueDates = Array.from(new Set(deadlinedTasks.map((t) => (t.deadline || "").slice(0, 10)))).sort());
+    }
+  };
+  return [
+    selectedDateStr,
+    deadlinedTasks,
+    now2,
+    uniqueDates,
+    sortedTasks,
+    toggleDateFilter,
+    app,
+    fileManager,
+    projectId,
+    filteredTasks,
+    projectTasks,
+    $tasksStore,
+    click_handler,
+    func
+  ];
+}
+var DeadlinesView = class extends SvelteComponent {
+  constructor(options) {
+    super();
+    init(this, options, instance3, create_fragment3, safe_not_equal, { app: 6, fileManager: 7, projectId: 8 });
+  }
+};
+var DeadlinesView_default = DeadlinesView;
+
+// src/ui/App.svelte
+function get_each_context4(ctx, list, i) {
+  const child_ctx = ctx.slice();
+  child_ctx[11] = list[i];
+  return child_ctx;
+}
+function create_if_block_33(ctx) {
+  let div;
+  let label;
+  let t1;
+  let select;
+  let option;
+  let option_value_value;
+  let each_blocks = [];
+  let each_1_lookup = /* @__PURE__ */ new Map();
+  let mounted;
+  let dispose;
+  let each_value = ensure_array_like(
+    /*activeProjects*/
+    ctx[4]
+  );
+  const get_key = (ctx2) => (
+    /*p*/
+    ctx2[11].id
+  );
+  for (let i = 0; i < each_value.length; i += 1) {
+    let child_ctx = get_each_context4(ctx, each_value, i);
+    let key = get_key(child_ctx);
+    each_1_lookup.set(key, each_blocks[i] = create_each_block4(key, child_ctx));
+  }
+  return {
+    c() {
+      div = element("div");
+      label = element("label");
+      label.textContent = "Project:";
+      t1 = space();
+      select = element("select");
+      option = element("option");
+      option.textContent = "\u2014 Uncategorized \u2014";
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        each_blocks[i].c();
+      }
+      attr(label, "for", "project-select");
+      option.__value = option_value_value = null;
+      set_input_value(option, option.__value);
+      attr(select, "id", "project-select");
+      attr(select, "class", "pos-project-selector");
+      if (
+        /*selectedProjectId*/
+        ctx[3] === void 0
+      )
+        add_render_callback(() => (
+          /*select_change_handler*/
+          ctx[9].call(select)
+        ));
+      attr(div, "class", "pos-project-selector-row");
+    },
+    m(target, anchor) {
+      insert(target, div, anchor);
+      append(div, label);
+      append(div, t1);
+      append(div, select);
+      append(select, option);
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        if (each_blocks[i]) {
+          each_blocks[i].m(select, null);
+        }
+      }
+      select_option(
+        select,
+        /*selectedProjectId*/
+        ctx[3],
+        true
+      );
+      if (!mounted) {
+        dispose = listen(
+          select,
+          "change",
+          /*select_change_handler*/
+          ctx[9]
+        );
+        mounted = true;
+      }
+    },
+    p(ctx2, dirty) {
+      if (dirty & /*activeProjects*/
+      16) {
+        each_value = ensure_array_like(
+          /*activeProjects*/
+          ctx2[4]
+        );
+        each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx2, each_value, each_1_lookup, select, destroy_block, create_each_block4, null, get_each_context4);
+      }
+      if (dirty & /*selectedProjectId, activeProjects*/
+      24) {
+        select_option(
+          select,
+          /*selectedProjectId*/
+          ctx2[3]
+        );
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div);
+      }
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        each_blocks[i].d();
+      }
+      mounted = false;
+      dispose();
+    }
+  };
+}
+function create_each_block4(key_1, ctx) {
+  let option;
+  let t_value = (
+    /*p*/
+    ctx[11].name + ""
+  );
+  let t;
+  let option_value_value;
+  return {
+    key: key_1,
+    first: null,
+    c() {
+      option = element("option");
+      t = text(t_value);
+      option.__value = option_value_value = /*p*/
+      ctx[11].id;
+      set_input_value(option, option.__value);
+      this.first = option;
+    },
+    m(target, anchor) {
+      insert(target, option, anchor);
+      append(option, t);
+    },
+    p(new_ctx, dirty) {
+      ctx = new_ctx;
+      if (dirty & /*activeProjects*/
+      16 && t_value !== (t_value = /*p*/
+      ctx[11].name + ""))
+        set_data(t, t_value);
+      if (dirty & /*activeProjects*/
+      16 && option_value_value !== (option_value_value = /*p*/
+      ctx[11].id)) {
+        option.__value = option_value_value;
+        set_input_value(option, option.__value);
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(option);
+      }
+    }
+  };
+}
+function create_if_block_23(ctx) {
+  let deadlinesview;
+  let current;
+  deadlinesview = new DeadlinesView_default({
+    props: {
+      app: (
+        /*app*/
+        ctx[0]
+      ),
+      fileManager: (
+        /*fileManager*/
+        ctx[1]
+      ),
+      projectId: (
+        /*selectedProjectId*/
+        ctx[3]
+      )
+    }
+  });
+  return {
+    c() {
+      create_component(deadlinesview.$$.fragment);
+    },
+    m(target, anchor) {
+      mount_component(deadlinesview, target, anchor);
+      current = true;
+    },
+    p(ctx2, dirty) {
+      const deadlinesview_changes = {};
+      if (dirty & /*app*/
+      1)
+        deadlinesview_changes.app = /*app*/
+        ctx2[0];
+      if (dirty & /*fileManager*/
+      2)
+        deadlinesview_changes.fileManager = /*fileManager*/
+        ctx2[1];
+      if (dirty & /*selectedProjectId*/
+      8)
+        deadlinesview_changes.projectId = /*selectedProjectId*/
+        ctx2[3];
+      deadlinesview.$set(deadlinesview_changes);
+    },
+    i(local) {
+      if (current)
+        return;
+      transition_in(deadlinesview.$$.fragment, local);
+      current = true;
+    },
+    o(local) {
+      transition_out(deadlinesview.$$.fragment, local);
+      current = false;
+    },
+    d(detaching) {
+      destroy_component(deadlinesview, detaching);
+    }
+  };
+}
+function create_if_block_14(ctx) {
+  let elasticview;
+  let current;
+  elasticview = new ElasticView_default({
+    props: {
+      app: (
+        /*app*/
+        ctx[0]
+      ),
+      fileManager: (
+        /*fileManager*/
+        ctx[1]
+      ),
+      projectId: (
+        /*selectedProjectId*/
+        ctx[3]
+      )
+    }
+  });
+  return {
+    c() {
+      create_component(elasticview.$$.fragment);
+    },
+    m(target, anchor) {
+      mount_component(elasticview, target, anchor);
+      current = true;
+    },
+    p(ctx2, dirty) {
+      const elasticview_changes = {};
+      if (dirty & /*app*/
+      1)
+        elasticview_changes.app = /*app*/
+        ctx2[0];
+      if (dirty & /*fileManager*/
+      2)
+        elasticview_changes.fileManager = /*fileManager*/
+        ctx2[1];
+      if (dirty & /*selectedProjectId*/
+      8)
+        elasticview_changes.projectId = /*selectedProjectId*/
+        ctx2[3];
+      elasticview.$set(elasticview_changes);
+    },
+    i(local) {
+      if (current)
+        return;
+      transition_in(elasticview.$$.fragment, local);
+      current = true;
+    },
+    o(local) {
+      transition_out(elasticview.$$.fragment, local);
+      current = false;
+    },
+    d(detaching) {
+      destroy_component(elasticview, detaching);
+    }
+  };
+}
+function create_if_block4(ctx) {
+  let agingview;
+  let current;
+  agingview = new AgingView_default({
+    props: {
+      app: (
+        /*app*/
+        ctx[0]
+      ),
+      fileManager: (
+        /*fileManager*/
+        ctx[1]
+      ),
+      onSelect: (
+        /*func*/
+        ctx[10]
+      )
+    }
+  });
+  return {
+    c() {
+      create_component(agingview.$$.fragment);
+    },
+    m(target, anchor) {
+      mount_component(agingview, target, anchor);
+      current = true;
+    },
+    p(ctx2, dirty) {
+      const agingview_changes = {};
+      if (dirty & /*app*/
+      1)
+        agingview_changes.app = /*app*/
+        ctx2[0];
+      if (dirty & /*fileManager*/
+      2)
+        agingview_changes.fileManager = /*fileManager*/
+        ctx2[1];
+      if (dirty & /*selectedProjectId, mode*/
+      12)
+        agingview_changes.onSelect = /*func*/
+        ctx2[10];
+      agingview.$set(agingview_changes);
+    },
+    i(local) {
+      if (current)
+        return;
+      transition_in(agingview.$$.fragment, local);
+      current = true;
+    },
+    o(local) {
+      transition_out(agingview.$$.fragment, local);
+      current = false;
+    },
+    d(detaching) {
+      destroy_component(agingview, detaching);
+    }
+  };
+}
+function create_fragment4(ctx) {
+  let div2;
+  let div0;
+  let button0;
+  let t1;
+  let button1;
+  let t3;
+  let button2;
+  let t5;
+  let t6;
+  let div1;
+  let current_block_type_index;
+  let if_block1;
+  let current;
+  let mounted;
+  let dispose;
+  let if_block0 = (
+    /*mode*/
+    ctx[2] !== "aging" && create_if_block_33(ctx)
+  );
+  const if_block_creators = [create_if_block4, create_if_block_14, create_if_block_23];
+  const if_blocks = [];
+  function select_block_type(ctx2, dirty) {
+    if (
+      /*mode*/
+      ctx2[2] === "aging"
+    )
+      return 0;
+    if (
+      /*mode*/
+      ctx2[2] === "elastic"
+    )
+      return 1;
+    if (
+      /*mode*/
+      ctx2[2] === "deadlines"
+    )
+      return 2;
+    return -1;
+  }
+  if (~(current_block_type_index = select_block_type(ctx, -1))) {
+    if_block1 = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](ctx);
+  }
+  return {
+    c() {
+      div2 = element("div");
+      div0 = element("div");
+      button0 = element("button");
+      button0.textContent = "Aging";
+      t1 = space();
+      button1 = element("button");
+      button1.textContent = "Elastic";
+      t3 = space();
+      button2 = element("button");
+      button2.textContent = "Deadlines";
+      t5 = space();
+      if (if_block0)
+        if_block0.c();
+      t6 = space();
+      div1 = element("div");
+      if (if_block1)
+        if_block1.c();
+      attr(button0, "class", "pos-mode-btn");
+      toggle_class(
+        button0,
+        "pos-mode-active",
+        /*mode*/
+        ctx[2] === "aging"
+      );
+      attr(button1, "class", "pos-mode-btn");
+      toggle_class(
+        button1,
+        "pos-mode-active",
+        /*mode*/
+        ctx[2] === "elastic"
+      );
+      attr(button2, "class", "pos-mode-btn");
+      toggle_class(
+        button2,
+        "pos-mode-active",
+        /*mode*/
+        ctx[2] === "deadlines"
+      );
+      attr(div0, "class", "pos-mode-bar");
+      attr(div1, "class", "pos-content");
+      attr(div2, "class", "pos-view");
+    },
+    m(target, anchor) {
+      insert(target, div2, anchor);
+      append(div2, div0);
+      append(div0, button0);
+      append(div0, t1);
+      append(div0, button1);
+      append(div0, t3);
+      append(div0, button2);
+      append(div0, t5);
+      if (if_block0)
+        if_block0.m(div0, null);
+      append(div2, t6);
+      append(div2, div1);
+      if (~current_block_type_index) {
+        if_blocks[current_block_type_index].m(div1, null);
+      }
+      current = true;
+      if (!mounted) {
+        dispose = [
+          listen(
+            button0,
+            "click",
+            /*click_handler*/
+            ctx[6]
+          ),
+          listen(
+            button1,
+            "click",
+            /*click_handler_1*/
+            ctx[7]
+          ),
+          listen(
+            button2,
+            "click",
+            /*click_handler_2*/
+            ctx[8]
+          )
+        ];
+        mounted = true;
+      }
+    },
+    p(ctx2, [dirty]) {
+      if (!current || dirty & /*mode*/
+      4) {
+        toggle_class(
+          button0,
+          "pos-mode-active",
+          /*mode*/
+          ctx2[2] === "aging"
+        );
+      }
+      if (!current || dirty & /*mode*/
+      4) {
+        toggle_class(
+          button1,
+          "pos-mode-active",
+          /*mode*/
+          ctx2[2] === "elastic"
+        );
+      }
+      if (!current || dirty & /*mode*/
+      4) {
+        toggle_class(
+          button2,
+          "pos-mode-active",
+          /*mode*/
+          ctx2[2] === "deadlines"
+        );
+      }
+      if (
+        /*mode*/
+        ctx2[2] !== "aging"
+      ) {
+        if (if_block0) {
+          if_block0.p(ctx2, dirty);
+        } else {
+          if_block0 = create_if_block_33(ctx2);
+          if_block0.c();
+          if_block0.m(div0, null);
+        }
+      } else if (if_block0) {
+        if_block0.d(1);
+        if_block0 = null;
+      }
+      let previous_block_index = current_block_type_index;
+      current_block_type_index = select_block_type(ctx2, dirty);
+      if (current_block_type_index === previous_block_index) {
+        if (~current_block_type_index) {
+          if_blocks[current_block_type_index].p(ctx2, dirty);
+        }
+      } else {
+        if (if_block1) {
+          group_outros();
+          transition_out(if_blocks[previous_block_index], 1, 1, () => {
+            if_blocks[previous_block_index] = null;
+          });
+          check_outros();
+        }
+        if (~current_block_type_index) {
+          if_block1 = if_blocks[current_block_type_index];
+          if (!if_block1) {
+            if_block1 = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](ctx2);
+            if_block1.c();
+          } else {
+            if_block1.p(ctx2, dirty);
+          }
+          transition_in(if_block1, 1);
+          if_block1.m(div1, null);
+        } else {
+          if_block1 = null;
+        }
+      }
+    },
+    i(local) {
+      if (current)
+        return;
+      transition_in(if_block1);
+      current = true;
+    },
+    o(local) {
+      transition_out(if_block1);
+      current = false;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div2);
+      }
+      if (if_block0)
+        if_block0.d();
+      if (~current_block_type_index) {
+        if_blocks[current_block_type_index].d();
+      }
+      mounted = false;
+      run_all(dispose);
+    }
+  };
+}
+function instance4($$self, $$props, $$invalidate) {
+  let activeProjects;
+  let $projectsStore;
+  component_subscribe($$self, projectsStore, ($$value) => $$invalidate(5, $projectsStore = $$value));
+  let { app } = $$props;
+  let { fileManager } = $$props;
+  let mode = "aging";
+  let selectedProjectId = null;
+  const click_handler = () => $$invalidate(2, mode = "aging");
+  const click_handler_1 = () => $$invalidate(2, mode = "elastic");
+  const click_handler_2 = () => $$invalidate(2, mode = "deadlines");
+  function select_change_handler() {
+    selectedProjectId = select_value(this);
+    $$invalidate(3, selectedProjectId);
+    $$invalidate(4, activeProjects), $$invalidate(5, $projectsStore);
+  }
+  const func = (id, m) => {
+    $$invalidate(3, selectedProjectId = id);
+    $$invalidate(2, mode = m);
+  };
+  $$self.$$set = ($$props2) => {
+    if ("app" in $$props2)
+      $$invalidate(0, app = $$props2.app);
+    if ("fileManager" in $$props2)
+      $$invalidate(1, fileManager = $$props2.fileManager);
+  };
+  $$self.$$.update = () => {
+    if ($$self.$$.dirty & /*$projectsStore*/
+    32) {
+      $:
+        $$invalidate(4, activeProjects = $projectsStore.filter((p) => p.status === "active"));
+    }
+  };
+  return [
+    app,
+    fileManager,
+    mode,
+    selectedProjectId,
+    activeProjects,
+    $projectsStore,
+    click_handler,
+    click_handler_1,
+    click_handler_2,
+    select_change_handler,
+    func
+  ];
+}
+var App3 = class extends SvelteComponent {
+  constructor(options) {
+    super();
+    init(this, options, instance4, create_fragment4, safe_not_equal, { app: 0, fileManager: 1 });
+  }
+};
+var App_default = App3;
+
+// src/main.ts
+var VIEW_TYPE = "project-os-view";
+var ProjectOSView = class extends import_obsidian4.ItemView {
+  constructor(leaf, fileManager) {
+    super(leaf);
+    __publicField(this, "component", null);
+    __publicField(this, "fileManager");
+    this.fileManager = fileManager;
+  }
+  getViewType() {
+    return VIEW_TYPE;
+  }
+  getDisplayText() {
+    return "Project OS";
+  }
+  getIcon() {
+    return "layout-dashboard";
+  }
+  async onOpen() {
+    this.component = new App_default({
+      target: this.contentEl,
+      props: {
+        app: this.app,
+        fileManager: this.fileManager
+      }
+    });
+  }
+  async onClose() {
+    if (this.component) {
+      this.component.$destroy();
+    }
+  }
+};
+var ProjectOSPlugin = class extends import_obsidian4.Plugin {
+  constructor() {
+    super(...arguments);
+    __publicField(this, "fileManager");
+  }
+  async onload() {
+    console.log("Initializing Project OS...");
+    new import_obsidian4.Notice("Initializing Project OS...");
+    this.fileManager = new FileManager(this.app);
+    this.app.workspace.onLayoutReady(async () => {
+      try {
+        await this.fileManager.initialize();
+        console.log("Project OS: data initialized successfully!");
+      } catch (e) {
+        console.error("Project OS: failed to initialize data", e);
+        new import_obsidian4.Notice("Project OS failed to initialize: " + e.message);
+      }
+    });
+    this.registerView(
+      VIEW_TYPE,
+      (leaf) => new ProjectOSView(leaf, this.fileManager)
+    );
+    this.addRibbonIcon("layout-dashboard", "Open Project OS", () => {
+      this.activateView();
+    });
+    this.addCommand({
+      id: "open-project-os",
+      name: "Open Project OS Dashboard",
+      callback: () => this.activateView()
+    });
+    this.registerEvent(
+      this.app.metadataCache.on("changed", async (file) => {
+        if (file.path.startsWith("tasks/") || file.path.startsWith("projects/")) {
+          await this.fileManager.loadAll();
+        }
+      })
+    );
+    this.registerEvent(
+      this.app.vault.on("create", async (file) => {
+        if (file.path.startsWith("tasks/") || file.path.startsWith("projects/")) {
+          await this.fileManager.loadAll();
+        }
+      })
+    );
+    this.registerEvent(
+      this.app.vault.on("delete", async (file) => {
+        if (file.path.startsWith("tasks/") || file.path.startsWith("projects/")) {
+          await this.fileManager.loadAll();
+        }
+      })
+    );
+  }
   async activateView() {
     const { workspace } = this.app;
     let leaf = workspace.getLeavesOfType(VIEW_TYPE)[0];
     if (!leaf) {
-      leaf = workspace.getRightLeaf(false);
+      leaf = workspace.getRightLeaf(false) || workspace.getLeaf(false);
       await leaf.setViewState({ type: VIEW_TYPE, active: true });
     }
     workspace.revealLeaf(leaf);
   }
-}
-
-module.exports = ProjectOSPlugin;
+};
