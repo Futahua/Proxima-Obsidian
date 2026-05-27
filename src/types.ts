@@ -22,7 +22,9 @@ export interface TaskData {
   maxDuration: number | null;
   isCompleted: boolean;
   createdAt: string;
+  startDate: string | null;
   deadline: string | null;
+  ganttRow?: number;
 }
 
 export interface TimelineItem {

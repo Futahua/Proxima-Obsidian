@@ -1,4 +1,4 @@
-import { App, TFile } from 'obsidian';
+import { App, TFile, TFolder, TAbstractFile } from 'obsidian';
 import type { ProjectData, TaskData } from '../types';
 import { projectsStore, tasksStore } from '../stores/data';
 
@@ -31,6 +31,14 @@ export function serializeFrontmatter(fields: Record<string, any>): string {
   return s;
 }
 
+export interface ProjectFileInfo {
+  path: string;
+  name: string;
+  extension: string;
+  size: number;
+  mtime: number;
+}
+
 export class FileManager {
   constructor(public app: App) {}
 
@@ -51,18 +59,74 @@ export class FileManager {
     }
   }
 
+  /**
+   * Resolve the project note file path.
+   * Supports both subfolder convention (projects/{id}/index.md) and flat convention (projects/{id}.md).
+   */
+  resolveProjectNotePath(id: string): string | null {
+    // Prefer subfolder convention
+    const subfolderPath = `${PROJECTS_FOLDER}/${id}/index.md`;
+    const flatPath = `${PROJECTS_FOLDER}/${id}.md`;
+    
+    if (this.app.vault.getAbstractFileByPath(subfolderPath) instanceof TFile) {
+      return subfolderPath;
+    }
+    if (this.app.vault.getAbstractFileByPath(flatPath) instanceof TFile) {
+      return flatPath;
+    }
+    return null;
+  }
+
+  /**
+   * Check if a project uses the subfolder convention.
+   */
+  isSubfolderProject(id: string): boolean {
+    const subfolderPath = `${PROJECTS_FOLDER}/${id}/index.md`;
+    return this.app.vault.getAbstractFileByPath(subfolderPath) instanceof TFile;
+  }
+
+  /**
+   * Get the directory path for a project's files.
+   * For subfolder projects: projects/{id}/
+   * For flat projects: projects/ (but files are the single .md)
+   */
+  getProjectFolderPath(id: string): string {
+    return `${PROJECTS_FOLDER}/${id}`;
+  }
+
   async loadAll() {
     const projects: ProjectData[] = [];
     const tasks: TaskData[] = [];
+    const seenProjectIds = new Set<string>();
 
-    const projectFiles = this.app.vault.getMarkdownFiles().filter(f => f.path.startsWith(PROJECTS_FOLDER + '/'));
-    for (const f of projectFiles) {
+    // Scan for subfolder-based projects: projects/{id}/index.md
+    const allFiles = this.app.vault.getMarkdownFiles().filter(f => f.path.startsWith(PROJECTS_FOLDER + '/'));
+    
+    for (const f of allFiles) {
       const c = await this.app.vault.read(f);
       const fm = parseFrontmatter(c);
       if (fm.type !== 'project') continue;
+      
+      // Determine project ID based on path convention
+      let projectId: string;
+      const pathParts = f.path.replace(PROJECTS_FOLDER + '/', '').split('/');
+      
+      if (pathParts.length >= 2 && f.name === 'index.md') {
+        // Subfolder convention: projects/{id}/index.md
+        projectId = pathParts[0];
+      } else if (pathParts.length === 1) {
+        // Flat convention: projects/{id}.md
+        projectId = f.basename;
+      } else {
+        continue; // Skip other nested files that aren't index.md
+      }
+      
+      if (seenProjectIds.has(projectId)) continue;
+      seenProjectIds.add(projectId);
+      
       projects.push({
-        id: f.basename,
-        name: fm.name || f.basename,
+        id: projectId,
+        name: fm.name || projectId,
         description: fm.description || '',
         createdAt: fm.createdAt || new Date(f.stat.ctime).toISOString(),
         status: fm.status || 'active',
@@ -81,6 +145,11 @@ export class FileManager {
         const d = new Date(fm.deadline);
         if (!isNaN(d.getTime())) deadline = d.toISOString();
       }
+      let startDate = null;
+      if (fm.startDate) {
+        const d = new Date(fm.startDate);
+        if (!isNaN(d.getTime())) startDate = d.toISOString();
+      }
       tasks.push({
         id: f.basename,
         name: fm.name || f.basename,
@@ -94,7 +163,9 @@ export class FileManager {
         maxDuration: fm.maxDuration || null,
         isCompleted: fm.isCompleted || false,
         createdAt: fm.createdAt || new Date(f.stat.ctime).toISOString(),
+        startDate: startDate,
         deadline: deadline,
+        ganttRow: fm.ganttRow || 0,
       });
     }
     tasks.sort((a, b) => a.orderIndex - b.orderIndex);
@@ -151,6 +222,7 @@ export class FileManager {
       createdAt: new Date().toISOString(),
     };
     if (data.deadline) fm.deadline = data.deadline;
+    if (data.startDate) fm.startDate = data.startDate;
     
     const c = serializeFrontmatter(fm) + '\n' + (data.description || '');
     await this.app.vault.create(`${TASKS_FOLDER}/${id}.md`, c);
@@ -167,9 +239,11 @@ export class FileManager {
       fixedDuration: fm.fixedDuration,
       isCompleted: false,
       createdAt: fm.createdAt,
+      startDate: fm.startDate || null,
       deadline: fm.deadline || null,
       description: data.description || '',
-      name: fm.name
+      name: fm.name,
+      ganttRow: data.ganttRow || 0
     } as TaskData]);
     
     return id;
@@ -182,18 +256,100 @@ export class FileManager {
   }
 
   async getProjectContent(id: string): Promise<string> {
-    const file = this.app.vault.getAbstractFileByPath(`${PROJECTS_FOLDER}/${id}.md`);
+    const notePath = this.resolveProjectNotePath(id);
+    if (!notePath) return '';
+    const file = this.app.vault.getAbstractFileByPath(notePath);
     if (!(file instanceof TFile)) return '';
     const c = await this.app.vault.read(file);
     return c.replace(/^---\r?\n[\s\S]*?\r?\n---/, '').trim();
   }
 
   async saveProjectContent(id: string, newBody: string): Promise<void> {
-    const file = this.app.vault.getAbstractFileByPath(`${PROJECTS_FOLDER}/${id}.md`);
+    const notePath = this.resolveProjectNotePath(id);
+    if (!notePath) return;
+    const file = this.app.vault.getAbstractFileByPath(notePath);
     if (!(file instanceof TFile)) return;
     const c = await this.app.vault.read(file);
     const fm = parseFrontmatter(c);
     const serialized = serializeFrontmatter(fm) + '\n' + newBody;
     await this.app.vault.modify(file, serialized);
+  }
+
+  /**
+   * Get all files associated with a project in its subfolder.
+   * Returns files from projects/{id}/ directory (excluding index.md frontmatter).
+   */
+  getProjectFiles(id: string): ProjectFileInfo[] {
+    const folderPath = this.getProjectFolderPath(id);
+    const folder = this.app.vault.getAbstractFileByPath(folderPath);
+    
+    if (!(folder instanceof TFolder)) {
+      // Flat project — only has the single .md file
+      const flatPath = `${PROJECTS_FOLDER}/${id}.md`;
+      const flatFile = this.app.vault.getAbstractFileByPath(flatPath);
+      if (flatFile instanceof TFile) {
+        return [{
+          path: flatFile.path,
+          name: flatFile.name,
+          extension: flatFile.extension,
+          size: flatFile.stat.size,
+          mtime: flatFile.stat.mtime,
+        }];
+      }
+      return [];
+    }
+    
+    const files: ProjectFileInfo[] = [];
+    const collectFiles = (parent: TFolder) => {
+      for (const child of parent.children) {
+        if (child instanceof TFile) {
+          files.push({
+            path: child.path,
+            name: child.name,
+            extension: child.extension,
+            size: child.stat.size,
+            mtime: child.stat.mtime,
+          });
+        } else if (child instanceof TFolder) {
+          collectFiles(child);
+        }
+      }
+    };
+    collectFiles(folder);
+    
+    // Sort: index.md first, then alphabetically
+    files.sort((a, b) => {
+      if (a.name === 'index.md') return -1;
+      if (b.name === 'index.md') return 1;
+      return a.name.localeCompare(b.name);
+    });
+    
+    return files;
+  }
+
+  /**
+   * Create a new file inside the project's subfolder.
+   * Ensures the subfolder exists first.
+   */
+  async createProjectFile(projectId: string, filename: string, content: string): Promise<TFile> {
+    const folderPath = this.getProjectFolderPath(projectId);
+    await this.ensureFolder(folderPath);
+    
+    const filePath = `${folderPath}/${filename}`;
+    const existing = this.app.vault.getAbstractFileByPath(filePath);
+    if (existing instanceof TFile) return existing;
+    
+    const file = await this.app.vault.create(filePath, content);
+    return file;
+  }
+
+  /**
+   * Get the TFile for the project's main note (index.md or flat .md).
+   */
+  getProjectNoteFile(id: string): TFile | null {
+    const notePath = this.resolveProjectNotePath(id);
+    if (!notePath) return null;
+    const file = this.app.vault.getAbstractFileByPath(notePath);
+    return file instanceof TFile ? file : null;
   }
 }

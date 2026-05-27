@@ -162,11 +162,44 @@
   let dragOverStatus: TaskStatus | null = null;
   let dragOverIndex: number = -1;
 
+  let dragHeight = 60;
+
   function handleDragStart(e: DragEvent, id: string) {
-    dragId = id;
-    if (e.dataTransfer) {
-      e.dataTransfer.setData('text/plain', id);
+    const target = (e.target as HTMLElement).closest('.pos-card');
+    if (target) {
+      const rect = target.getBoundingClientRect();
+      dragHeight = rect.height;
+      if (e.dataTransfer) {
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', id);
+        
+        const clone = target.cloneNode(true) as HTMLElement;
+        clone.style.position = 'absolute';
+        clone.style.top = '-9999px';
+        clone.style.left = '-9999px';
+        clone.style.width = rect.width + 'px';
+        clone.style.height = rect.height + 'px';
+        clone.style.opacity = '1';
+        clone.classList.remove('pos-dragging-source');
+        document.body.appendChild(clone);
+        e.dataTransfer.setDragImage(clone, e.clientX - rect.left, e.clientY - rect.top);
+        
+        setTimeout(() => {
+          if (clone.parentNode) clone.parentNode.removeChild(clone);
+        }, 50);
+      }
+    } else {
+      if (e.dataTransfer) e.dataTransfer.setData('text/plain', id);
     }
+    setTimeout(() => {
+      dragId = id;
+    }, 0);
+  }
+
+  function handleDragEnd() {
+    dragId = null;
+    dragOverStatus = null;
+    dragOverIndex = -1;
   }
 
   function handleDragOver(e: DragEvent, status: TaskStatus) {
@@ -176,27 +209,35 @@
     const task = $tasksStore.find(t => t.id === dragId);
     if (!task) return;
     
-    // Disallow column movements if running list is locked
     if (isLocked && (task.status === 'running' || status === 'running') && task.status !== status) {
       if (e.dataTransfer) e.dataTransfer.dropEffect = 'none';
       return;
     }
 
-    dragOverStatus = status;
-
     const listEl = (e.currentTarget as HTMLElement).querySelector('.pos-list');
     if (!listEl) return;
     
-    const cards = Array.from(listEl.querySelectorAll('.pos-card:not(.pos-dragging-source)'));
+    const isPlaceholderInThisColumn = (dragOverStatus === status && dragOverIndex !== -1);
+    const placeholderShift = dragHeight + 8; // card height + gap
+
+    const cards = Array.from(listEl.querySelectorAll('.pos-card'));
     let index = 0;
     for (let i = 0; i < cards.length; i++) {
       const rect = cards[i].getBoundingClientRect();
-      if (e.clientY < rect.top + rect.height / 2) {
+      let virtualTop = rect.top;
+      
+      if (isPlaceholderInThisColumn && dragOverIndex <= i) {
+        virtualTop -= placeholderShift;
+      }
+      
+      if (e.clientY < virtualTop + rect.height / 2) {
         index = i;
         break;
       }
       index = i + 1;
     }
+    
+    dragOverStatus = status;
     dragOverIndex = index;
   }
 
@@ -281,19 +322,20 @@
       <div class="pos-list">
         {#each backlog as task, i (task.id)}
           {#if dragOverStatus === 'backlog' && dragOverIndex === i}
-            <div class="pos-drag-placeholder"></div>
+            <div class="pos-drag-placeholder" style="height: {dragHeight}px"></div>
           {/if}
-          <div class="pos-card" class:pos-dragging-source={dragId === task.id} draggable="true" on:dragstart={(e) => handleDragStart(e, task.id)}>
-            <div class="pos-card-name" on:click={() => openTaskFile(task.id)}>{task.name}</div>
-            {#if task.description}<div class="pos-card-desc">{task.description}</div>{/if}
+          <div class="pos-card" class:pos-dragging-source={dragId === task.id} draggable="true" on:dragstart={(e) => handleDragStart(e, task.id)} on:dragend={handleDragEnd}>
+            <div style="cursor: pointer;" on:click={() => editTask(task)}>
+              <div class="pos-card-name">{task.name}</div>
+              {#if task.description}<div class="pos-card-desc">{task.description}</div>{/if}
+            </div>
             <div class="pos-card-acts">
-              <button on:click={() => editTask(task)}>Edit</button>
               <button class="pos-del" on:click={() => deleteTask(task.id)}>Delete</button>
             </div>
           </div>
         {/each}
         {#if dragOverStatus === 'backlog' && dragOverIndex >= backlog.length}
-          <div class="pos-drag-placeholder"></div>
+          <div class="pos-drag-placeholder" style="height: {dragHeight}px"></div>
         {/if}
         <div class="pos-newtask-row">
           <button class="pos-newtask-btn" on:click={createTask}>+ New Task</button>
@@ -314,7 +356,7 @@
       <div class="pos-list">
         {#each running as task, i (task.id)}
           {#if dragOverStatus === 'running' && dragOverIndex === i}
-            <div class="pos-drag-placeholder"></div>
+            <div class="pos-drag-placeholder" style="height: {dragHeight}px"></div>
           {/if}
           {@const ti = timeline.find(t => t.id === task.id)}
           <div 
@@ -323,12 +365,15 @@
             style="height: {taskHeights[task.id] ? taskHeights[task.id] + 'px' : 'auto'};"
             draggable="true" 
             on:dragstart={(e) => handleDragStart(e, task.id)}
+            on:dragend={handleDragEnd}
           >
-            <div class="pos-card-name" on:click={() => openTaskFile(task.id)}>{task.name}</div>
-            {#if task.description}<div class="pos-card-desc">{task.description}</div>{/if}
-            <div class="pos-card-meta">
-              {#if task.isFixedDuration && task.fixedDuration}<span>Fixed {task.fixedDuration}m</span>{/if}
-              {#if ti}<span>{fmtTime(ti.endTime)} ({fmtDur(Math.round(ti.calculatedDuration))})</span>{/if}
+            <div style="cursor: pointer;" on:click={() => editTask(task)}>
+              <div class="pos-card-name">{task.name}</div>
+              {#if task.description}<div class="pos-card-desc">{task.description}</div>{/if}
+              <div class="pos-card-meta">
+                {#if task.isFixedDuration && task.fixedDuration}<span>Fixed {task.fixedDuration}m</span>{/if}
+                {#if ti}<span>{fmtTime(ti.endTime)} ({fmtDur(Math.round(ti.calculatedDuration))})</span>{/if}
+              </div>
             </div>
             <div class="pos-card-acts">
               <span class="pos-wg">
@@ -355,13 +400,12 @@
                 />
               {/if}
               
-              <button on:click={() => editTask(task)}>Edit</button>
               <button class="pos-del" on:click={() => deleteTask(task.id)}>Delete</button>
             </div>
           </div>
         {/each}
         {#if dragOverStatus === 'running' && dragOverIndex >= running.length}
-          <div class="pos-drag-placeholder"></div>
+          <div class="pos-drag-placeholder" style="height: {dragHeight}px"></div>
         {/if}
       </div>
       {#if isLocked}
@@ -378,18 +422,19 @@
       <div class="pos-list">
         {#each review as task, i (task.id)}
           {#if dragOverStatus === 'review' && dragOverIndex === i}
-            <div class="pos-drag-placeholder"></div>
+            <div class="pos-drag-placeholder" style="height: {dragHeight}px"></div>
           {/if}
-          <div class="pos-card pos-completed" class:pos-dragging-source={dragId === task.id} draggable="true" on:dragstart={(e) => handleDragStart(e, task.id)}>
-            <div class="pos-card-name" on:click={() => openTaskFile(task.id)}>{task.name}</div>
+          <div class="pos-card pos-completed" class:pos-dragging-source={dragId === task.id} draggable="true" on:dragstart={(e) => handleDragStart(e, task.id)} on:dragend={handleDragEnd}>
+            <div style="cursor: pointer;" on:click={() => editTask(task)}>
+              <div class="pos-card-name">{task.name}</div>
+            </div>
             <div class="pos-card-acts">
-              <button on:click={() => editTask(task)}>Edit</button>
               <button class="pos-del" on:click={() => deleteTask(task.id)}>Delete</button>
             </div>
           </div>
         {/each}
         {#if dragOverStatus === 'review' && dragOverIndex >= review.length}
-          <div class="pos-drag-placeholder"></div>
+          <div class="pos-drag-placeholder" style="height: {dragHeight}px"></div>
         {/if}
         {#if review.length > 0}
           <div class="pos-bulk-row">

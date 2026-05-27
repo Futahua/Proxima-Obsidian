@@ -155,3 +155,115 @@ export class NewTaskModal extends Modal {
   }
   onClose() { this.contentEl.empty(); }
 }
+
+export class QuickEditTaskModal extends Modal {
+  constructor(
+    app: App, 
+    public task: TaskData, 
+    public onSave: (updates: Partial<TaskData>) => void,
+    public onOpenNative: () => void
+  ) {
+    super(app);
+  }
+
+  onOpen() {
+    const { contentEl, task } = this;
+    contentEl.empty();
+    
+    // Header
+    const hdr = contentEl.createEl('div', { cls: 'pos-modal-row', attr: { style: 'justify-content: space-between; margin-bottom: 16px;' }});
+    hdr.createEl('h3', { text: 'Edit Task', attr: { style: 'margin: 0;' }});
+    const nativeBtn = hdr.createEl('button', { text: '📄 Open Native Note', cls: 'pos-modal-primary' });
+    nativeBtn.addEventListener('click', () => {
+      this.close();
+      this.onOpenNative();
+    });
+
+    const inp = contentEl.createEl('input', {
+      type: 'text', placeholder: 'Task name', cls: 'pos-modal-input',
+    });
+    inp.value = task.name;
+    
+    // Status
+    const sr = contentEl.createEl('div', { cls: 'pos-modal-row' });
+    sr.createEl('label', { text: 'Status:' });
+    const sSel = sr.createEl('select', { cls: 'pos-modal-input', attr: { style: 'width: 150px;' }});
+    ['planned', 'backlog', 'running', 'review'].forEach(st => {
+      sSel.createEl('option', { value: st, text: st }).selected = (task.status === st);
+    });
+
+    // Start Date
+    const sdr = contentEl.createEl('div', { cls: 'pos-modal-row' });
+    const sdChk = sdr.createEl('input', { type: 'checkbox' });
+    sdChk.checked = !!task.startDate;
+    sdr.createEl('label', { text: ' Start Date:' });
+    const sdInp = sdr.createEl('input', { type: 'datetime-local', cls: 'pos-modal-datetime' });
+    sdInp.disabled = !task.startDate;
+    if (task.startDate) {
+      const sdDate = new Date(task.startDate);
+      if (!isNaN(sdDate.getTime())) sdInp.value = sdDate.toISOString().slice(0, 16);
+    }
+    sdChk.addEventListener('change', () => { sdInp.disabled = !sdChk.checked; });
+
+    // Deadline
+    const dr = contentEl.createEl('div', { cls: 'pos-modal-row' });
+    const dChk = dr.createEl('input', { type: 'checkbox' });
+    dChk.checked = !!task.deadline;
+    dr.createEl('label', { text: ' Deadline:' });
+    const dInp = dr.createEl('input', { type: 'datetime-local', cls: 'pos-modal-datetime' });
+    dInp.disabled = !task.deadline;
+    if (task.deadline) {
+      const dlDate = new Date(task.deadline);
+      if (!isNaN(dlDate.getTime())) dInp.value = dlDate.toISOString().slice(0, 16);
+    }
+    dChk.addEventListener('change', () => { dInp.disabled = !dChk.checked; });
+    
+    // Description
+    const desc = contentEl.createEl('textarea', {
+      placeholder: 'Description', cls: 'pos-modal-textarea',
+      attr: { style: 'margin-top: 10px; min-height: 80px;' }
+    });
+    desc.value = task.description;
+
+    // Buttons
+    const br = contentEl.createEl('div', { cls: 'pos-modal-buttons', attr: { style: 'margin-top: 16px;' } });
+    br.createEl('button', { text: 'Edit Natively' }).addEventListener('click', () => {
+      const file = this.app.vault.getAbstractFileByPath(`tasks/${task.id}.md`);
+      if (file instanceof TFile) {
+        this.app.workspace.getLeaf().openFile(file);
+      }
+      this.close();
+    });
+    br.createEl('button', { text: 'Cancel' }).addEventListener('click', () => this.close());
+    br.createEl('button', { text: 'Save', cls: 'pos-modal-primary' }).addEventListener('click', () => {
+      const name = inp.value.trim();
+      if (!name) { new Notice('Task name is required'); return; }
+      
+      const updates: Partial<TaskData> = {
+        name,
+        description: desc.value.trim(),
+        status: sSel.value as any,
+        isCompleted: sSel.value === 'review'
+      };
+      
+      if (sdChk.checked && sdInp.value) {
+        const sdDate = new Date(sdInp.value);
+        if (!isNaN(sdDate.getTime())) updates.startDate = sdDate.toISOString();
+      } else {
+        updates.startDate = null;
+      }
+
+      if (dChk.checked && dInp.value) {
+        const dlDate = new Date(dInp.value);
+        if (!isNaN(dlDate.getTime())) updates.deadline = dlDate.toISOString();
+      } else {
+        updates.deadline = null;
+      }
+      
+      this.onSave(updates);
+      this.close();
+    });
+  }
+
+  onClose() { this.contentEl.empty(); }
+}

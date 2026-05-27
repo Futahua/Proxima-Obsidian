@@ -218,7 +218,7 @@
               </td>
               <td class="pos-td-name">
                 <div class="pos-td-name-cell">
-                  <span class="pos-td-task-title" on:click={() => openTaskFile(task.id)}>
+                  <span class="pos-td-task-title" on:click={() => editTask(task)}>
                     {task.name}
                   </span>
                   {#if task.description}
@@ -239,7 +239,6 @@
               </td>
               <td class="pos-td-acts">
                 <div class="pos-grid-row-acts">
-                  <button on:click={() => editTask(task)}>Edit</button>
                   <button class="pos-del" on:click={() => fileManager.deleteTask(task.id)}>Delete</button>
                 </div>
               </td>

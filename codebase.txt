@@ -1,0 +1,632 @@
+PROJECT-OS IMPLEMENTATION PLAN
+===============================
+For agent use. Read the full codebase before acting. Each feature is self-contained
+and ordered by priority. Do not implement anything not listed here.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FEATURE 1: FIX parseFrontmatter TO SUPPORT YAML ARRAYS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Priority: CRITICAL — this is a prerequisite for Feature 2.
+File: src/data/FileManager.ts — function parseFrontmatter()
+
+PROBLEM:
+The current parser splits on ":" and handles only primitive values (string,
+number, boolean, null). It cannot parse YAML inline arrays like:
+  tags: [blocked, needs-design, waiting]
+
+If a task file already has a tags array in frontmatter, the current parser
+will return it as the raw string "[blocked, needs-design, waiting]", breaking
+all tag logic.
+
+WHAT TO DO:
+After extracting the value string (after the ":"), add a branch before the
+existing type coercions that detects the YAML inline array format:
+  - Trim the value string
+  - If it starts with "[" and ends with "]", strip the brackets, split on
+    commas, trim each item, filter empty strings, and return the result as
+    a string array.
+  - Otherwise, fall through to existing primitive coercion logic unchanged.
+
+Also fix serializeFrontmatter() to handle arrays:
+  - When the value is an Array, serialize it as: key: [item1, item2, item3]
+  - All other types continue to serialize as before.
+
+These are the only two functions to change in this file for this feature.
+Do not touch loadAll(), updateTask(), or createTask() yet.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FEATURE 2: TASK TAGS (MULTI-SELECT LABELS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Priority: HIGH — highest-value missing feature.
+Files: src/types.ts, src/data/FileManager.ts, src/modals/Modals.ts,
+       src/ui/views/components/ProjectTaskGrid.svelte,
+       src/ui/views/components/ProjectTaskBoard.svelte,
+       src/ui/views/components/ProjectDeadlines.svelte,
+       styles.css
+
+WHY:
+Tasks currently have no cross-cutting labels. There is no way to mark a task
+as "blocked", "waiting-on-client", "needs-review", or any custom category that
+cuts across projects or status columns. Tags fill this gap cleanly.
+
+WHAT TO ADD TO TaskData (src/types.ts):
+  tags: string[]   // defaults to []
+
+WHAT TO CHANGE IN FileManager.ts:
+
+In loadAll():
+  When building each TaskData object from frontmatter, add:
+    tags: Array.isArray(fm.tags) ? fm.tags : []
+
+In createTask():
+  Add to the fm object:
+    tags: data.tags || []
+  Add to the store update object:
+    tags: fm.tags
+
+In updateTask():
+  No special handling needed — tags is just another field. The existing
+  fmUpdates spread + Object.assign will handle it correctly once
+  parseFrontmatter and serializeFrontmatter support arrays.
+
+WHAT TO CHANGE IN MODALS (src/modals/Modals.ts):
+
+Both EditTaskModal and QuickEditTaskModal need a tag input UI.
+Add a tag editor row after the description field:
+
+  - Render existing tags as removable pills (small spans with an "×" button)
+  - Add a plain text input with placeholder "Add tag, press Enter"
+  - On Enter or comma keypress: trim the input value, push to a local tags
+    array if non-empty and not a duplicate, clear the input
+  - On "×" click: remove that tag from the local array
+  - On Save: include tags in the updates object
+
+The tag input does NOT need autocomplete for the first implementation.
+Keep it simple: type → Enter → pill appears.
+
+WHAT TO CHANGE IN CARD VIEWS:
+
+ProjectTaskBoard.svelte and the elastic view in ElasticView.svelte:
+  In the .pos-card-meta section of each task card, render tags as small
+  colored pills if tags.length > 0. Use CSS class pos-tag-pill.
+  Do not add any tag interaction on the card itself — clicking the card
+  still opens the edit modal where tags can be managed.
+
+ProjectTaskGrid.svelte:
+  1. Add a tag filter bar above the task table (or alongside the existing
+     search input). Render a "All Tags" dropdown or a set of pill buttons
+     showing all unique tags across the current project's tasks.
+  2. Add a tag filter state variable: let tagFilter: string | null = null
+  3. Add tag filtering to the filteredTasks reactive statement:
+     If tagFilter is set, only show tasks whose tags array includes tagFilter.
+  4. Add a "Tags" column to the grid table showing tag pills per row.
+  5. Allow clicking a tag pill in the table to set it as the active tagFilter.
+  6. Add "tags" as a sortBy option (sorts by tag count desc, then name asc).
+
+ProjectDeadlines.svelte:
+  In the countdown list view, show tag pills on each countdown card beneath
+  the task name. No filtering needed here — just display.
+  In the calendar view, tag pills are too small to display — skip.
+  In the timeline/gantt view, show tags in the bar tooltip (title attribute).
+
+CSS (styles.css):
+  Add at the end of the file:
+
+  .pos-tag-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 1px 6px;
+    border-radius: 10px;
+    font-size: 0.68em;
+    font-weight: 600;
+    background: var(--background-modifier-border);
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  .pos-tag-pill-remove {
+    cursor: pointer;
+    font-size: 0.85em;
+    line-height: 1;
+    opacity: 0.6;
+  }
+  .pos-tag-pill-remove:hover { opacity: 1; }
+
+  .pos-tag-input-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    align-items: center;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    padding: 4px 6px;
+    background: var(--background-primary);
+    min-height: 32px;
+  }
+
+  .pos-tag-input {
+    border: none;
+    outline: none;
+    background: transparent;
+    color: var(--text-normal);
+    font-size: 0.82em;
+    min-width: 80px;
+    flex: 1;
+  }
+
+  .pos-tag-filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+
+  .pos-tag-filter-pill {
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.72em;
+    font-weight: 600;
+    border: 1px solid var(--background-modifier-border);
+    background: var(--background-secondary);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  .pos-tag-filter-pill:hover,
+  .pos-tag-filter-pill.active {
+    background: #A7C957;
+    color: #101010;
+    border-color: #96b54e;
+  }
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FEATURE 3: TASK PRIORITY FIELD
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Priority: HIGH — fills a genuine gap without conflicting with weight.
+Files: src/types.ts, src/data/FileManager.ts, src/modals/Modals.ts,
+       src/ui/views/components/ProjectTaskBoard.svelte,
+       src/ui/views/components/ProjectTaskGrid.svelte,
+       styles.css
+
+WHY:
+Weight controls elastic time allocation (how big a running task appears).
+Priority controls urgency ordering (which tasks should be done first).
+These are orthogonal. A task can be high-priority but short (weight 1),
+or low-priority but long (weight 5). Notion conflates these; this plugin
+should not.
+
+WHAT TO ADD TO TaskData (src/types.ts):
+  priority: 1 | 2 | 3   // 1 = high, 2 = medium, 3 = low. Default: 2.
+
+WHAT TO CHANGE IN FileManager.ts:
+
+In loadAll():
+  priority: (fm.priority === 1 || fm.priority === 2 || fm.priority === 3) ? fm.priority : 2
+
+In createTask():
+  Add to fm: priority: data.priority || 2
+  Add to store update: priority: fm.priority
+
+WHAT TO CHANGE IN MODALS (src/modals/Modals.ts):
+
+In both EditTaskModal and QuickEditTaskModal, add a priority selector row:
+  - Use a <select> or three radio buttons labeled High / Medium / Low
+  - Map display labels to values: High=1, Medium=2, Low=3
+  - Default to the task's current priority value
+  - Include priority in the updates object on Save
+
+WHAT TO CHANGE IN VIEWS:
+
+ProjectTaskBoard.svelte and ElasticView.svelte:
+  Add a priority indicator to each card. A simple left-border color:
+    priority 1 (high): 3px solid #E5484D
+    priority 2 (medium): 3px solid #FFB224
+    priority 3 (low): no border / var(--background-modifier-border)
+  Apply via inline style on the .pos-card div.
+  Default sort within each column: priority ascending (high first), then
+  orderIndex. Change the column filtering reactive statements to sort by
+  [priority ASC, orderIndex ASC].
+
+ProjectTaskGrid.svelte:
+  1. Add "Priority" as a column in the table, showing High/Medium/Low text
+     with the matching urgency color.
+  2. Add 'priority' to the sortBy type union.
+  3. Add priority sorting logic to the sortedTasks reactive statement:
+     priority sorts as numeric ascending = high first.
+  4. Add a priority filter dropdown alongside the status filter:
+     All Priorities / High / Medium / Low
+
+CSS (styles.css):
+  .pos-card.priority-high { border-left: 3px solid #E5484D; }
+  .pos-card.priority-medium { border-left: 3px solid #FFB224; }
+  .pos-card.priority-low { border-left-color: var(--background-modifier-border); }
+
+  .pos-priority-badge {
+    font-size: 0.65em;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .pos-priority-badge.high { background: rgba(229,72,77,0.15); color: #E5484D; }
+  .pos-priority-badge.medium { background: rgba(255,178,36,0.15); color: #a07000; }
+  .pos-priority-badge.low { background: var(--background-modifier-border); color: var(--text-muted); }
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FEATURE 4: RICHER PROJECT ROLLUPS IN AGINGVIEW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Priority: HIGH — high value, zero new data structures, pure computed logic.
+Files: src/ui/views/AgingView.svelte, styles.css
+
+WHY:
+The current project cards show: total tasks, active count, completed count.
+This is not enough to judge a project's health at a glance. The data to
+compute better metrics is already in the store. This is a better version of
+Notion's Rollup because it is purpose-built for project health, not generic.
+
+WHAT TO COMPUTE PER PROJECT CARD:
+All of these are computed inside the {#each activeProjects} block, using
+the already-filtered pTasks array.
+
+1. Weighted completion %:
+   - completedWeight = pTasks that are status==='review' summed by .weight
+   - totalWeight = all pTasks summed by .weight (or 1 if 0)
+   - pct = Math.round((completedWeight / totalWeight) * 100)
+   - Display as a thin progress bar below the task counts.
+
+2. Overdue task count:
+   - overdueCount = pTasks that have a deadline AND deadline < now AND
+     status !== 'review'
+   - If overdueCount > 0, show a red badge on the card: "⚠ N overdue"
+
+3. Nearest upcoming deadline:
+   - nearestDeadline = min deadline among pTasks where status !== 'review'
+     and deadline is not null
+   - Display as "Due {formatAge(nearestDeadline)}" or nothing if no deadlines
+
+4. High-priority task count:
+   - Only add this after Feature 3 is implemented.
+   - highPriorityCount = pTasks where priority === 1 AND status !== 'review'
+   - If > 0, show alongside the active badge.
+
+VISUAL LAYOUT CHANGE:
+Replace the current .pos-card-meta span cluster with a structured two-row
+layout:
+  Row 1: total tasks · N active · N completed (existing)
+  Row 2: progress bar (new)
+  Row 3: overdue badge (if any) + nearest deadline (if any) (new)
+
+Keep the existing hue-based background color (green→red aging) — do not
+change it. It represents project age. Rollup data is additive information.
+
+CSS additions (styles.css):
+  .pos-project-progress-bar {
+    height: 4px;
+    background: var(--background-modifier-border);
+    border-radius: 2px;
+    margin: 6px 0 4px;
+    overflow: hidden;
+  }
+  .pos-project-progress-fill {
+    height: 100%;
+    background: #46A758;
+    border-radius: 2px;
+    transition: width 0.4s ease;
+  }
+  .pos-overdue-badge {
+    font-size: 0.7em;
+    font-weight: 700;
+    color: #E5484D;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+  }
+  .pos-nearest-deadline {
+    font-size: 0.7em;
+    color: var(--text-muted);
+  }
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FEATURE 5: PROJECT ARCHIVE UI
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Priority: MEDIUM — status: 'archived' already exists on ProjectData,
+but there is zero UI to use it.
+Files: src/ui/views/AgingView.svelte, src/data/FileManager.ts, styles.css
+
+PROBLEM:
+Currently, the only way to remove a project from the active list is to
+delete it permanently. There is no archive. ProjectStatus = 'active' |
+'archived' is defined in types.ts and stored in frontmatter, but AgingView
+filters to only active projects and offers no archive or restore UI.
+
+WHAT TO ADD TO FileManager.ts:
+A new method:
+  async archiveProject(id: string): Promise<void>
+    - Find the project's note file using resolveProjectNotePath(id)
+    - Read the file, parse frontmatter, set fm.status = 'archived', write back
+    - Call loadAll() to refresh the store
+
+A new method:
+  async restoreProject(id: string): Promise<void>
+    - Same as above but sets fm.status = 'active'
+
+WHAT TO CHANGE IN AgingView.svelte:
+
+1. Add a view toggle at the top of the component:
+   let showArchived = false;
+   Two buttons: "Active" and "Archived" — toggle showArchived.
+
+2. When showArchived is false (default): show only active projects as now.
+
+3. When showArchived is true:
+   - Show archived projects from $projectsStore filtered to status==='archived'
+   - Show them as greyed-out cards with no aging hue (use a neutral background)
+   - Each archived card has a "Restore" button that calls
+     fileManager.restoreProject(p.id) followed by fileManager.loadAll()
+   - Each archived card has a "Delete" button (permanent deletion — same as
+     the existing delete logic, show a confirm dialog first)
+   - No "Workspace" button on archived cards
+
+4. Replace the existing "Delete" button on active cards with an "Archive"
+   button that calls fileManager.archiveProject(id).
+   This prevents accidental permanent deletion of projects with tasks.
+   Keep permanent delete only in the archived view.
+
+5. When deleting an archived project, also check if it has tasks and warn
+   the user. The existing delete logic already unlinks tasks; keep that
+   behavior.
+
+CSS:
+  .pos-project-card.archived {
+    opacity: 0.6;
+    background: var(--background-secondary) !important;
+    border-left: 3px solid var(--background-modifier-border);
+  }
+  .pos-archive-toggle {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 12px;
+  }
+  .pos-archive-toggle button {
+    padding: 4px 12px;
+    border-radius: 4px;
+    border: 1px solid var(--background-modifier-border);
+    background: var(--background-secondary);
+    color: var(--text-muted);
+    font-size: 0.8em;
+    cursor: pointer;
+  }
+  .pos-archive-toggle button.active {
+    background: #A7C957;
+    color: #101010;
+    border-color: #96b54e;
+  }
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FEATURE 6: CONFIGURABLE URGENCY THRESHOLDS (PLUGIN SETTINGS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Priority: MEDIUM — makes the tool feel personal rather than opinionated.
+Files: src/main.ts, src/types.ts (or a new src/settings.ts),
+       src/ui/views/components/ProjectDeadlines.svelte,
+       src/ui/views/AgingView.svelte (aging hue thresholds)
+
+WHY:
+The urgency system (overdue/critical/warning/caution/safe) uses hardcoded
+day thresholds in ProjectDeadlines.svelte:
+  overdue: days < 0
+  critical: days < 1
+  warning: days < 3
+  caution: days < 7
+  safe: days >= 7
+
+The aging hue in AgingView uses a ratio that is implicitly bounded by the
+oldest and newest project, making it impossible to control the color scale.
+
+These should be user-configurable via Obsidian's native plugin settings tab.
+
+WHAT TO CREATE (src/settings.ts):
+  export interface ProjectOSSettings {
+    urgencyThresholds: {
+      critical: number;  // days — default 1
+      warning: number;   // days — default 3
+      caution: number;   // days — default 7
+    };
+    agingRedThresholdDays: number;  // project age at which hue = 0 (red) — default 90
+  }
+
+  export const DEFAULT_SETTINGS: ProjectOSSettings = {
+    urgencyThresholds: { critical: 1, warning: 3, caution: 7 },
+    agingRedThresholdDays: 90,
+  };
+
+WHAT TO CHANGE IN src/main.ts:
+  1. Import PluginSettingTab, Setting from 'obsidian'
+  2. Import ProjectOSSettings, DEFAULT_SETTINGS from './settings'
+  3. Add settings property: settings: ProjectOSSettings
+  4. In onload(), before initializing FileManager:
+       this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+  5. Add a settings tab class at the bottom of the file:
+     class ProjectOSSettingTab extends PluginSettingTab {
+       plugin: ProjectOSPlugin;
+       constructor(app: App, plugin: ProjectOSPlugin) {
+         super(app, plugin);
+         this.plugin = plugin;
+       }
+       display(): void {
+         const { containerEl } = this;
+         containerEl.empty();
+         containerEl.createEl('h2', { text: 'Project OS Settings' });
+
+         // Critical threshold
+         new Setting(containerEl)
+           .setName('Critical deadline threshold (days)')
+           .setDesc('Tasks due within this many days are marked critical.')
+           .addText(text => text
+             .setValue(String(this.plugin.settings.urgencyThresholds.critical))
+             .onChange(async (value) => {
+               const n = parseFloat(value);
+               if (!isNaN(n) && n > 0) {
+                 this.plugin.settings.urgencyThresholds.critical = n;
+                 await this.plugin.saveData(this.plugin.settings);
+               }
+             }));
+
+         // Warning threshold
+         new Setting(containerEl)
+           .setName('Warning deadline threshold (days)')
+           .setDesc('Tasks due within this many days are marked warning.')
+           .addText(text => text
+             .setValue(String(this.plugin.settings.urgencyThresholds.warning))
+             .onChange(async (value) => {
+               const n = parseFloat(value);
+               if (!isNaN(n) && n > 0) {
+                 this.plugin.settings.urgencyThresholds.warning = n;
+                 await this.plugin.saveData(this.plugin.settings);
+               }
+             }));
+
+         // Caution threshold
+         new Setting(containerEl)
+           .setName('Caution deadline threshold (days)')
+           .setDesc('Tasks due within this many days are marked caution.')
+           .addText(text => text
+             .setValue(String(this.plugin.settings.urgencyThresholds.caution))
+             .onChange(async (value) => {
+               const n = parseFloat(value);
+               if (!isNaN(n) && n > 0) {
+                 this.plugin.settings.urgencyThresholds.caution = n;
+                 await this.plugin.saveData(this.plugin.settings);
+               }
+             }));
+
+         // Aging red threshold
+         new Setting(containerEl)
+           .setName('Project aging threshold (days)')
+           .setDesc('Number of days before a project reaches full red in the Projects Hub.')
+           .addText(text => text
+             .setValue(String(this.plugin.settings.agingRedThresholdDays))
+             .onChange(async (value) => {
+               const n = parseInt(value);
+               if (!isNaN(n) && n > 0) {
+                 this.plugin.settings.agingRedThresholdDays = n;
+                 await this.plugin.saveData(this.plugin.settings);
+               }
+             }));
+       }
+     }
+  6. In onload(), register the settings tab:
+       this.addSettingTab(new ProjectOSSettingTab(this.app, this));
+
+WHAT TO CHANGE IN ProjectDeadlines.svelte:
+  1. Add a plugin prop: export let plugin;
+  2. Pass plugin from all parent components (ProjectsView, DeadlinesView,
+     App.svelte) down to ProjectDeadlines.
+  3. Replace the hardcoded urgencyClass() function with one that reads
+     plugin.settings.urgencyThresholds:
+       function urgencyClass(diffMs: number): string {
+         if (!plugin?.settings) { /* fallback to defaults */ }
+         const days = diffMs / 86400000;
+         const t = plugin.settings.urgencyThresholds;
+         if (days < 0) return 'overdue';
+         if (days < t.critical) return 'critical';
+         if (days < t.warning) return 'warning';
+         if (days < t.caution) return 'caution';
+         return 'safe';
+       }
+
+WHAT TO CHANGE IN AgingView.svelte:
+  1. Add plugin prop (it's already passed in, just not used for settings).
+  2. Replace the getHue() function's hardcoded linear ratio with one that
+     clamps to plugin.settings.agingRedThresholdDays:
+       function getHue(createdAt: string): number {
+         const ageDays = (Date.now() - new Date(createdAt).getTime()) / 86400000;
+         const maxDays = plugin?.settings?.agingRedThresholdDays || 90;
+         const ratio = Math.min(1, ageDays / maxDays);
+         return 120 * (1 - ratio);  // 120=green, 0=red
+       }
+     Note: This removes the relative aging (comparing projects to each other)
+     and replaces it with absolute aging (comparing to a real-world threshold).
+     This is strictly better — a project that is 30 days old should look the
+     same color regardless of whether other projects are 1 day old or 200 days.
+     Remove the minTime/maxTime/range reactive statements entirely.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+THINGS TO EXPLICITLY NOT IMPLEMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+The following were considered and rejected. Do not add them.
+
+INTER-TASK DEPENDENCIES (Notion's Relation between tasks):
+  Would require a new relational data model, a DAG cycle detector, UI to
+  pick blocking tasks, and rendering dependency arrows. Massive scope.
+  The plugin's value is the elastic timeline, not dependency tracking.
+  Skip entirely.
+
+FORMULA FIELDS:
+  Allowing users to write JS expressions to compute custom properties requires
+  a sandboxed evaluator, type inference, a formula editor UI, and error
+  handling. The planned settings (Feature 6) covers the main use case
+  (threshold customization) without this complexity.
+
+ROLLUP AS A GENERIC SYSTEM:
+  Feature 4 implements specific, useful computed values. A generic rollup
+  system (where users pick which field to aggregate) would need a query
+  builder UI. The specific values are more useful and far simpler.
+
+BUTTON/AUTOMATION:
+  Obsidian's command palette and hotkeys already serve this purpose.
+  The bulk actions in ProjectTaskGrid (bulk activate, plan, complete, delete)
+  already cover the most common automation use cases.
+
+EMAIL / PHONE / URL TYPED FIELDS:
+  Obsidian frontmatter stores these as plain text. Adding typed versions
+  adds UI complexity for no functional gain — Obsidian's native note editor
+  already handles rich link formatting.
+
+SEQUENTIAL AUTO-INCREMENT ID:
+  Task IDs are already auto-generated as task-{timestamp}-{random}. They
+  are stable, unique, and never collide. A sequential integer ID adds
+  nothing beyond display aesthetics and would require a global counter
+  persisted to disk.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+IMPLEMENTATION ORDER
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Implement in this order:
+  1. Feature 1 (parseFrontmatter fix) — prerequisite for everything else
+  2. Feature 2 (tags) — most user-facing impact
+  3. Feature 3 (priority) — complements tags; both update the same modal
+  4. Feature 4 (rollups) — pure UI, no new data
+  5. Feature 5 (archive) — straightforward data + UI
+  6. Feature 6 (settings) — last because it requires passing plugin prop
+                             down to components that don't currently have it
+
+After Features 2 and 3 are done, update the modals together in one pass
+so the edit modal UI is touched only once (both tags and priority added
+to EditTaskModal and QuickEditTaskModal at the same time).
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DATA COMPATIBILITY NOTES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+All new fields (tags, priority) must default gracefully when missing from
+existing task files. loadAll() must not crash on tasks that predate these
+fields. The defaults:
+  - tags: [] when fm.tags is undefined or not an array
+  - priority: 2 when fm.priority is undefined or not 1/2/3
+
+No migration script is needed. Defaults are applied at read time.
+Files are only written when a task is explicitly updated by the user.
+Existing task files will gain the new frontmatter fields on their next edit.

@@ -43,8 +43,11 @@
         createdAt: new Date().toISOString(), 
         status: 'active' 
       };
-      const content = '---\n' + Object.entries(fm).map(([k,v]) => `${k}: ${v}`).join('\n') + '\n---\n';
-      await app.vault.create(`projects/${id}.md`, content);
+      const content = '---\n' + Object.entries(fm).map(([k,v]) => `${k}: ${v}`).join('\n') + '\n---\n\n# ' + name + '\n';
+      
+      // Create project in subfolder convention: projects/{id}/index.md
+      await fileManager.ensureFolder(`projects/${id}`);
+      await app.vault.create(`projects/${id}/index.md`, content);
       await fileManager.loadAll();
       
       if (isFullPage) {

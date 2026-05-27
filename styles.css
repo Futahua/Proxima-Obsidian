@@ -76,6 +76,16 @@
   gap: 8px;
 }
 
+.pos-dragging-source {
+  opacity: 0 !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: none !important;
+  overflow: hidden !important;
+}
+
 /* ── Header / Deadline Controls ── */
 .pos-header {
   display: flex;
@@ -337,13 +347,12 @@
 
 /* ── Drag Placeholder ── */
 .pos-drag-placeholder {
-  height: 3px;
-  background-color: var(--interactive-accent, #A7C957);
-  margin: 4px 0;
-  border-radius: 2px;
+  background-color: var(--background-modifier-hover);
+  border: 2px dashed var(--interactive-accent, #A7C957);
+  border-radius: 6px;
   width: 100%;
-  box-shadow: 0 0 4px rgba(167, 201, 87, 0.5);
-  transition: all 0.1s ease;
+  box-sizing: border-box;
+  transition: height 0.1s ease;
 }
 
 /* ── Project Cards (Aging) ── */
@@ -1558,4 +1567,957 @@
   color: #A7C957;
 }
 
+/* ── Project Workspace File Browser / Notes Tab ── */
+.pos-notes-layout {
+  display: flex;
+  height: 100%;
+  gap: 16px;
+  min-height: 0;
+}
 
+.pos-note-preview-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.pos-native-note-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: var(--background-secondary);
+  border-bottom: 1px solid var(--background-modifier-border);
+  flex-shrink: 0;
+}
+
+.pos-note-bar-label {
+  font-weight: 700;
+  font-size: 0.9em;
+  color: var(--text-normal);
+}
+
+.pos-note-edit-btn {
+  padding: 4px 12px;
+  font-size: 0.8em;
+  font-weight: 600;
+}
+
+.pos-note-preview-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.pos-note-md-render {
+  font-size: 0.95em;
+  line-height: 1.6;
+}
+
+/* File Browser Panel */
+.pos-file-browser {
+  width: 320px;
+  display: flex;
+  flex-direction: column;
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  flex-shrink: 0;
+  min-height: 0;
+}
+
+.pos-fb-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--background-modifier-border);
+  flex-shrink: 0;
+  position: relative;
+}
+
+.pos-fb-title {
+  font-weight: 700;
+  font-size: 0.9em;
+  color: var(--text-normal);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.pos-fb-new-btn {
+  background: rgba(167, 201, 87, 0.15);
+  border: 1px solid rgba(167, 201, 87, 0.3);
+  color: #A7C957;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 0.8em;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pos-fb-new-btn:hover {
+  background: #A7C957;
+  color: #101010;
+}
+
+.pos-fb-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 16px;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 50;
+  width: 180px;
+}
+
+.pos-fb-dropdown button {
+  text-align: left;
+  padding: 6px 10px;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: var(--text-normal);
+  font-size: 0.85em;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pos-fb-dropdown button:hover {
+  background: var(--background-modifier-hover);
+}
+
+.pos-fb-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pos-fb-empty {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.85em;
+  padding: 20px;
+  font-style: italic;
+}
+
+.pos-fb-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  padding: 10px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s;
+}
+
+.pos-fb-item:hover {
+  border-color: #A7C957;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.pos-fb-icon {
+  font-size: 1.4em;
+}
+
+.pos-fb-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pos-fb-name {
+  font-weight: 600;
+  color: var(--text-normal);
+  font-size: 0.9em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pos-fb-meta {
+  font-size: 0.75em;
+  color: var(--text-muted);
+}
+
+/* ── Premium Project Deadlines Component ── */
+
+.pos-dl-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.pos-dl-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: var(--background-secondary);
+  border-bottom: 1px solid var(--background-modifier-border);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.pos-dl-modes {
+  display: flex;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  padding: 4px;
+  border-radius: 6px;
+  gap: 2px;
+}
+
+.pos-dl-mode-btn {
+  background: transparent;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 4px;
+  color: var(--text-muted);
+  font-size: 0.85em;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+
+.pos-dl-mode-btn:hover {
+  color: var(--text-normal);
+  background: var(--background-modifier-hover);
+}
+
+.pos-dl-mode-btn.active {
+  background: var(--background-secondary-alt);
+  color: #A7C957;
+  border: 1px solid var(--background-modifier-border);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.pos-dl-cal-nav {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pos-dl-nav-btn {
+  padding: 4px 10px;
+  border: 1px solid var(--background-modifier-border);
+  background: var(--background-primary);
+  color: var(--text-normal);
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.9em;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.pos-dl-nav-btn:hover {
+  background: var(--background-secondary);
+}
+
+.pos-dl-nav-btn.active {
+  background: rgba(167, 201, 87, 0.15);
+  border-color: rgba(167, 201, 87, 0.3);
+  color: #A7C957;
+}
+
+.pos-dl-today-btn {
+  color: #A7C957;
+}
+
+.pos-dl-cal-label {
+  font-weight: 700;
+  font-size: 0.95em;
+  min-width: 140px;
+  text-align: center;
+  color: var(--text-normal);
+}
+
+.pos-dl-range-label {
+  font-size: 0.85em;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.pos-dl-body {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
+
+.pos-dl-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-muted);
+  padding: 40px;
+  text-align: center;
+}
+
+.pos-dl-empty-icon {
+  font-size: 3em;
+  margin-bottom: 16px;
+  opacity: 0.8;
+}
+
+.pos-dl-empty p {
+  margin: 4px 0;
+  font-size: 1.1em;
+  font-weight: 600;
+}
+
+.pos-dl-empty-hint {
+  font-size: 0.85em;
+  font-weight: 400;
+  opacity: 0.7;
+}
+
+/* Calendar View */
+.pos-dl-cal-scroll {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: auto;
+}
+
+.pos-dl-cal-grid {
+  min-width: 800px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.pos-dl-cal-weekrow {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  border-bottom: 1px solid var(--background-modifier-border);
+  background: var(--background-secondary);
+  flex-shrink: 0;
+}
+
+.pos-dl-cal-weekday {
+  padding: 10px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.8em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.pos-dl-cal-weekday.weekend {
+  color: var(--text-faint);
+}
+
+.pos-dl-cal-cells {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--background-modifier-border);
+  gap: 1px;
+}
+
+.pos-dl-cal-week {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  min-height: 120px;
+  background: var(--background-primary);
+}
+
+.pos-dl-cal-week-bg {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.pos-dl-cal-day {
+  padding: 8px;
+  border-right: 1px solid var(--background-modifier-border);
+  pointer-events: auto;
+  transition: background 0.2s;
+}
+.pos-dl-cal-day:last-child {
+  border-right: none;
+}
+
+.pos-dl-cal-day.other-month {
+  background: var(--background-secondary);
+}
+
+.pos-dl-cal-day.other-month .pos-day-num {
+  color: var(--text-faint);
+}
+
+.pos-dl-cal-day.weekend {
+  background: var(--background-secondary-alt);
+}
+
+.pos-dl-cal-day.today {
+  background: rgba(167, 201, 87, 0.03);
+}
+
+.pos-dl-cal-day:hover {
+  background: var(--background-modifier-hover);
+}
+
+.pos-dl-day-num {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  font-weight: 600;
+  font-size: 0.9em;
+  color: var(--text-normal);
+}
+
+.pos-dl-day-num .today-badge {
+  background: #A7C957;
+  color: #101010;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-weight: 800;
+}
+
+.pos-dl-cal-week-events {
+  position: relative;
+  margin-top: 35px;
+  pointer-events: none;
+}
+
+.pos-dl-cal-bar {
+  position: absolute;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  font-size: 0.75em;
+  font-weight: 600;
+  cursor: pointer;
+  pointer-events: auto;
+  border: 1px solid rgba(0,0,0,0.1);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  transition: transform 0.1s, filter 0.1s;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.pos-dl-cal-bar.is-start {
+  border-top-left-radius: 4px;
+  border-bottom-left-radius: 4px;
+  margin-left: 4px;
+}
+.pos-dl-cal-bar:not(.is-start) {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  border-left: none;
+}
+.pos-dl-cal-bar.is-end {
+  border-top-right-radius: 4px;
+  border-bottom-right-radius: 4px;
+}
+.pos-dl-cal-bar:not(.is-end) {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border-right: none;
+}
+
+.pos-dl-cal-bar:hover {
+  transform: translateY(-1px);
+  filter: brightness(0.95);
+}
+
+.pos-dl-cal-bar-title {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* Gantt Timeline View */
+.pos-dl-gantt-scroll {
+  height: 100%;
+  overflow: auto;
+}
+
+.pos-dl-gantt {
+  min-width: 900px;
+  width: max-content;
+  display: flex;
+  flex-direction: column;
+}
+
+.pos-dl-gantt-corner {
+  background: var(--background-secondary);
+  border-bottom: 2px solid var(--background-modifier-border);
+  border-right: 1px solid var(--background-modifier-border);
+  padding: 12px 16px;
+  font-weight: 700;
+  font-size: 0.85em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  position: sticky;
+  top: 0;
+  left: 0;
+  z-index: 10;
+}
+
+/* Old grid styles removed to prevent conflicts with new flex-based layout */
+
+.pos-dl-gantt-dates {
+  display: flex;
+  border-bottom: 1px solid var(--background-modifier-border);
+  position: sticky;
+  top: 0;
+  background-color: var(--background-primary);
+  z-index: 10;
+}
+
+.pos-dl-gantt-date {
+  width: var(--gantt-col-width);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 0;
+  font-size: 0.75em;
+  color: var(--text-muted);
+  border-right: 1px solid var(--background-modifier-border);
+  position: relative;
+  overflow: hidden;
+}
+
+.pos-dl-gantt-hours {
+  display: flex;
+  width: 100%;
+  position: absolute;
+  bottom: 0;
+  height: 12px;
+}
+.pos-dl-gantt-hours span {
+  flex: 1;
+  border-left: 1px solid var(--background-modifier-border);
+  font-size: 0.65em;
+  color: var(--text-faint);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pos-dl-gantt-hours span:first-child {
+  border-left: none;
+}
+
+.pos-dl-gd-day {
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.pos-dl-gd-today-dot {
+  width: 4px;
+  height: 4px;
+  background-color: var(--text-accent);
+  border-radius: 50%;
+  margin-top: 2px;
+}
+
+.pos-dl-gantt-date.today {
+  color: var(--text-accent);
+  background-color: rgba(var(--color-accent-rgb), 0.05);
+}
+
+.pos-dl-gantt-date.weekend {
+  background-color: rgba(0,0,0,0.02);
+}
+
+.theme-dark .pos-dl-gantt-date.weekend {
+  background-color: rgba(255,255,255,0.02);
+}
+
+.pos-dl-gantt-today-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: repeating-linear-gradient(to bottom, #E5484D 0, #E5484D 4px, transparent 4px, transparent 8px);
+  z-index: 1;
+  pointer-events: none;
+  transform: translateX(-50%);
+}
+
+.pos-dl-gantt-bar {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  margin: 0;
+  border-radius: 6px;
+  padding: 4px 10px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  z-index: 2;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  transition: filter 0.1s;
+  overflow: hidden;
+  /* Use CSS variable set via inline style for dynamic hue */
+  background: linear-gradient(135deg, hsl(var(--bar-hue, 0), 80%, 85%), hsl(var(--bar-hue, 0), 75%, 90%));
+  border: 1px solid rgba(0,0,0,0.15);
+  color: #101010;
+}
+
+.pos-dl-gantt-bar:hover {
+  transform: scale(1.02);
+  filter: brightness(0.95);
+}
+
+.pos-dl-gantt-bar-label {
+  font-size: 0.75em;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Countdowns List View */
+.pos-dl-countdown-list {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.pos-dl-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pos-dl-group-header {
+  font-size: 0.95em;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 2px solid var(--background-modifier-border);
+  padding-bottom: 6px;
+}
+
+.pos-dl-group-count {
+  background: var(--background-modifier-border);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.8em;
+  color: var(--text-muted);
+}
+
+.pos-dl-group-items {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 12px;
+}
+
+.pos-dl-countdown-card {
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+
+.pos-dl-countdown-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.pos-dl-cc-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+  padding-right: 12px;
+}
+
+.pos-dl-cc-name {
+  font-weight: 700;
+  font-size: 0.95em;
+  color: var(--text-normal);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pos-dl-cc-date {
+  font-size: 0.8em;
+  color: var(--text-muted);
+}
+
+.pos-dl-cc-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  width: 120px;
+  flex-shrink: 0;
+}
+
+.pos-dl-cc-timer {
+  font-family: var(--font-monospace), monospace;
+  font-weight: 700;
+  font-size: 0.95em;
+  letter-spacing: -0.02em;
+}
+
+.pos-dl-cc-progress-track {
+  width: 100%;
+  height: 6px;
+  background: var(--background-modifier-border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.pos-dl-cc-progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 1s linear;
+}
+
+/* Urgency Colors (shared for pills, bars, cards, headers) */
+.overdue {
+  background: #E5484D !important;
+  color: white !important;
+  border-color: #ce4045 !important;
+}
+.critical {
+  background: #FFB224 !important;
+  color: #4A3100 !important;
+  border-color: #e5a020 !important;
+}
+.warning {
+  background: #FFD60A !important;
+  color: #4A3E00 !important;
+  border-color: #e5c009 !important;
+}
+.caution {
+  background: #A7C957 !important;
+  color: #101010 !important;
+  border-color: #96b54e !important;
+}
+.safe {
+  background: #46A758 !important;
+  color: white !important;
+  border-color: #3f964f !important;
+}
+
+.pos-dl-countdown-card.overdue { border-left: 4px solid #E5484D; }
+.pos-dl-countdown-card.critical { border-left: 4px solid #FFB224; }
+.pos-dl-countdown-card.warning { border-left: 4px solid #FFD60A; }
+.pos-dl-countdown-card.caution { border-left: 4px solid #A7C957; }
+.pos-dl-countdown-card.safe { border-left: 4px solid #46A758; }
+
+.pos-dl-countdown-card.overdue:hover { border-color: #E5484D; }
+.pos-dl-countdown-card.critical:hover { border-color: #FFB224; }
+.pos-dl-countdown-card.warning:hover { border-color: #FFD60A; }
+.pos-dl-countdown-card.caution:hover { border-color: #A7C957; }
+.pos-dl-countdown-card.safe:hover { border-color: #46A758; }
+
+.pos-dl-group-header.overdue { color: #E5484D; border-color: rgba(229,72,77,0.3); }
+.pos-dl-group-header.critical { color: #FFB224; border-color: rgba(255,178,36,0.3); }
+.pos-dl-group-header.warning { color: #FFD60A; border-color: rgba(255,214,10,0.3); }
+.pos-dl-group-header.caution { color: #A7C957; border-color: rgba(167,201,87,0.3); }
+.pos-dl-group-header.safe { color: #46A758; border-color: rgba(70,167,88,0.3); }
+
+.pos-dl-cc-timer {
+  color: var(--text-normal);
+}
+.pos-dl-cc-progress-fill.overdue { background: #E5484D; }
+.pos-dl-cc-progress-fill.critical { background: #FFB224; }
+.pos-dl-cc-progress-fill.warning { background: #FFD60A; }
+.pos-dl-cc-progress-fill.caution { background: #A7C957; }
+.pos-dl-cc-progress-fill.safe { background: #46A758; }
+
+/* Gantt Drag and Drop Styles */
+.pos-dl-gantt-bar {
+  cursor: grab;
+}
+
+.pos-dl-gantt-bar:active {
+  cursor: grabbing;
+}
+
+.pos-dl-gantt-bar.dragging {
+  opacity: 0.5;
+  filter: grayscale(0.5);
+  transform: scale(0.98);
+}
+
+.pos-dl-gantt-row.drag-over {
+  background: var(--background-modifier-hover);
+  box-shadow: inset 0 0 0 2px rgba(167, 201, 87, 0.5);
+}
+
+/* Fluid Gantt Column Widths */
+.pos-dl-gantt-date {
+  min-width: var(--gantt-col-width, 40px);
+  width: var(--gantt-col-width, 40px);
+}
+
+.pos-dl-gantt-row {
+  /* Override the old grid layout so we can use absolute positioning */
+  display: block;
+  position: relative;
+  min-height: 40px;
+  border-bottom: 1px dashed var(--background-modifier-border);
+}
+
+.pos-dl-gantt-row:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* Gantt Bar Handles */
+.pos-dl-gantt-bar {
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  /* Override default padding so handles can reach edges */
+  padding: 0;
+  display: flex;
+  overflow: hidden;
+  border-radius: 4px;
+  /* Ensure it has a min-width to grab handles */
+  min-width: 24px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.pos-dl-gantt-bar-label {
+  padding: 4px 6px;
+  flex: 1;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.85em;
+  font-weight: 600;
+}
+
+/* Shift-Stretch Mode Cursors */
+body[data-shift-pressed="true"] .pos-dl-gantt-bar.hover-left-half,
+body[data-shift-pressed="true"] .pos-dl-gantt-bar.hover-left-half * {
+  cursor: w-resize !important;
+}
+
+body[data-shift-pressed="true"] .pos-dl-gantt-bar.hover-right-half,
+body[data-shift-pressed="true"] .pos-dl-gantt-bar.hover-right-half * {
+  cursor: e-resize !important;
+}
+
+/* Global Cursor Overrides during drag */
+body.pos-is-resizing * {
+  cursor: ew-resize !important;
+}
+
+body.pos-is-moving * {
+  cursor: grabbing !important;
+}
+
+/* Zoom Slider Input */
+.pos-dl-zoom-slider {
+  width: 100px;
+  accent-color: #A7C957;
+  cursor: pointer;
+}
+
+/* Distinct Columns */
+.pos-dl-gantt-date.is-monday {
+  background: rgba(0,0,0,0.03);
+}
+
+.pos-dl-gantt-date.is-month-start {
+  border-left: 2px solid var(--text-muted);
+}
+
+/* Hourly Grid (Extreme Zoom) */
+.pos-dl-gantt-hours {
+  display: flex;
+  width: 100%;
+  font-size: 0.65em;
+  color: var(--text-faint);
+  margin-top: auto;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+}
+
+.pos-dl-gantt-hours span {
+  flex: 1;
+  text-align: center;
+  border-left: 1px solid rgba(0,0,0,0.08); /* crisp line */
+  line-height: 1.2;
+}
+
+.theme-dark .pos-dl-gantt-hours span {
+  border-left: 1px solid rgba(255,255,255,0.08);
+}
+
+.pos-dl-gantt-hours span:first-child {
+  border-left: none; /* Midnight is handled by the day border */
+}
+
+/* Calendar Drag and Drop */
+.pos-dl-cal-pill {
+  cursor: grab;
+}
+.pos-dl-cal-pill:active {
+  cursor: grabbing;
+}
+.pos-dl-cal-day.drag-over {
+  background: rgba(167, 201, 87, 0.1);
+  box-shadow: inset 0 0 0 2px #A7C957;
+}

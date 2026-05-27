@@ -1,12 +1,14 @@
 <script lang="ts">
-  import { App as ObsidianApp, Notice, MarkdownRenderer } from 'obsidian';
+  import { App as ObsidianApp, Notice, MarkdownRenderer, TFile } from 'obsidian';
   import type { FileManager } from '../../data/FileManager';
+  import type { ProjectFileInfo } from '../../data/FileManager';
   import { projectsStore, tasksStore } from '../../stores/data';
   import type { ProjectData } from '../../types';
   
   import ProjectTaskBoard from './components/ProjectTaskBoard.svelte';
   import ProjectTaskGrid from './components/ProjectTaskGrid.svelte';
-  import ProjectsHub from './AgingView.svelte'; // Imported the unified dashboard selector
+  import ProjectDeadlines from './components/ProjectDeadlines.svelte';
+  import ProjectsHub from './AgingView.svelte';
 
   export let app;
   export let fileManager: FileManager;
@@ -18,8 +20,10 @@
   let selectedProject: ProjectData | null = null;
   let projectContent = '';
   let previewEl: HTMLElement;
+  let projectFiles: ProjectFileInfo[] = [];
+  let showNewFileMenu = false;
 
-  let projectTab: 'notes' | 'board' | 'grid' = 'notes';
+  let projectTab: 'notes' | 'board' | 'grid' | 'deadlines' = 'notes';
 
   $: {
     if (selectedProjectId) {
@@ -27,19 +31,26 @@
       if (proj) {
         selectedProject = proj;
         loadProjectContent(selectedProjectId);
+        refreshProjectFiles(selectedProjectId);
       } else {
         selectedProject = null;
         projectContent = '';
+        projectFiles = [];
       }
     } else {
       selectedProject = null;
       projectContent = '';
       projectTab = 'notes';
+      projectFiles = [];
     }
   }
 
   async function loadProjectContent(id: string) {
     projectContent = await fileManager.getProjectContent(id);
+  }
+
+  function refreshProjectFiles(id: string) {
+    projectFiles = fileManager.getProjectFiles(id);
   }
 
   // Reactive Markdown Compiler
@@ -49,7 +60,7 @@
       MarkdownRenderer.renderMarkdown(
         projectContent,
         previewEl,
-        `projects/${selectedProject.id}.md`,
+        fileManager.resolveProjectNotePath(selectedProject.id) || `projects/${selectedProject.id}.md`,
         plugin
       );
     }
@@ -57,9 +68,81 @@
 
   function handleOpenNoteNatively() {
     if (!selectedProject) return;
-    const file = app.vault.getAbstractFileByPath(`projects/${selectedProject.id}.md`);
+    const file = fileManager.getProjectNoteFile(selectedProject.id);
     if (file) {
-      app.workspace.getLeaf('tab').openFile(file as any);
+      app.workspace.getLeaf('tab').openFile(file);
+    }
+  }
+
+  function openFile(filePath: string) {
+    const file = app.vault.getAbstractFileByPath(filePath);
+    if (file instanceof TFile) {
+      app.workspace.getLeaf('tab').openFile(file);
+    }
+  }
+
+  function fileIcon(ext: string): string {
+    switch (ext) {
+      case 'md': return '📄';
+      case 'canvas': return '🗺️';
+      case 'excalidraw': return '🎨';
+      case 'png': case 'jpg': case 'jpeg': case 'gif': case 'svg': case 'webp': return '🖼️';
+      case 'pdf': return '📕';
+      default: return '📎';
+    }
+  }
+
+  function formatFileSize(bytes: number): string {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / 1048576).toFixed(1)} MB`;
+  }
+
+  function formatFileDate(mtime: number): string {
+    return new Date(mtime).toLocaleDateString('default', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  }
+
+  function getAvailableFilename(baseName: string, extension: string): string {
+    const existingNames = projectFiles.map(f => f.name);
+    let filename = `${baseName}${extension}`;
+    let counter = 1;
+    while (existingNames.includes(filename)) {
+      filename = `${baseName} ${counter}${extension}`;
+      counter++;
+    }
+    return filename;
+  }
+
+  async function createNewFile(type: 'md' | 'canvas' | 'excalidraw') {
+    if (!selectedProject) return;
+    showNewFileMenu = false;
+    
+    let filename: string;
+    let content: string;
+    
+    switch (type) {
+      case 'md':
+        filename = getAvailableFilename('Untitled Note', '.md');
+        content = `# New Note\n\nCreated in project: ${selectedProject.name}\n`;
+        break;
+      case 'canvas':
+        filename = getAvailableFilename('Untitled Canvas', '.canvas');
+        content = '{"nodes":[],"edges":[]}';
+        break;
+      case 'excalidraw':
+        filename = getAvailableFilename('Untitled Drawing', '.excalidraw.md');
+        content = `---\nexcalidraw-plugin: parsed\ntags: [excalidraw]\n---\n\n==⚠  Switch to EXCALIDRAW VIEW in the MORE OPTIONS menu of this document. ⚠==\n\n# Drawing\n\n\`\`\`json\n{"type":"excalidraw","version":2,"source":"","elements":[],"appState":{"gridSize":null,"viewBackgroundColor":"#ffffff"},"files":{}}\n\`\`\`\n`;
+        break;
+    }
+
+    try {
+      const file = await fileManager.createProjectFile(selectedProject.id, filename, content);
+      refreshProjectFiles(selectedProject.id);
+      // Open the new file natively
+      app.workspace.getLeaf('tab').openFile(file);
+      new Notice(`Created ${filename}`);
+    } catch (e) {
+      new Notice('Failed to create file: ' + e.message);
     }
   }
 </script>
@@ -84,7 +167,6 @@
         </button>
         <div class="pos-editor-project-title">
           <h3>{selectedProject.name}</h3>
-          <span class="pos-editor-project-file">{selectedProject.id}.md</span>
         </div>
       </div>
       
@@ -109,33 +191,79 @@
           class:active={projectTab === 'grid'} 
           on:click={() => projectTab = 'grid'}
         >
-          📊 Backlog Grid
+          📊 Backlog
+        </button>
+        <button 
+          class="pos-tab-btn" 
+          class:active={projectTab === 'deadlines'} 
+          on:click={() => projectTab = 'deadlines'}
+        >
+          📅 Deadlines
         </button>
       </div>
 
-      <div style="width: 100px;"></div>
+      <div style="width: 40px;"></div>
     </header>
 
     <!-- CONTENT DISPATCHER -->
     <div class="pos-project-workspace-body">
       {#if projectTab === 'notes'}
-        <!-- 📄 NOTES VIEW (NATIVE EMBEDDED MIRROR PREVIEW & EDIT ACTION) -->
-        <div class="pos-project-split-workspace" style="flex-direction: column; height: 100%;">
-          <div class="pos-native-note-bar" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; background: var(--background-secondary); border: 1px solid var(--background-modifier-border); border-bottom: none; border-radius: 8px 8px 0 0; flex-shrink: 0;">
-            <span style="font-weight: 700; font-size: 0.85em; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 6px;">
-              📄 Note Preview
-            </span>
-            <button class="pos-modal-primary" on:click={handleOpenNoteNatively} style="padding: 4px 12px; font-size: 0.85em; font-weight: 600;">
-              Edit Note Natively ↗
-            </button>
+        <!-- 📄 NOTES + FILE BROWSER VIEW -->
+        <div class="pos-notes-layout">
+          <!-- Note Preview Section -->
+          <div class="pos-note-preview-section">
+            <div class="pos-native-note-bar">
+              <span class="pos-note-bar-label">📄 Project Note</span>
+              <button class="pos-modal-primary pos-note-edit-btn" on:click={handleOpenNoteNatively}>
+                Edit Natively ↗
+              </button>
+            </div>
+            <div class="pos-note-preview-body">
+              <div bind:this={previewEl} class="markdown-preview-view markdown-rendered pos-note-md-render"></div>
+            </div>
           </div>
-          
-          <div class="pos-editor-pane" style="border-radius: 0 0 8px 8px; flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden; background: var(--background-primary);">
-            <div style="flex: 1; overflow-y: auto; padding: 24px; min-height: 0;">
-              <div bind:this={previewEl} class="markdown-preview-view markdown-rendered" style="color: var(--text-normal); line-height: 1.6; font-family: var(--font-interface); height: 100%;"></div>
+
+          <!-- File Browser Section -->
+          <div class="pos-file-browser">
+            <div class="pos-fb-header">
+              <span class="pos-fb-title">📁 Project Files</span>
+              <div class="pos-fb-actions">
+                <button class="pos-fb-new-btn" on:click={() => showNewFileMenu = !showNewFileMenu}>
+                  + New
+                </button>
+                {#if showNewFileMenu}
+                  <div class="pos-fb-dropdown">
+                    <button on:click={() => createNewFile('md')}>📄 Markdown Note</button>
+                    <button on:click={() => createNewFile('canvas')}>🗺️ Canvas</button>
+                    <button on:click={() => createNewFile('excalidraw')}>🎨 Excalidraw</button>
+                  </div>
+                {/if}
+              </div>
+            </div>
+            <div class="pos-fb-list">
+              {#if projectFiles.length === 0}
+                <div class="pos-fb-empty">No files yet. Click "+ New" to create one.</div>
+              {:else}
+                {#each projectFiles as f}
+                  <button class="pos-fb-item" on:click={() => openFile(f.path)} title={f.path}>
+                    <span class="pos-fb-icon">{fileIcon(f.extension)}</span>
+                    <div class="pos-fb-info">
+                      <span class="pos-fb-name">{f.name}</span>
+                      <span class="pos-fb-meta">{formatFileSize(f.size)} · {formatFileDate(f.mtime)}</span>
+                    </div>
+                  </button>
+                {/each}
+              {/if}
             </div>
           </div>
         </div>
+
+      {:else if projectTab === 'deadlines'}
+        <!-- 📅 DEADLINES VIEW -->
+        <div style="height: 100%; overflow: hidden;">
+          <ProjectDeadlines {app} {fileManager} projectId={selectedProject.id} />
+        </div>
+
       {:else}
         {@const projectTasks = $tasksStore.filter(t => t.project === selectedProject.id).sort((a, b) => a.orderIndex - b.orderIndex)}
         {#if projectTab === 'board'}
