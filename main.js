@@ -183,9 +183,6 @@ function attr(node, attribute, value) {
   else if (node.getAttribute(attribute) !== value)
     node.setAttribute(attribute, value);
 }
-function to_number(value) {
-  return value === "" ? null : +value;
-}
 function children(element2) {
   return Array.from(element2.childNodes);
 }
@@ -8103,42 +8100,37 @@ var ProjectTaskGrid = class extends SvelteComponent {
 var ProjectTaskGrid_default = ProjectTaskGrid;
 
 // src/ui/views/ProjectsView.svelte
-function get_each_context_14(ctx, list, i) {
-  const child_ctx = ctx.slice();
-  child_ctx[57] = list[i];
-  return child_ctx;
-}
 function get_each_context6(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[52] = list[i];
+  child_ctx[32] = list[i];
   const constants_0 = (
     /*tasks*/
     child_ctx[5].filter(function func(...args) {
       return (
         /*func*/
-        ctx[34](
+        ctx[24](
           /*p*/
-          child_ctx[52],
+          child_ctx[32],
           ...args
         )
       );
     }).length
   );
-  child_ctx[53] = constants_0;
+  child_ctx[33] = constants_0;
   const constants_1 = (
     /*tasks*/
     child_ctx[5].filter(function func_1(...args) {
       return (
         /*func_1*/
-        ctx[35](
+        ctx[25](
           /*p*/
-          child_ctx[52],
+          child_ctx[32],
           ...args
         )
       );
     }).length
   );
-  child_ctx[54] = constants_1;
+  child_ctx[34] = constants_1;
   return child_ctx;
 }
 function create_else_block_1(ctx) {
@@ -8180,29 +8172,29 @@ function create_else_block_1(ctx) {
   function select_block_type_2(ctx2, dirty) {
     if (
       /*projectTab*/
-      ctx2[11] === "notes"
+      ctx2[10] === "notes"
     )
-      return create_if_block_103;
-    return create_else_block_3;
+      return create_if_block_63;
+    return create_else_block_2;
   }
   let current_block_type = select_block_type_2(ctx, [-1, -1]);
   let if_block0 = current_block_type(ctx);
-  const if_block_creators = [create_if_block_34, create_if_block_83, create_if_block_93];
+  const if_block_creators = [create_if_block_34, create_if_block_43, create_if_block_53];
   const if_blocks = [];
   function select_block_type_3(ctx2, dirty) {
     if (
       /*projectTab*/
-      ctx2[11] === "notes"
+      ctx2[10] === "notes"
     )
       return 0;
     if (
       /*projectTab*/
-      ctx2[11] === "board"
+      ctx2[10] === "board"
     )
       return 1;
     if (
       /*projectTab*/
-      ctx2[11] === "grid"
+      ctx2[10] === "grid"
     )
       return 2;
     return -1;
@@ -8250,21 +8242,21 @@ function create_else_block_1(ctx) {
         button1,
         "active",
         /*projectTab*/
-        ctx[11] === "notes"
+        ctx[10] === "notes"
       );
       attr(button2, "class", "pos-tab-btn");
       toggle_class(
         button2,
         "active",
         /*projectTab*/
-        ctx[11] === "board"
+        ctx[10] === "board"
       );
       attr(button3, "class", "pos-tab-btn");
       toggle_class(
         button3,
         "active",
         /*projectTab*/
-        ctx[11] === "grid"
+        ctx[10] === "grid"
       );
       attr(div2, "class", "pos-editor-header-tabs");
       attr(header, "class", "pos-editor-header");
@@ -8305,25 +8297,25 @@ function create_else_block_1(ctx) {
             button0,
             "click",
             /*click_handler_3*/
-            ctx[36]
+            ctx[26]
           ),
           listen(
             button1,
             "click",
             /*click_handler_4*/
-            ctx[37]
+            ctx[27]
           ),
           listen(
             button2,
             "click",
             /*click_handler_5*/
-            ctx[38]
+            ctx[28]
           ),
           listen(
             button3,
             "click",
             /*click_handler_6*/
-            ctx[39]
+            ctx[29]
           )
         ];
         mounted = true;
@@ -8339,30 +8331,30 @@ function create_else_block_1(ctx) {
       ctx2[4].id + ""))
         set_data(t4, t4_value);
       if (!current || dirty[0] & /*projectTab*/
-      2048) {
+      1024) {
         toggle_class(
           button1,
           "active",
           /*projectTab*/
-          ctx2[11] === "notes"
+          ctx2[10] === "notes"
         );
       }
       if (!current || dirty[0] & /*projectTab*/
-      2048) {
+      1024) {
         toggle_class(
           button2,
           "active",
           /*projectTab*/
-          ctx2[11] === "board"
+          ctx2[10] === "board"
         );
       }
       if (!current || dirty[0] & /*projectTab*/
-      2048) {
+      1024) {
         toggle_class(
           button3,
           "active",
           /*projectTab*/
-          ctx2[11] === "grid"
+          ctx2[10] === "grid"
         );
       }
       if (current_block_type === (current_block_type = select_block_type_2(ctx2, dirty)) && if_block0) {
@@ -8445,7 +8437,7 @@ function create_if_block6(ctx) {
   function select_block_type_1(ctx2, dirty) {
     if (
       /*activeProjects*/
-      ctx2[7].length === 0
+      ctx2[6].length === 0
     )
       return create_if_block_16;
     return create_else_block4;
@@ -8494,7 +8486,7 @@ function create_if_block6(ctx) {
       set_input_value(
         input,
         /*newProjectName*/
-        ctx[10]
+        ctx[9]
       );
       append(form, t4);
       append(form, button);
@@ -8507,11 +8499,11 @@ function create_if_block6(ctx) {
             input,
             "input",
             /*input_input_handler*/
-            ctx[30]
+            ctx[20]
           ),
           listen(form, "submit", prevent_default(
             /*handleCreateProject*/
-            ctx[18]
+            ctx[14]
           ))
         ];
         mounted = true;
@@ -8519,12 +8511,12 @@ function create_if_block6(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*newProjectName*/
-      1024 && input.value !== /*newProjectName*/
-      ctx2[10]) {
+      512 && input.value !== /*newProjectName*/
+      ctx2[9]) {
         set_input_value(
           input,
           /*newProjectName*/
-          ctx2[10]
+          ctx2[9]
         );
       }
       if (current_block_type === (current_block_type = select_block_type_1(ctx2, dirty)) && if_block) {
@@ -8550,7 +8542,7 @@ function create_if_block6(ctx) {
     }
   };
 }
-function create_else_block_3(ctx) {
+function create_else_block_2(ctx) {
   let div;
   return {
     c() {
@@ -8568,11 +8560,11 @@ function create_else_block_3(ctx) {
     }
   };
 }
-function create_if_block_103(ctx) {
+function create_if_block_63(ctx) {
   let button;
   let t_value = (
     /*isSaving*/
-    ctx[9] ? "Saving..." : "Save (Ctrl+S)"
+    ctx[8] ? "Saving..." : "Save (Ctrl+S)"
   );
   let t;
   let mounted;
@@ -8586,7 +8578,7 @@ function create_if_block_103(ctx) {
         button,
         "saving",
         /*isSaving*/
-        ctx[9]
+        ctx[8]
       );
     },
     m(target, anchor) {
@@ -8597,23 +8589,23 @@ function create_if_block_103(ctx) {
           button,
           "click",
           /*handleSaveProject*/
-          ctx[16]
+          ctx[12]
         );
         mounted = true;
       }
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*isSaving*/
-      512 && t_value !== (t_value = /*isSaving*/
-      ctx2[9] ? "Saving..." : "Save (Ctrl+S)"))
+      256 && t_value !== (t_value = /*isSaving*/
+      ctx2[8] ? "Saving..." : "Save (Ctrl+S)"))
         set_data(t, t_value);
       if (dirty[0] & /*isSaving*/
-      512) {
+      256) {
         toggle_class(
           button,
           "saving",
           /*isSaving*/
-          ctx2[9]
+          ctx2[8]
         );
       }
     },
@@ -8626,7 +8618,7 @@ function create_if_block_103(ctx) {
     }
   };
 }
-function create_if_block_93(ctx) {
+function create_if_block_53(ctx) {
   let projecttaskgrid;
   let current;
   projecttaskgrid = new ProjectTaskGrid_default({
@@ -8645,7 +8637,7 @@ function create_if_block_93(ctx) {
       ),
       projectTasks: (
         /*projectTasks*/
-        ctx[6]
+        ctx[11]
       )
     }
   });
@@ -8672,9 +8664,9 @@ function create_if_block_93(ctx) {
         projecttaskgrid_changes.projectId = /*selectedProject*/
         ctx2[4].id;
       if (dirty[0] & /*projectTasks*/
-      64)
+      2048)
         projecttaskgrid_changes.projectTasks = /*projectTasks*/
-        ctx2[6];
+        ctx2[11];
       projecttaskgrid.$set(projecttaskgrid_changes);
     },
     i(local) {
@@ -8692,7 +8684,7 @@ function create_if_block_93(ctx) {
     }
   };
 }
-function create_if_block_83(ctx) {
+function create_if_block_43(ctx) {
   let projecttaskboard;
   let current;
   projecttaskboard = new ProjectTaskBoard_default({
@@ -8711,7 +8703,7 @@ function create_if_block_83(ctx) {
       ),
       projectTasks: (
         /*projectTasks*/
-        ctx[6]
+        ctx[11]
       )
     }
   });
@@ -8738,9 +8730,9 @@ function create_if_block_83(ctx) {
         projecttaskboard_changes.projectId = /*selectedProject*/
         ctx2[4].id;
       if (dirty[0] & /*projectTasks*/
-      64)
+      2048)
         projecttaskboard_changes.projectTasks = /*projectTasks*/
-        ctx2[6];
+        ctx2[11];
       projecttaskboard.$set(projecttaskboard_changes);
     },
     i(local) {
@@ -8759,712 +8751,64 @@ function create_if_block_83(ctx) {
   };
 }
 function create_if_block_34(ctx) {
-  let div5;
-  let div0;
-  let textarea0;
-  let t0;
-  let aside;
   let div1;
-  let h4;
-  let t1;
-  let t2_value = (
-    /*projectTasks*/
-    ctx[6].length + ""
-  );
-  let t2;
-  let t3;
-  let t4;
-  let button0;
-  let t6;
-  let div3;
-  let form;
-  let input0;
-  let t7;
-  let textarea1;
-  let t8;
-  let div2;
-  let label;
-  let t9;
-  let input1;
-  let t10;
-  let button1;
-  let t12;
-  let div4;
+  let div0;
+  let textarea;
   let mounted;
   let dispose;
-  function select_block_type_4(ctx2, dirty) {
-    if (
-      /*sortedSidebarTasks*/
-      ctx2[15].length === 0
-    )
-      return create_if_block_43;
-    return create_else_block_2;
-  }
-  let current_block_type = select_block_type_4(ctx, [-1, -1]);
-  let if_block = current_block_type(ctx);
   return {
     c() {
-      div5 = element("div");
-      div0 = element("div");
-      textarea0 = element("textarea");
-      t0 = space();
-      aside = element("aside");
       div1 = element("div");
-      h4 = element("h4");
-      t1 = text("Project Tasks (");
-      t2 = text(t2_value);
-      t3 = text(")");
-      t4 = space();
-      button0 = element("button");
-      button0.textContent = "Manage Board \u2192";
-      t6 = space();
-      div3 = element("div");
-      form = element("form");
-      input0 = element("input");
-      t7 = space();
-      textarea1 = element("textarea");
-      t8 = space();
-      div2 = element("div");
-      label = element("label");
-      t9 = text("Weight:\n                    ");
-      input1 = element("input");
-      t10 = space();
-      button1 = element("button");
-      button1.textContent = "+ Plan Task";
-      t12 = space();
-      div4 = element("div");
-      if_block.c();
-      attr(textarea0, "class", "pos-markdown-textarea");
-      attr(textarea0, "placeholder", "Write your project details, research notes, and action plans here using standard markdown...");
-      attr(textarea0, "spellcheck", "false");
+      div0 = element("div");
+      textarea = element("textarea");
+      attr(textarea, "class", "pos-markdown-textarea");
+      attr(textarea, "placeholder", "Write your project details, research notes, and action plans here using standard markdown...");
+      attr(textarea, "spellcheck", "false");
       attr(div0, "class", "pos-editor-pane");
-      attr(button0, "class", "pos-sidebar-link-btn");
-      attr(div1, "class", "pos-sidebar-header");
-      attr(input0, "type", "text");
-      attr(input0, "placeholder", "Plan task name...");
-      attr(input0, "class", "pos-modal-input");
-      input0.required = true;
-      attr(textarea1, "placeholder", "Task description (optional)...");
-      attr(textarea1, "class", "pos-modal-textarea pos-desc-textarea");
-      attr(input1, "type", "number");
-      attr(input1, "min", "1");
-      attr(input1, "class", "pos-modal-number");
-      attr(label, "class", "pos-weight-label");
-      attr(button1, "type", "submit");
-      attr(button1, "class", "pos-modal-primary pos-plan-task-btn");
-      attr(div2, "class", "pos-sidebar-form-row");
-      attr(form, "class", "pos-planned-task-form");
-      attr(div3, "class", "pos-sidebar-add-task");
-      attr(div4, "class", "pos-sidebar-task-list scrollable");
-      attr(aside, "class", "pos-tasks-sidebar");
-      attr(div5, "class", "pos-project-split-workspace");
+      attr(div1, "class", "pos-project-split-workspace");
     },
     m(target, anchor) {
-      insert(target, div5, anchor);
-      append(div5, div0);
-      append(div0, textarea0);
+      insert(target, div1, anchor);
+      append(div1, div0);
+      append(div0, textarea);
       set_input_value(
-        textarea0,
+        textarea,
         /*projectContent*/
-        ctx[8]
+        ctx[7]
       );
-      append(div5, t0);
-      append(div5, aside);
-      append(aside, div1);
-      append(div1, h4);
-      append(h4, t1);
-      append(h4, t2);
-      append(h4, t3);
-      append(div1, t4);
-      append(div1, button0);
-      append(aside, t6);
-      append(aside, div3);
-      append(div3, form);
-      append(form, input0);
-      set_input_value(
-        input0,
-        /*newTaskName*/
-        ctx[12]
-      );
-      append(form, t7);
-      append(form, textarea1);
-      set_input_value(
-        textarea1,
-        /*newTaskDesc*/
-        ctx[13]
-      );
-      append(form, t8);
-      append(form, div2);
-      append(div2, label);
-      append(label, t9);
-      append(label, input1);
-      set_input_value(
-        input1,
-        /*newTaskWeight*/
-        ctx[14]
-      );
-      append(div2, t10);
-      append(div2, button1);
-      append(aside, t12);
-      append(aside, div4);
-      if_block.m(div4, null);
       if (!mounted) {
         dispose = [
           listen(
-            textarea0,
+            textarea,
             "input",
-            /*textarea0_input_handler*/
-            ctx[40]
+            /*textarea_input_handler*/
+            ctx[30]
           ),
           listen(
-            textarea0,
+            textarea,
             "keydown",
             /*handleKeyDown*/
-            ctx[17]
-          ),
-          listen(
-            button0,
-            "click",
-            /*click_handler_7*/
-            ctx[41]
-          ),
-          listen(
-            input0,
-            "input",
-            /*input0_input_handler*/
-            ctx[42]
-          ),
-          listen(
-            textarea1,
-            "input",
-            /*textarea1_input_handler*/
-            ctx[43]
-          ),
-          listen(
-            input1,
-            "input",
-            /*input1_input_handler*/
-            ctx[44]
-          ),
-          listen(form, "submit", prevent_default(
-            /*handlePlanTask*/
-            ctx[24]
-          ))
+            ctx[13]
+          )
         ];
         mounted = true;
       }
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*projectContent*/
-      256) {
+      128) {
         set_input_value(
-          textarea0,
+          textarea,
           /*projectContent*/
-          ctx2[8]
+          ctx2[7]
         );
-      }
-      if (dirty[0] & /*projectTasks*/
-      64 && t2_value !== (t2_value = /*projectTasks*/
-      ctx2[6].length + ""))
-        set_data(t2, t2_value);
-      if (dirty[0] & /*newTaskName*/
-      4096 && input0.value !== /*newTaskName*/
-      ctx2[12]) {
-        set_input_value(
-          input0,
-          /*newTaskName*/
-          ctx2[12]
-        );
-      }
-      if (dirty[0] & /*newTaskDesc*/
-      8192) {
-        set_input_value(
-          textarea1,
-          /*newTaskDesc*/
-          ctx2[13]
-        );
-      }
-      if (dirty[0] & /*newTaskWeight*/
-      16384 && to_number(input1.value) !== /*newTaskWeight*/
-      ctx2[14]) {
-        set_input_value(
-          input1,
-          /*newTaskWeight*/
-          ctx2[14]
-        );
-      }
-      if (current_block_type === (current_block_type = select_block_type_4(ctx2, dirty)) && if_block) {
-        if_block.p(ctx2, dirty);
-      } else {
-        if_block.d(1);
-        if_block = current_block_type(ctx2);
-        if (if_block) {
-          if_block.c();
-          if_block.m(div4, null);
-        }
       }
     },
     i: noop,
     o: noop,
     d(detaching) {
       if (detaching) {
-        detach(div5);
-      }
-      if_block.d();
-      mounted = false;
-      run_all(dispose);
-    }
-  };
-}
-function create_else_block_2(ctx) {
-  let each_blocks = [];
-  let each_1_lookup = /* @__PURE__ */ new Map();
-  let each_1_anchor;
-  let each_value_1 = ensure_array_like(
-    /*sortedSidebarTasks*/
-    ctx[15]
-  );
-  const get_key = (ctx2) => (
-    /*task*/
-    ctx2[57].id
-  );
-  for (let i = 0; i < each_value_1.length; i += 1) {
-    let child_ctx = get_each_context_14(ctx, each_value_1, i);
-    let key = get_key(child_ctx);
-    each_1_lookup.set(key, each_blocks[i] = create_each_block_14(key, child_ctx));
-  }
-  return {
-    c() {
-      for (let i = 0; i < each_blocks.length; i += 1) {
-        each_blocks[i].c();
-      }
-      each_1_anchor = empty();
-    },
-    m(target, anchor) {
-      for (let i = 0; i < each_blocks.length; i += 1) {
-        if (each_blocks[i]) {
-          each_blocks[i].m(target, anchor);
-        }
-      }
-      insert(target, each_1_anchor, anchor);
-    },
-    p(ctx2, dirty) {
-      if (dirty[0] & /*sortedSidebarTasks, handleDeleteTask, handleEditTask, handleToggleTaskCheckbox, handleStartTask, openTaskFile*/
-      49315840) {
-        each_value_1 = ensure_array_like(
-          /*sortedSidebarTasks*/
-          ctx2[15]
-        );
-        each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx2, each_value_1, each_1_lookup, each_1_anchor.parentNode, destroy_block, create_each_block_14, each_1_anchor, get_each_context_14);
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(each_1_anchor);
-      }
-      for (let i = 0; i < each_blocks.length; i += 1) {
-        each_blocks[i].d(detaching);
-      }
-    }
-  };
-}
-function create_if_block_43(ctx) {
-  let p_1;
-  return {
-    c() {
-      p_1 = element("p");
-      p_1.textContent = "No tasks created yet. Plan one using the form above!";
-      attr(p_1, "class", "pos-empty-small");
-    },
-    m(target, anchor) {
-      insert(target, p_1, anchor);
-    },
-    p: noop,
-    d(detaching) {
-      if (detaching) {
-        detach(p_1);
-      }
-    }
-  };
-}
-function create_if_block_73(ctx) {
-  let div;
-  let t_value = (
-    /*task*/
-    ctx[57].description + ""
-  );
-  let t;
-  return {
-    c() {
-      div = element("div");
-      t = text(t_value);
-      attr(div, "class", "pos-ptc-desc");
-    },
-    m(target, anchor) {
-      insert(target, div, anchor);
-      append(div, t);
-    },
-    p(ctx2, dirty) {
-      if (dirty[0] & /*sortedSidebarTasks*/
-      32768 && t_value !== (t_value = /*task*/
-      ctx2[57].description + ""))
-        set_data(t, t_value);
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(div);
-      }
-    }
-  };
-}
-function create_if_block_63(ctx) {
-  let button;
-  let mounted;
-  let dispose;
-  function click_handler_10() {
-    return (
-      /*click_handler_10*/
-      ctx[48](
-        /*task*/
-        ctx[57]
-      )
-    );
-  }
-  return {
-    c() {
-      button = element("button");
-      button.textContent = "Start";
-      attr(button, "class", "pos-ptc-start-btn");
-    },
-    m(target, anchor) {
-      insert(target, button, anchor);
-      if (!mounted) {
-        dispose = listen(button, "click", click_handler_10);
-        mounted = true;
-      }
-    },
-    p(new_ctx, dirty) {
-      ctx = new_ctx;
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(button);
-      }
-      mounted = false;
-      dispose();
-    }
-  };
-}
-function create_if_block_53(ctx) {
-  let button;
-  let mounted;
-  let dispose;
-  function click_handler_9() {
-    return (
-      /*click_handler_9*/
-      ctx[47](
-        /*task*/
-        ctx[57]
-      )
-    );
-  }
-  return {
-    c() {
-      button = element("button");
-      button.textContent = "Activate";
-      attr(button, "class", "pos-ptc-add-btn");
-    },
-    m(target, anchor) {
-      insert(target, button, anchor);
-      if (!mounted) {
-        dispose = listen(button, "click", click_handler_9);
-        mounted = true;
-      }
-    },
-    p(new_ctx, dirty) {
-      ctx = new_ctx;
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(button);
-      }
-      mounted = false;
-      dispose();
-    }
-  };
-}
-function create_each_block_14(key_1, ctx) {
-  let div5;
-  let div3;
-  let input;
-  let input_checked_value;
-  let t0;
-  let div2;
-  let div0;
-  let t1_value = (
-    /*task*/
-    ctx[57].name + ""
-  );
-  let t1;
-  let t2;
-  let t3;
-  let div1;
-  let span0;
-  let t4_value = (
-    /*task*/
-    ctx[57].status + ""
-  );
-  let t4;
-  let span0_class_value;
-  let t5;
-  let span1;
-  let t6;
-  let t7_value = (
-    /*task*/
-    ctx[57].weight + ""
-  );
-  let t7;
-  let t8;
-  let div4;
-  let t9;
-  let button0;
-  let t11;
-  let button1;
-  let t13;
-  let mounted;
-  let dispose;
-  function change_handler() {
-    return (
-      /*change_handler*/
-      ctx[45](
-        /*task*/
-        ctx[57]
-      )
-    );
-  }
-  function click_handler_8() {
-    return (
-      /*click_handler_8*/
-      ctx[46](
-        /*task*/
-        ctx[57]
-      )
-    );
-  }
-  let if_block0 = (
-    /*task*/
-    ctx[57].description && create_if_block_73(ctx)
-  );
-  function select_block_type_5(ctx2, dirty) {
-    if (
-      /*task*/
-      ctx2[57].status === "planned"
-    )
-      return create_if_block_53;
-    if (
-      /*task*/
-      ctx2[57].status === "backlog"
-    )
-      return create_if_block_63;
-  }
-  let current_block_type = select_block_type_5(ctx, [-1, -1]);
-  let if_block1 = current_block_type && current_block_type(ctx);
-  function click_handler_11() {
-    return (
-      /*click_handler_11*/
-      ctx[49](
-        /*task*/
-        ctx[57]
-      )
-    );
-  }
-  function click_handler_12() {
-    return (
-      /*click_handler_12*/
-      ctx[50](
-        /*task*/
-        ctx[57]
-      )
-    );
-  }
-  return {
-    key: key_1,
-    first: null,
-    c() {
-      div5 = element("div");
-      div3 = element("div");
-      input = element("input");
-      t0 = space();
-      div2 = element("div");
-      div0 = element("div");
-      t1 = text(t1_value);
-      t2 = space();
-      if (if_block0)
-        if_block0.c();
-      t3 = space();
-      div1 = element("div");
-      span0 = element("span");
-      t4 = text(t4_value);
-      t5 = space();
-      span1 = element("span");
-      t6 = text("W:");
-      t7 = text(t7_value);
-      t8 = space();
-      div4 = element("div");
-      if (if_block1)
-        if_block1.c();
-      t9 = space();
-      button0 = element("button");
-      button0.textContent = "Edit";
-      t11 = space();
-      button1 = element("button");
-      button1.textContent = "Delete";
-      t13 = space();
-      attr(input, "type", "checkbox");
-      input.checked = input_checked_value = /*task*/
-      ctx[57].status === "review" || /*task*/
-      ctx[57].status === "backlog";
-      attr(input, "class", "pos-task-checkbox");
-      attr(input, "title", "Toggle task state");
-      attr(div0, "class", "pos-ptc-name");
-      toggle_class(
-        div0,
-        "completed",
-        /*task*/
-        ctx[57].status === "review"
-      );
-      attr(span0, "class", span0_class_value = "pos-ptc-status-badge " + /*task*/
-      ctx[57].status);
-      attr(div1, "class", "pos-ptc-meta");
-      attr(div2, "class", "pos-ptc-body");
-      attr(div3, "class", "pos-ptc-header");
-      attr(button1, "class", "pos-del");
-      attr(div4, "class", "pos-ptc-acts");
-      attr(div5, "class", "pos-project-task-card");
-      toggle_class(
-        div5,
-        "completed",
-        /*task*/
-        ctx[57].status === "review"
-      );
-      this.first = div5;
-    },
-    m(target, anchor) {
-      insert(target, div5, anchor);
-      append(div5, div3);
-      append(div3, input);
-      append(div3, t0);
-      append(div3, div2);
-      append(div2, div0);
-      append(div0, t1);
-      append(div2, t2);
-      if (if_block0)
-        if_block0.m(div2, null);
-      append(div2, t3);
-      append(div2, div1);
-      append(div1, span0);
-      append(span0, t4);
-      append(div1, t5);
-      append(div1, span1);
-      append(span1, t6);
-      append(span1, t7);
-      append(div5, t8);
-      append(div5, div4);
-      if (if_block1)
-        if_block1.m(div4, null);
-      append(div4, t9);
-      append(div4, button0);
-      append(div4, t11);
-      append(div4, button1);
-      append(div5, t13);
-      if (!mounted) {
-        dispose = [
-          listen(input, "change", change_handler),
-          listen(div0, "click", click_handler_8),
-          listen(button0, "click", click_handler_11),
-          listen(button1, "click", click_handler_12)
-        ];
-        mounted = true;
-      }
-    },
-    p(new_ctx, dirty) {
-      ctx = new_ctx;
-      if (dirty[0] & /*sortedSidebarTasks*/
-      32768 && input_checked_value !== (input_checked_value = /*task*/
-      ctx[57].status === "review" || /*task*/
-      ctx[57].status === "backlog")) {
-        input.checked = input_checked_value;
-      }
-      if (dirty[0] & /*sortedSidebarTasks*/
-      32768 && t1_value !== (t1_value = /*task*/
-      ctx[57].name + ""))
-        set_data(t1, t1_value);
-      if (dirty[0] & /*sortedSidebarTasks*/
-      32768) {
-        toggle_class(
-          div0,
-          "completed",
-          /*task*/
-          ctx[57].status === "review"
-        );
-      }
-      if (
-        /*task*/
-        ctx[57].description
-      ) {
-        if (if_block0) {
-          if_block0.p(ctx, dirty);
-        } else {
-          if_block0 = create_if_block_73(ctx);
-          if_block0.c();
-          if_block0.m(div2, t3);
-        }
-      } else if (if_block0) {
-        if_block0.d(1);
-        if_block0 = null;
-      }
-      if (dirty[0] & /*sortedSidebarTasks*/
-      32768 && t4_value !== (t4_value = /*task*/
-      ctx[57].status + ""))
-        set_data(t4, t4_value);
-      if (dirty[0] & /*sortedSidebarTasks*/
-      32768 && span0_class_value !== (span0_class_value = "pos-ptc-status-badge " + /*task*/
-      ctx[57].status)) {
-        attr(span0, "class", span0_class_value);
-      }
-      if (dirty[0] & /*sortedSidebarTasks*/
-      32768 && t7_value !== (t7_value = /*task*/
-      ctx[57].weight + ""))
-        set_data(t7, t7_value);
-      if (current_block_type === (current_block_type = select_block_type_5(ctx, dirty)) && if_block1) {
-        if_block1.p(ctx, dirty);
-      } else {
-        if (if_block1)
-          if_block1.d(1);
-        if_block1 = current_block_type && current_block_type(ctx);
-        if (if_block1) {
-          if_block1.c();
-          if_block1.m(div4, t9);
-        }
-      }
-      if (dirty[0] & /*sortedSidebarTasks*/
-      32768) {
-        toggle_class(
-          div5,
-          "completed",
-          /*task*/
-          ctx[57].status === "review"
-        );
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(div5);
-      }
-      if (if_block0)
-        if_block0.d();
-      if (if_block1) {
-        if_block1.d();
+        detach(div1);
       }
       mounted = false;
       run_all(dispose);
@@ -9477,11 +8821,11 @@ function create_else_block4(ctx) {
   let each_1_anchor;
   let each_value = ensure_array_like(
     /*activeProjects*/
-    ctx[7]
+    ctx[6]
   );
   const get_key = (ctx2) => (
     /*p*/
-    ctx2[52].id
+    ctx2[32].id
   );
   for (let i = 0; i < each_value.length; i += 1) {
     let child_ctx = get_each_context6(ctx, each_value, i);
@@ -9505,10 +8849,10 @@ function create_else_block4(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*handleDeleteProject, activeProjects, handleSelectProject, tasks*/
-      67633312) {
+      98400) {
         each_value = ensure_array_like(
           /*activeProjects*/
-          ctx2[7]
+          ctx2[6]
         );
         each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx2, each_value, each_1_lookup, each_1_anchor.parentNode, destroy_block, create_each_block6, each_1_anchor, get_each_context6);
       }
@@ -9546,7 +8890,7 @@ function create_if_block_25(ctx) {
   let span;
   let t0_value = (
     /*pActiveCount*/
-    ctx[54] + ""
+    ctx[34] + ""
   );
   let t0;
   let t1;
@@ -9564,8 +8908,8 @@ function create_if_block_25(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*tasks, activeProjects*/
-      160 && t0_value !== (t0_value = /*pActiveCount*/
-      ctx2[54] + ""))
+      96 && t0_value !== (t0_value = /*pActiveCount*/
+      ctx2[34] + ""))
         set_data(t0, t0_value);
     },
     d(detaching) {
@@ -9581,7 +8925,7 @@ function create_each_block6(key_1, ctx) {
   let div0;
   let t0_value = (
     /*p*/
-    ctx[52].name + ""
+    ctx[32].name + ""
   );
   let t0;
   let t1;
@@ -9589,7 +8933,7 @@ function create_each_block6(key_1, ctx) {
   let span;
   let t2_value = (
     /*pTasksCount*/
-    ctx[53] + ""
+    ctx[33] + ""
   );
   let t2;
   let t3;
@@ -9604,32 +8948,32 @@ function create_each_block6(key_1, ctx) {
   let dispose;
   let if_block = (
     /*pActiveCount*/
-    ctx[54] > 0 && create_if_block_25(ctx)
+    ctx[34] > 0 && create_if_block_25(ctx)
   );
   function click_handler() {
     return (
       /*click_handler*/
-      ctx[31](
+      ctx[21](
         /*p*/
-        ctx[52]
+        ctx[32]
       )
     );
   }
   function click_handler_1() {
     return (
       /*click_handler_1*/
-      ctx[32](
+      ctx[22](
         /*p*/
-        ctx[52]
+        ctx[32]
       )
     );
   }
   function click_handler_2() {
     return (
       /*click_handler_2*/
-      ctx[33](
+      ctx[23](
         /*p*/
-        ctx[52]
+        ctx[32]
       )
     );
   }
@@ -9698,16 +9042,16 @@ function create_each_block6(key_1, ctx) {
     p(new_ctx, dirty) {
       ctx = new_ctx;
       if (dirty[0] & /*activeProjects*/
-      128 && t0_value !== (t0_value = /*p*/
-      ctx[52].name + ""))
+      64 && t0_value !== (t0_value = /*p*/
+      ctx[32].name + ""))
         set_data(t0, t0_value);
       if (dirty[0] & /*tasks, activeProjects*/
-      160 && t2_value !== (t2_value = /*pTasksCount*/
-      ctx[53] + ""))
+      96 && t2_value !== (t2_value = /*pTasksCount*/
+      ctx[33] + ""))
         set_data(t2, t2_value);
       if (
         /*pActiveCount*/
-        ctx[54] > 0
+        ctx[34] > 0
       ) {
         if (if_block) {
           if_block.p(ctx, dirty);
@@ -9802,11 +9146,10 @@ function instance6($$self, $$props, $$invalidate) {
   let activeProjects;
   let tasks;
   let projectTasks;
-  let sortedSidebarTasks;
   let $tasksStore;
   let $projectsStore;
-  component_subscribe($$self, tasksStore, ($$value) => $$invalidate(28, $tasksStore = $$value));
-  component_subscribe($$self, projectsStore, ($$value) => $$invalidate(29, $projectsStore = $$value));
+  component_subscribe($$self, tasksStore, ($$value) => $$invalidate(18, $tasksStore = $$value));
+  component_subscribe($$self, projectsStore, ($$value) => $$invalidate(19, $projectsStore = $$value));
   let { app } = $$props;
   let { fileManager } = $$props;
   let { plugin } = $$props;
@@ -9817,23 +9160,20 @@ function instance6($$self, $$props, $$invalidate) {
   let isSaving = false;
   let newProjectName = "";
   let projectTab = "notes";
-  let newTaskName = "";
-  let newTaskDesc = "";
-  let newTaskWeight = 1;
   async function loadProjectContent(id) {
-    $$invalidate(8, projectContent = await fileManager.getProjectContent(id));
+    $$invalidate(7, projectContent = await fileManager.getProjectContent(id));
   }
   async function handleSaveProject() {
     if (!selectedProject)
       return;
-    $$invalidate(9, isSaving = true);
+    $$invalidate(8, isSaving = true);
     try {
       await fileManager.saveProjectContent(selectedProject.id, projectContent);
       new import_obsidian6.Notice("Project saved successfully!");
     } catch (e) {
       new import_obsidian6.Notice("Failed to save project: " + e.message);
     } finally {
-      $$invalidate(9, isSaving = false);
+      $$invalidate(8, isSaving = false);
     }
   }
   function handleKeyDown(e) {
@@ -9856,7 +9196,7 @@ function instance6($$self, $$props, $$invalidate) {
     };
     const content = "---\n" + Object.entries(fm).map(([k, v]) => `${k}: ${v}`).join("\n") + "\n---\n";
     await app.vault.create(`projects/${id}.md`, content);
-    $$invalidate(10, newProjectName = "");
+    $$invalidate(9, newProjectName = "");
     await fileManager.loadAll();
     if (isFullPage) {
       $$invalidate(0, selectedProjectId = id);
@@ -9880,57 +9220,6 @@ function instance6($$self, $$props, $$invalidate) {
       }
     }
   }
-  async function handleToggleTaskCheckbox(task) {
-    if (task.status === "planned") {
-      await fileManager.updateTask(task.id, { status: "backlog", isCompleted: false });
-    } else if (task.status === "backlog") {
-      await fileManager.updateTask(task.id, { status: "planned", isCompleted: false });
-    } else if (task.status === "running") {
-      await fileManager.updateTask(task.id, { status: "review", isCompleted: true });
-    } else if (task.status === "review") {
-      await fileManager.updateTask(task.id, { status: "running", isCompleted: false });
-    }
-  }
-  async function handleStartTask(task) {
-    await fileManager.updateTask(task.id, { status: "running", isCompleted: false });
-  }
-  function handleEditTask(task) {
-    new EditTaskModal(
-      app,
-      task,
-      async (updates) => {
-        await fileManager.updateTask(task.id, updates);
-      }
-    ).open();
-  }
-  async function handleDeleteTask(taskId) {
-    if (confirm("Permanently delete this task?")) {
-      await fileManager.deleteTask(taskId);
-      new import_obsidian6.Notice("Task deleted");
-    }
-  }
-  async function handlePlanTask() {
-    const name = newTaskName.trim();
-    if (!name || !selectedProject)
-      return;
-    await fileManager.createTask({
-      name,
-      description: newTaskDesc.trim() || `From ${selectedProject.name}`,
-      project: selectedProject.id,
-      status: "planned",
-      weight: Math.max(1, newTaskWeight)
-    });
-    $$invalidate(12, newTaskName = "");
-    $$invalidate(13, newTaskDesc = "");
-    $$invalidate(14, newTaskWeight = 1);
-    new import_obsidian6.Notice("Task planned!");
-  }
-  function openTaskFile(taskId) {
-    const file = app.vault.getAbstractFileByPath(`tasks/${taskId}.md`);
-    if (file instanceof import_obsidian6.TFile) {
-      app.workspace.getLeaf().openFile(file);
-    }
-  }
   function handleSelectProject(id) {
     if (isFullPage) {
       $$invalidate(0, selectedProjectId = id);
@@ -9940,7 +9229,7 @@ function instance6($$self, $$props, $$invalidate) {
   }
   function input_input_handler() {
     newProjectName = this.value;
-    $$invalidate(10, newProjectName);
+    $$invalidate(9, newProjectName);
   }
   const click_handler = (p) => handleSelectProject(p.id);
   const click_handler_1 = (p) => handleSelectProject(p.id);
@@ -9948,39 +9237,20 @@ function instance6($$self, $$props, $$invalidate) {
   const func = (p, t) => t.project === p.id;
   const func_1 = (p, t) => t.project === p.id && t.status !== "planned" && t.status !== "review";
   const click_handler_3 = () => $$invalidate(0, selectedProjectId = null);
-  const click_handler_4 = () => $$invalidate(11, projectTab = "notes");
-  const click_handler_5 = () => $$invalidate(11, projectTab = "board");
-  const click_handler_6 = () => $$invalidate(11, projectTab = "grid");
-  function textarea0_input_handler() {
+  const click_handler_4 = () => $$invalidate(10, projectTab = "notes");
+  const click_handler_5 = () => $$invalidate(10, projectTab = "board");
+  const click_handler_6 = () => $$invalidate(10, projectTab = "grid");
+  function textarea_input_handler() {
     projectContent = this.value;
-    $$invalidate(8, projectContent), $$invalidate(0, selectedProjectId), $$invalidate(7, activeProjects), $$invalidate(29, $projectsStore);
+    $$invalidate(7, projectContent), $$invalidate(0, selectedProjectId), $$invalidate(6, activeProjects), $$invalidate(19, $projectsStore);
   }
-  const click_handler_7 = () => $$invalidate(11, projectTab = "board");
-  function input0_input_handler() {
-    newTaskName = this.value;
-    $$invalidate(12, newTaskName);
-  }
-  function textarea1_input_handler() {
-    newTaskDesc = this.value;
-    $$invalidate(13, newTaskDesc);
-  }
-  function input1_input_handler() {
-    newTaskWeight = to_number(this.value);
-    $$invalidate(14, newTaskWeight);
-  }
-  const change_handler = (task) => handleToggleTaskCheckbox(task);
-  const click_handler_8 = (task) => openTaskFile(task.id);
-  const click_handler_9 = (task) => handleToggleTaskCheckbox(task);
-  const click_handler_10 = (task) => handleStartTask(task);
-  const click_handler_11 = (task) => handleEditTask(task);
-  const click_handler_12 = (task) => handleDeleteTask(task.id);
   $$self.$$set = ($$props2) => {
     if ("app" in $$props2)
       $$invalidate(1, app = $$props2.app);
     if ("fileManager" in $$props2)
       $$invalidate(2, fileManager = $$props2.fileManager);
     if ("plugin" in $$props2)
-      $$invalidate(27, plugin = $$props2.plugin);
+      $$invalidate(17, plugin = $$props2.plugin);
     if ("isFullPage" in $$props2)
       $$invalidate(3, isFullPage = $$props2.isFullPage);
     if ("selectedProjectId" in $$props2)
@@ -9988,17 +9258,17 @@ function instance6($$self, $$props, $$invalidate) {
   };
   $$self.$$.update = () => {
     if ($$self.$$.dirty[0] & /*$projectsStore*/
-    536870912) {
+    524288) {
       $:
-        $$invalidate(7, activeProjects = $projectsStore.filter((p) => p.status === "active"));
+        $$invalidate(6, activeProjects = $projectsStore.filter((p) => p.status === "active"));
     }
     if ($$self.$$.dirty[0] & /*$tasksStore*/
-    268435456) {
+    262144) {
       $:
         $$invalidate(5, tasks = $tasksStore);
     }
     if ($$self.$$.dirty[0] & /*selectedProjectId, activeProjects*/
-    129) {
+    65) {
       $: {
         if (selectedProjectId) {
           const proj = activeProjects.find((p) => p.id === selectedProjectId);
@@ -10007,38 +9277,19 @@ function instance6($$self, $$props, $$invalidate) {
             loadProjectContent(selectedProjectId);
           } else {
             $$invalidate(4, selectedProject = null);
-            $$invalidate(8, projectContent = "");
+            $$invalidate(7, projectContent = "");
           }
         } else {
           $$invalidate(4, selectedProject = null);
-          $$invalidate(8, projectContent = "");
-          $$invalidate(11, projectTab = "notes");
+          $$invalidate(7, projectContent = "");
+          $$invalidate(10, projectTab = "notes");
         }
       }
     }
     if ($$self.$$.dirty[0] & /*selectedProject, tasks*/
     48) {
       $:
-        $$invalidate(6, projectTasks = selectedProject ? tasks.filter((t) => t.project === selectedProject.id).sort((a, b) => a.orderIndex - b.orderIndex) : []);
-    }
-    if ($$self.$$.dirty[0] & /*projectTasks*/
-    64) {
-      $:
-        $$invalidate(15, sortedSidebarTasks = [...projectTasks].sort((a, b) => {
-          if (a.status === "review" && b.status !== "review")
-            return 1;
-          if (a.status !== "review" && b.status === "review")
-            return -1;
-          if (a.status === "running" && b.status !== "running")
-            return -1;
-          if (a.status !== "running" && b.status === "running")
-            return 1;
-          if (a.status === "backlog" && b.status === "planned")
-            return -1;
-          if (a.status === "planned" && b.status === "backlog")
-            return 1;
-          return a.orderIndex - b.orderIndex || a.name.localeCompare(b.name);
-        }));
+        $$invalidate(11, projectTasks = selectedProject ? tasks.filter((t) => t.project === selectedProject.id).sort((a, b) => a.orderIndex - b.orderIndex) : []);
     }
   };
   return [
@@ -10048,26 +9299,16 @@ function instance6($$self, $$props, $$invalidate) {
     isFullPage,
     selectedProject,
     tasks,
-    projectTasks,
     activeProjects,
     projectContent,
     isSaving,
     newProjectName,
     projectTab,
-    newTaskName,
-    newTaskDesc,
-    newTaskWeight,
-    sortedSidebarTasks,
+    projectTasks,
     handleSaveProject,
     handleKeyDown,
     handleCreateProject,
     handleDeleteProject,
-    handleToggleTaskCheckbox,
-    handleStartTask,
-    handleEditTask,
-    handleDeleteTask,
-    handlePlanTask,
-    openTaskFile,
     handleSelectProject,
     plugin,
     $tasksStore,
@@ -10082,17 +9323,7 @@ function instance6($$self, $$props, $$invalidate) {
     click_handler_4,
     click_handler_5,
     click_handler_6,
-    textarea0_input_handler,
-    click_handler_7,
-    input0_input_handler,
-    textarea1_input_handler,
-    input1_input_handler,
-    change_handler,
-    click_handler_8,
-    click_handler_9,
-    click_handler_10,
-    click_handler_11,
-    click_handler_12
+    textarea_input_handler
   ];
 }
 var ProjectsView = class extends SvelteComponent {
@@ -10107,7 +9338,7 @@ var ProjectsView = class extends SvelteComponent {
       {
         app: 1,
         fileManager: 2,
-        plugin: 27,
+        plugin: 17,
         isFullPage: 3,
         selectedProjectId: 0
       },
