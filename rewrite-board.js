@@ -1,4 +1,8 @@
-<script lang="ts">
+const fs = require('fs');
+
+const file = 'c:/Users/admin/Dropbox/Apps/remotely-save/Croptop/.obsidian/plugins/proxima/src/ui/views/components/ProjectTaskBoard.svelte';
+
+const newContent = `<script lang="ts">
   import { App as ObsidianApp, TFile } from 'obsidian';
   import type { FileManager } from '../../../data/FileManager';
   import { QuickEditTaskModal, NewTaskModal } from '../../../modals/Modals';
@@ -215,3 +219,7 @@
   </div>
   {/each}
 </div>
+`;
+
+fs.writeFileSync(file, newContent);
+console.log('ProjectTaskBoard replaced');

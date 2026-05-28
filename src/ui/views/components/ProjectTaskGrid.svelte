@@ -144,7 +144,7 @@
   }
 
   function editTask(task: TaskData) {
-    new QuickEditTaskModal(app, task, async (updates) => {
+    new QuickEditTaskModal(app, fileManager.plugin, task, async (updates) => {
       await fileManager.updateTask(task.id, updates);
     }).open();
   }

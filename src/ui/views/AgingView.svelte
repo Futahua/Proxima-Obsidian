@@ -135,7 +135,8 @@
           {@const completed = pTasks.filter(t => t.status === 'review').length}
           {@const running = pTasks.filter(t => t.status === 'running').length}
           {@const overdue = pTasks.filter(t => t.status !== 'review' && t.deadline && new Date(t.deadline).getTime() < now).length}
-          {@const highPriority = pTasks.filter(t => t.status !== 'review' && t.priority === 1).length}
+          {@const activeCount = pTasks.filter(t => t.status !== 'review').length}
+          {@const highPriority = pTasks.filter(t => t.status !== 'review' && t.properties && t.properties['priority'] === '1').length}
           {@const futureDeadlines = pTasks.filter(t => t.status !== 'review' && t.deadline && new Date(t.deadline).getTime() > now).map(t => new Date(t.deadline || '').getTime())}
           {@const nearestDeadline = futureDeadlines.length > 0 ? Math.min(...futureDeadlines) : null}
           {@const completionPct = total > 0 ? Math.round((completed / total) * 100) : 0}

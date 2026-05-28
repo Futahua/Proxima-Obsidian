@@ -4,24 +4,24 @@ import { FileManager } from './data/FileManager';
 import { projectsStore } from './stores/data';
 import App from './ui/App.svelte';
 import ProjectsView from './ui/views/ProjectsView.svelte';
-import { ProjectOSSettings, DEFAULT_SETTINGS, ProjectOSSettingTab } from './settings';
+import { ProximaSettings, DEFAULT_SETTINGS, ProximaSettingTab } from './settings';
 
-const VIEW_TYPE = 'project-os-view';
-const WORKSPACE_VIEW_TYPE = 'project-os-workspace-view';
+const VIEW_TYPE = 'proxima-view';
+const WORKSPACE_VIEW_TYPE = 'proxima-workspace-view';
 
-class ProjectOSView extends ItemView {
+class ProximaView extends ItemView {
   component: App | null = null;
   fileManager: FileManager;
-  plugin: ProjectOSPlugin;
+  plugin: ProximaPlugin;
 
-  constructor(leaf: WorkspaceLeaf, fileManager: FileManager, plugin: ProjectOSPlugin) {
+  constructor(leaf: WorkspaceLeaf, fileManager: FileManager, plugin: ProximaPlugin) {
     super(leaf);
     this.fileManager = fileManager;
     this.plugin = plugin;
   }
 
   getViewType() { return VIEW_TYPE; }
-  getDisplayText() { return 'Project OS'; }
+  getDisplayText() { return 'Proxima'; }
   getIcon() { return 'layout-dashboard'; }
 
   async onOpen() {
@@ -45,10 +45,10 @@ class ProjectOSView extends ItemView {
 class ProjectWorkspaceView extends ItemView {
   component: ProjectsView | null = null;
   fileManager: FileManager;
-  plugin: ProjectOSPlugin;
+  plugin: ProximaPlugin;
   projectId: string | null = null;
 
-  constructor(leaf: WorkspaceLeaf, fileManager: FileManager, plugin: ProjectOSPlugin) {
+  constructor(leaf: WorkspaceLeaf, fileManager: FileManager, plugin: ProximaPlugin) {
     super(leaf);
     this.fileManager = fileManager;
     this.plugin = plugin;
@@ -94,35 +94,35 @@ class ProjectWorkspaceView extends ItemView {
   }
 }
 
-export default class ProjectOSPlugin extends Plugin {
+export default class ProximaPlugin extends Plugin {
   fileManager!: FileManager;
-  settings!: ProjectOSSettings;
+  settings!: ProximaSettings;
 
   async onload() {
     try {
-      console.log("Initializing Project OS...");
-      new Notice("Initializing Project OS...");
+      console.log("Initializing Proxima...");
+      new Notice("Initializing Proxima...");
       
       await this.loadSettings();
 
-      this.fileManager = new FileManager(this.app);
+      this.fileManager = new FileManager(this.app, this);
 
-      this.addSettingTab(new ProjectOSSettingTab(this.app, this));
+      this.addSettingTab(new ProximaSettingTab(this.app, this));
 
       this.app.workspace.onLayoutReady(async () => {
         try {
           await this.fileManager.initialize();
-          console.log("Project OS: data initialized successfully!");
+          console.log("Proxima: data initialized successfully!");
         } catch (e) {
-          console.error("Project OS: failed to initialize data", e);
-          new Notice("Project OS failed to initialize: " + e.message);
+          console.error("Proxima: failed to initialize data", e);
+          new Notice("Proxima failed to initialize: " + e.message);
         }
       });
 
       try {
         this.registerView(
           VIEW_TYPE,
-          (leaf) => new ProjectOSView(leaf, this.fileManager, this)
+          (leaf) => new ProximaView(leaf, this.fileManager, this)
         );
       } catch (e) {
         console.warn('View already registered:', VIEW_TYPE);
@@ -137,13 +137,13 @@ export default class ProjectOSPlugin extends Plugin {
         console.warn('View already registered:', WORKSPACE_VIEW_TYPE);
       }
 
-      this.addRibbonIcon('layout-dashboard', 'Open Project OS', () => {
+      this.addRibbonIcon('layout-dashboard', 'Open Proxima', () => {
         this.activateView();
       });
 
       this.addCommand({
-        id: 'open-project-os',
-        name: 'Open Project OS Dashboard',
+        id: 'open-proxima',
+        name: 'Open Proxima Dashboard',
         callback: () => this.activateView(),
       });
 
@@ -219,7 +219,7 @@ export default class ProjectOSPlugin extends Plugin {
   }
 
   onunload() {
-    console.log("Unloading Project OS...");
+    console.log("Unloading Proxima...");
     this.app.workspace.detachLeavesOfType(VIEW_TYPE);
     this.app.workspace.detachLeavesOfType(WORKSPACE_VIEW_TYPE);
   }

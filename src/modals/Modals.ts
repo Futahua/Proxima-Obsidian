@@ -1,5 +1,6 @@
-import { App, Modal, Notice } from 'obsidian';
+import { App, Modal, Notice, TFile } from 'obsidian';
 import type { TaskData } from '../types';
+import type ProximaPlugin from '../main';
 
 export class EditTaskModal extends Modal {
   constructor(app: App, public task: TaskData, public onSave: (updates: Partial<TaskData>) => void) {
@@ -159,9 +160,9 @@ export class NewTaskModal extends Modal {
 export class QuickEditTaskModal extends Modal {
   constructor(
     app: App, 
+    public plugin: ProximaPlugin,
     public task: TaskData, 
-    public onSave: (updates: Partial<TaskData>) => void,
-    public onOpenNative: () => void
+    public onSave: (updates: Partial<TaskData>) => void
   ) {
     super(app);
   }
@@ -176,7 +177,10 @@ export class QuickEditTaskModal extends Modal {
     const nativeBtn = hdr.createEl('button', { text: '📄 Open Native Note', cls: 'pos-modal-primary' });
     nativeBtn.addEventListener('click', () => {
       this.close();
-      this.onOpenNative();
+      const file = this.app.vault.getAbstractFileByPath(`tasks/${task.id}.md`);
+      if (file instanceof TFile) {
+        this.app.workspace.getLeaf('tab').openFile(file);
+      }
     });
 
     const inp = contentEl.createEl('input', {
@@ -223,59 +227,142 @@ export class QuickEditTaskModal extends Modal {
       placeholder: 'Description', cls: 'pos-modal-textarea',
       attr: { style: 'margin-top: 10px; min-height: 80px;' }
     });
-    desc.value = task.description;
+    desc.value = task.description || '';
 
-    // Priority
-    const pr = contentEl.createEl('div', { cls: 'pos-modal-row', attr: { style: 'margin-top: 10px;' } });
-    pr.createEl('label', { text: 'Priority:' });
-    const pSel = pr.createEl('select', { cls: 'pos-modal-input', attr: { style: 'width: 150px;' }});
-    const priorities = [{label: 'High', val: 1}, {label: 'Medium', val: 2}, {label: 'Low', val: 3}];
-    priorities.forEach(p => {
-      pSel.createEl('option', { value: String(p.val), text: p.label }).selected = (task.priority === p.val);
-    });
+    // Dynamic Properties
+    const customPropValues: Record<string, any> = {};
+    if (this.plugin && this.plugin.settings && this.plugin.settings.taskSchema) {
+      this.plugin.settings.taskSchema.forEach(schema => {
+        const row = contentEl.createEl('div', { cls: 'pos-modal-row', attr: { style: 'margin-top: 10px;' } });
+        row.createEl('label', { text: schema.name + ':' });
 
-    // Tags
-    let localTags = [...(task.tags || [])];
-    const tr = contentEl.createEl('div', { cls: 'pos-modal-row', attr: { style: 'margin-top: 10px; align-items: flex-start;' } });
-    tr.createEl('label', { text: 'Tags:' });
-    const tWrap = tr.createEl('div', { cls: 'pos-tag-input-row', attr: { style: 'flex: 1; min-height: 32px;' } });
-    
-    const renderTags = () => {
-      tWrap.empty();
-      localTags.forEach(tag => {
-        const pill = tWrap.createEl('span', { cls: 'pos-tag-pill', text: tag });
-        const xBtn = pill.createEl('span', { cls: 'pos-tag-pill-remove', text: '×', attr: { style: 'margin-left: 4px;' } });
-        xBtn.addEventListener('click', () => {
-          localTags = localTags.filter(t => t !== tag);
-          renderTags();
-        });
-      });
-      const tInp = tWrap.createEl('input', { type: 'text', placeholder: 'Add tag, press Enter', cls: 'pos-tag-input' });
-      tInp.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ',') {
-          e.preventDefault();
-          const val = tInp.value.trim().replace(/^,+|,+$/g, '');
-          if (val && !localTags.includes(val)) {
-            localTags.push(val);
-            renderTags();
-            // Focus the input again after re-render if it was the user typing
-            const newInp = tWrap.querySelector('.pos-tag-input') as HTMLInputElement;
-            if (newInp) newInp.focus();
+        let initialValue = task.properties ? task.properties[schema.id] : undefined;
+
+        if (schema.type === 'text') {
+          const inp = row.createEl('input', { type: 'text', cls: 'pos-modal-input' });
+          inp.value = initialValue || '';
+          inp.addEventListener('input', () => customPropValues[schema.id] = inp.value);
+          customPropValues[schema.id] = initialValue || '';
+        } else if (schema.type === 'number') {
+          const inp = row.createEl('input', { type: 'number', cls: 'pos-modal-input' });
+          inp.value = initialValue !== undefined ? initialValue : '';
+          inp.addEventListener('input', () => customPropValues[schema.id] = parseFloat(inp.value));
+          customPropValues[schema.id] = initialValue !== undefined ? initialValue : null;
+        } else if (schema.type === 'select') {
+          const sel = row.createEl('select', { cls: 'pos-modal-input' });
+          sel.createEl('option', { value: '', text: '-- None --' });
+          if (schema.options) {
+            schema.options.forEach(opt => {
+              sel.createEl('option', { value: opt.id, text: opt.name }).selected = (initialValue === opt.id);
+            });
           }
-          tInp.value = '';
-        }
+          sel.addEventListener('change', () => customPropValues[schema.id] = sel.value);
+          customPropValues[schema.id] = initialValue || '';
+        } else if (schema.type === 'checkbox') {
+          const chk = row.createEl('input', { type: 'checkbox' });
+          chk.checked = !!initialValue;
+          chk.addEventListener('change', () => customPropValues[schema.id] = chk.checked);
+          customPropValues[schema.id] = !!initialValue;
+        } else if (schema.type === 'date') {
+          const dinp = row.createEl('input', { type: 'datetime-local', cls: 'pos-modal-datetime' });
+          if (initialValue) {
+            const dt = new Date(initialValue);
+            if (!isNaN(dt.getTime())) dinp.value = dt.toISOString().slice(0, 16);
+          }
+          dinp.addEventListener('change', () => {
+            const dt = new Date(dinp.value);
+            customPropValues[schema.id] = !isNaN(dt.getTime()) ? dt.toISOString() : null;
+          });
+          customPropValues[schema.id] = initialValue || null;
+        } else if (schema.type === 'multi-select') {
+          let localVals: string[] = Array.isArray(initialValue) ? [...initialValue] : [];
+          customPropValues[schema.id] = localVals;
+          
+          row.style.alignItems = 'flex-start';
+          const tWrap = row.createEl('div', { cls: 'pos-tag-input-row', attr: { style: 'flex: 1; min-height: 32px;' } });
+          
+          const renderMulti = () => {
+            tWrap.empty();
+            localVals.forEach(val => {
+              const optName = schema.options?.find(o => o.id === val)?.name || val;
+              const pill = tWrap.createEl('span', { cls: 'pos-tag-pill', text: optName });
+              const xBtn = pill.createEl('span', { cls: 'pos-tag-pill-remove', text: 'x', attr: { style: 'margin-left: 4px;' } });
+              xBtn.addEventListener('click', () => {
+                localVals = localVals.filter(t => t !== val);
+                customPropValues[schema.id] = localVals;
+                renderMulti();
+              });
+            });
+            const sel = tWrap.createEl('select', { cls: 'pos-modal-input', attr: { style: 'margin-top: 4px;' }});
+            sel.createEl('option', { value: '', text: 'Add...' });
+            if (schema.options) {
+              schema.options.filter(o => !localVals.includes(o.id)).forEach(o => {
+                sel.createEl('option', { value: o.id, text: o.name });
+              });
+            }
+            sel.addEventListener('change', () => {
+              if (sel.value && !localVals.includes(sel.value)) {
+                localVals.push(sel.value);
+                customPropValues[schema.id] = localVals;
+                renderMulti();
+              }
+            });
+          };
+          renderMulti();
+        } else if (schema.type === 'relation') {
+            let localVals: string[] = Array.isArray(initialValue) ? [...initialValue] : (initialValue ? [initialValue] : []);
+            customPropValues[schema.id] = localVals;
+            
+            row.style.alignItems = 'flex-start';
+            const tWrap = row.createEl('div', { cls: 'pos-tag-input-row', attr: { style: 'flex: 1; min-height: 32px;' } });
+            
+            const renderRelation = () => {
+              tWrap.empty();
+              localVals.forEach(val => {
+                const pill = tWrap.createEl('span', { cls: 'pos-tag-pill', text: String(val).replace(/\[\[|\]\]/g, '') });
+                const xBtn = pill.createEl('span', { cls: 'pos-tag-pill-remove', text: 'x', attr: { style: 'margin-left: 4px;' } });
+                xBtn.addEventListener('click', () => {
+                  localVals = localVals.filter(t => t !== val);
+                  customPropValues[schema.id] = localVals;
+                  renderRelation();
+                });
+              });
+              const sel = tWrap.createEl('select', { cls: 'pos-modal-input', attr: { style: 'margin-top: 4px;' }});
+              sel.createEl('option', { value: '', text: 'Add link...' });
+              if (schema.targetFolder) {
+                const files = this.app.vault.getMarkdownFiles().filter(f => f.path.startsWith(schema.targetFolder!));
+                files.forEach(f => {
+                  const link = `[[${f.basename}]]`;
+                  if (!localVals.includes(link)) {
+                    sel.createEl('option', { value: link, text: f.basename });
+                  }
+                });
+              }
+              sel.addEventListener('change', () => {
+                if (sel.value && !localVals.includes(sel.value)) {
+                  localVals.push(sel.value);
+                  customPropValues[schema.id] = localVals;
+                  renderRelation();
+                }
+              });
+            };
+            renderRelation();
+          } else if (schema.type === 'formula' || schema.type === 'rollup') {
+            const div = row.createEl('div', { cls: 'pos-modal-input', attr: { style: 'background: transparent; border: none; padding-left: 0;' } });
+            div.setText(String(initialValue !== undefined && initialValue !== null ? initialValue : '—'));
+            customPropValues[schema.id] = initialValue;
+          }
       });
-    };
-    renderTags();
+    }
 
     // Buttons
     const br = contentEl.createEl('div', { cls: 'pos-modal-buttons', attr: { style: 'margin-top: 16px;' } });
     br.createEl('button', { text: 'Edit Natively' }).addEventListener('click', () => {
+      this.close();
       const file = this.app.vault.getAbstractFileByPath(`tasks/${task.id}.md`);
       if (file instanceof TFile) {
-        this.app.workspace.getLeaf().openFile(file);
+        this.app.workspace.getLeaf('tab').openFile(file);
       }
-      this.close();
     });
     br.createEl('button', { text: 'Cancel' }).addEventListener('click', () => this.close());
     br.createEl('button', { text: 'Save', cls: 'pos-modal-primary' }).addEventListener('click', () => {
@@ -287,8 +374,7 @@ export class QuickEditTaskModal extends Modal {
         description: desc.value.trim(),
         status: sSel.value as any,
         isCompleted: sSel.value === 'review',
-        priority: parseInt(pSel.value, 10) as 1 | 2 | 3,
-        tags: localTags
+        properties: customPropValues
       };
       
       if (sdChk.checked && sdInp.value) {

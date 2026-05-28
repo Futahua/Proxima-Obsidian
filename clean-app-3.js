@@ -1,4 +1,6 @@
-<script lang="ts">
+const fs = require('fs');
+const file = 'c:/Users/admin/Dropbox/Apps/remotely-save/Croptop/.obsidian/plugins/proxima/src/ui/App.svelte';
+const cleanContent = `<script lang="ts">
   import { App as ObsidianApp } from 'obsidian';
   import type { FileManager } from '../data/FileManager';
   import ProjectsHub from './views/AgingView.svelte';
@@ -56,3 +58,7 @@
     {/if}
   </div>
 </div>
+`;
+
+fs.writeFileSync(file, cleanContent);
+console.log('App.svelte strictly rewritten');

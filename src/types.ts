@@ -1,6 +1,26 @@
 export type TaskStatus = 'planned' | 'backlog' | 'running' | 'review';
 export type ProjectStatus = 'active' | 'archived';
 
+export type PropertyType = 'text' | 'number' | 'select' | 'multi-select' | 'date' | 'checkbox' | 'relation' | 'rollup' | 'formula';
+
+export interface SelectOption {
+  id: string;
+  name: string;
+  color: string;
+}
+
+export interface PropertySchema {
+  id: string;
+  name: string;
+  type: PropertyType;
+  options?: SelectOption[]; // Used for select and multi-select
+  targetFolder?: string; // Used for relation
+  relationProperty?: string; // Used for rollup
+  targetProperty?: string; // Used for rollup
+  aggregation?: 'sum' | 'average' | 'count' | 'unique' | 'min' | 'max'; // Used for rollup
+  expression?: string; // Used for formula
+}
+
 export interface ProjectData {
   id: string;
   name: string;
@@ -25,8 +45,7 @@ export interface TaskData {
   startDate: string | null;
   deadline: string | null;
   ganttRow?: number;
-  tags: string[];
-  priority: 1 | 2 | 3;
+  properties: Record<string, any>; // Dynamic Notion-style properties
 }
 
 export interface TimelineItem {

@@ -12,11 +12,47 @@
   export let projectId;
 
   $: projectTasks = getProjectTasks($tasksStore, projectId);
-  
-  const sortTasks = (tasks: TaskData[]) => tasks.sort((a, b) => (a.priority - b.priority) || (a.orderIndex - b.orderIndex));
-  $: backlog = sortTasks(projectTasks.filter(t => t.status === 'backlog'));
-  $: running = sortTasks(projectTasks.filter(t => t.status === 'running'));
-  $: review = sortTasks(projectTasks.filter(t => t.status === 'review'));
+  const sortTasks = (tasks: TaskData[]) => tasks.sort((a, b) => {
+    const pA = (a.properties && a.properties['priority']) ? parseInt(a.properties['priority'], 10) : 3;
+    const pB = (b.properties && b.properties['priority']) ? parseInt(b.properties['priority'], 10) : 3;
+    return (pA - pB) || (a.orderIndex - b.orderIndex);
+  });
+  $: statuses = fileManager.plugin.settings.statuses || [];
+  $: sBacklog = statuses[0] || { id: 'backlog', name: 'Backlog', color: '#666' };
+  $: sRunning = statuses[1] || { id: 'running', name: 'Running', color: '#00b894' };
+  $: sReview = statuses[statuses.length - 1] || { id: 'review', name: 'Review', color: '#fdcb6e' };
+
+  $: backlog = sortTasks(projectTasks.filter(t => t.status === sBacklog.id));
+  $: running = sortTasks(projectTasks.filter(t => t.status === sRunning.id));
+  $: review = sortTasks(projectTasks.filter(t => t.status === sReview.id));
+
+  function getCustomProps(task: TaskData) {
+    if (!task.properties || !fileManager.plugin.settings.taskSchema) return [];
+    const res: { name: string, value: string, color?: string }[] = [];
+    fileManager.plugin.settings.taskSchema.forEach(schema => {
+      const val = task.properties[schema.id];
+      if (val === undefined || val === null || val === '') return;
+      if (Array.isArray(val) && val.length === 0) return;
+      
+      if (schema.type === 'select') {
+        const opt = schema.options?.find(o => o.id === val);
+        if (opt) res.push({ name: schema.name, value: opt.name, color: opt.color });
+      } else if (schema.type === 'multi-select') {
+        (val as string[]).forEach(v => {
+          const opt = schema.options?.find(o => o.id === v);
+          res.push({ name: schema.name, value: opt ? opt.name : v, color: opt?.color });
+        });
+      } else if (schema.type === 'date') {
+        const d = new Date(val);
+        if (!isNaN(d.getTime())) res.push({ name: schema.name, value: d.toLocaleDateString() });
+      } else if (schema.type === 'checkbox') {
+        res.push({ name: schema.name, value: val ? 'Yes' : 'No' });
+      } else {
+        res.push({ name: schema.name, value: String(val) });
+      }
+    });
+    return res;
+  }
 
   let deadline = new Date();
   deadline.setHours(17, 0, 0, 0);
@@ -95,7 +131,7 @@
   }
 
   function editTask(task: TaskData) {
-    new QuickEditTaskModal(app, task, async (updates) => {
+    new QuickEditTaskModal(app, fileManager.plugin, task, async (updates) => {
       await fileManager.updateTask(task.id, updates);
     }).open();
   }
@@ -108,7 +144,7 @@
   }
 
   async function updateStatus(task: TaskData, status: TaskStatus) {
-    await fileManager.updateTask(task.id, { status, isCompleted: status === 'review' });
+    await fileManager.updateTask(task.id, { status, isCompleted: status === sReview.id });
   }
 
   async function toggleFixed(task: TaskData, isFixed: boolean) {
@@ -131,7 +167,7 @@
 
   function confirmRestoreAll() {
     new ConfirmModal(app, 'Restore All', 'Move all review tasks back to running?', () => {
-      review.forEach(t => fileManager.updateTask(t.id, { status: 'running', isCompleted: false }));
+      review.forEach(t => fileManager.updateTask(t.id, { status: sRunning.id, isCompleted: false }));
     }).open();
   }
 
@@ -209,7 +245,7 @@
     const task = $tasksStore.find(t => t.id === dragId);
     if (!task) return;
     
-    if (isLocked && (task.status === 'running' || status === 'running') && task.status !== status) {
+    if (isLocked && (task.status === sRunning.id || status === sRunning.id) && task.status !== status) {
       if (e.dataTransfer) e.dataTransfer.dropEffect = 'none';
       return;
     }
@@ -279,12 +315,12 @@
       ));
     } else {
       // Moving to a different column
-      if (isLocked && status === 'running') return;
+      if (isLocked && status === sRunning.id) return;
       
       const sourceCol = allTasksOfProject.filter(t => t.status === oldStatus && t.id !== task.id);
       const destCol = allTasksOfProject.filter(t => t.status === status);
       
-      destCol.splice(targetIndex, 0, { ...task, status, isCompleted: status === 'review' });
+      destCol.splice(targetIndex, 0, { ...task, status, isCompleted: status === sReview.id });
 
       // Save order indexes in both source and destination columns
       await Promise.all([
@@ -292,7 +328,7 @@
         ...destCol.map((t, idx) => fileManager.updateTask(t.id, { 
           orderIndex: idx, 
           status: t.id === task.id ? status : t.status,
-          isCompleted: t.id === task.id ? (status === 'review') : t.isCompleted 
+          isCompleted: t.id === task.id ? (status === sReview.id) : t.isCompleted 
         }))
       ]);
     }
@@ -317,21 +353,21 @@
 <div class="pos-columns">
   <!-- BACKLOG -->
   <div class="pos-col">
-    <h4 class="pos-col-title">Backlog ({backlog.length})</h4>
-    <div class="pos-list-wrapper" on:dragover={(e) => handleDragOver(e, 'backlog')} on:drop={(e) => handleDrop(e, 'backlog')}>
+    <h4 class="pos-col-title" style="color: {sBacklog.color}">{sBacklog.name} ({backlog.length})</h4>
+    <div class="pos-list-wrapper" on:dragover={(e) => handleDragOver(e, sBacklog.id)} on:drop={(e) => handleDrop(e, sBacklog.id)}>
       <div class="pos-list">
         {#each backlog as task, i (task.id)}
-          {#if dragOverStatus === 'backlog' && dragOverIndex === i}
+          {#if dragOverStatus === sBacklog.id && dragOverIndex === i}
             <div class="pos-drag-placeholder" style="height: {dragHeight}px"></div>
           {/if}
-          <div class="pos-card priority-{task.priority}" class:pos-dragging-source={dragId === task.id} draggable="true" on:dragstart={(e) => handleDragStart(e, task.id)} on:dragend={handleDragEnd}>
+          <div class="pos-card" class:pos-dragging-source={dragId === task.id} draggable="true" on:dragstart={(e) => handleDragStart(e, task.id)} on:dragend={handleDragEnd}>
             <div style="cursor: pointer;" on:click={() => editTask(task)}>
               <div class="pos-card-name">{task.name}</div>
               {#if task.description}<div class="pos-card-desc">{task.description}</div>{/if}
-              {#if task.tags && task.tags.length > 0}
+              {#if getCustomProps(task).length > 0}
                 <div class="pos-card-meta">
-                  {#each task.tags as tag}
-                    <span class="pos-tag-pill">{tag}</span>
+                  {#each getCustomProps(task) as cp}
+                    <span class="pos-tag-pill" title={cp.name} style={cp.color ? `background-color: ${cp.color}; border-color: ${cp.color}; color: #fff;` : ''}>{cp.value}</span>
                   {/each}
                 </div>
               {/if}
@@ -341,7 +377,7 @@
             </div>
           </div>
         {/each}
-        {#if dragOverStatus === 'backlog' && dragOverIndex >= backlog.length}
+        {#if dragOverStatus === sBacklog.id && dragOverIndex >= backlog.length}
           <div class="pos-drag-placeholder" style="height: {dragHeight}px"></div>
         {/if}
         <div class="pos-newtask-row">
@@ -353,21 +389,21 @@
 
   <!-- RUNNING -->
   <div class="pos-col">
-    <h4 class="pos-col-title">Running ({running.length})</h4>
+    <h4 class="pos-col-title" style="color: {sRunning.color}">{sRunning.name} ({running.length})</h4>
     <div 
       class="pos-list-wrapper" 
       bind:clientHeight={runningWrapperHeight} 
-      on:dragover={(e) => handleDragOver(e, 'running')} 
-      on:drop={(e) => handleDrop(e, 'running')}
+      on:dragover={(e) => handleDragOver(e, sRunning.id)} 
+      on:drop={(e) => handleDrop(e, sRunning.id)}
     >
       <div class="pos-list">
         {#each running as task, i (task.id)}
-          {#if dragOverStatus === 'running' && dragOverIndex === i}
+          {#if dragOverStatus === sRunning.id && dragOverIndex === i}
             <div class="pos-drag-placeholder" style="height: {dragHeight}px"></div>
           {/if}
           {@const ti = timeline.find(t => t.id === task.id)}
           <div 
-            class="pos-card priority-{task.priority}" 
+            class="pos-card" 
             class:pos-dragging-source={dragId === task.id} 
             style="height: {taskHeights[task.id] ? taskHeights[task.id] + 'px' : 'auto'};"
             draggable="true" 
@@ -378,9 +414,9 @@
               <div class="pos-card-name">{task.name}</div>
               {#if task.description}<div class="pos-card-desc">{task.description}</div>{/if}
               <div class="pos-card-meta">
-                {#if task.tags && task.tags.length > 0}
-                  {#each task.tags as tag}
-                    <span class="pos-tag-pill">{tag}</span>
+                {#if getCustomProps(task).length > 0}
+                  {#each getCustomProps(task) as cp}
+                    <span class="pos-tag-pill" title={cp.name} style={cp.color ? `background-color: ${cp.color}; border-color: ${cp.color}; color: #fff;` : ''}>{cp.value}</span>
                   {/each}
                 {/if}
                 {#if task.isFixedDuration && task.fixedDuration}<span>Fixed {task.fixedDuration}m</span>{/if}
@@ -416,7 +452,7 @@
             </div>
           </div>
         {/each}
-        {#if dragOverStatus === 'running' && dragOverIndex >= running.length}
+        {#if dragOverStatus === sRunning.id && dragOverIndex >= running.length}
           <div class="pos-drag-placeholder" style="height: {dragHeight}px"></div>
         {/if}
       </div>
@@ -429,20 +465,20 @@
 
   <!-- REVIEW -->
   <div class="pos-col">
-    <h4 class="pos-col-title">Review ({review.length})</h4>
-    <div class="pos-list-wrapper" on:dragover={(e) => handleDragOver(e, 'review')} on:drop={(e) => handleDrop(e, 'review')}>
+    <h4 class="pos-col-title" style="color: {sReview.color}">{sReview.name} ({review.length})</h4>
+    <div class="pos-list-wrapper" on:dragover={(e) => handleDragOver(e, sReview.id)} on:drop={(e) => handleDrop(e, sReview.id)}>
       <div class="pos-list">
         {#each review as task, i (task.id)}
-          {#if dragOverStatus === 'review' && dragOverIndex === i}
+          {#if dragOverStatus === sReview.id && dragOverIndex === i}
             <div class="pos-drag-placeholder" style="height: {dragHeight}px"></div>
           {/if}
-          <div class="pos-card pos-completed priority-{task.priority}" class:pos-dragging-source={dragId === task.id} draggable="true" on:dragstart={(e) => handleDragStart(e, task.id)} on:dragend={handleDragEnd}>
+          <div class="pos-card pos-completed" class:pos-dragging-source={dragId === task.id} draggable="true" on:dragstart={(e) => handleDragStart(e, task.id)} on:dragend={handleDragEnd}>
             <div style="cursor: pointer;" on:click={() => editTask(task)}>
               <div class="pos-card-name">{task.name}</div>
-              {#if task.tags && task.tags.length > 0}
+              {#if getCustomProps(task).length > 0}
                 <div class="pos-card-meta">
-                  {#each task.tags as tag}
-                    <span class="pos-tag-pill">{tag}</span>
+                  {#each getCustomProps(task) as cp}
+                    <span class="pos-tag-pill" title={cp.name} style={cp.color ? `background-color: ${cp.color}; border-color: ${cp.color}; color: #fff;` : ''}>{cp.value}</span>
                   {/each}
                 </div>
               {/if}
@@ -452,7 +488,7 @@
             </div>
           </div>
         {/each}
-        {#if dragOverStatus === 'review' && dragOverIndex >= review.length}
+        {#if dragOverStatus === sReview.id && dragOverIndex >= review.length}
           <div class="pos-drag-placeholder" style="height: {dragHeight}px"></div>
         {/if}
         {#if review.length > 0}

@@ -8,7 +8,7 @@
 </script>
 
 <div style="height: 100%; display: flex; flex-direction: column; overflow: hidden;">
-  <ProjectDeadlines {app} {fileManager} {projectId} />
+  <ProjectDeadlines {app} {fileManager} {projectId} plugin={fileManager.plugin} />
 </div>
 
 

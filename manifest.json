@@ -1,6 +1,6 @@
 {
-  "id": "project-os",
-  "name": "Project OS",
+  "id": "proxima",
+  "name": "Proxima",
   "version": "1.0.0",
   "minAppVersion": "1.8.0",
   "description": "Mini project management dashboard with aging projects, elastic timeline, and deadline tracking.",

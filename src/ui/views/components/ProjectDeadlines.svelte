@@ -294,11 +294,8 @@
   })();
 
   function openTaskEditor(task: any) {
-    new QuickEditTaskModal(app, task, async (updates) => {
+    new QuickEditTaskModal(app, fileManager.plugin, task, async (updates) => {
       await fileManager.updateTask(task.id, updates);
-    }, () => {
-      const file = app.vault.getAbstractFileByPath(`tasks/${task.id}.md`);
-      if (file) app.workspace.getLeaf('tab').openFile(file as any);
     }).open();
   }
 

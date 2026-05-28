@@ -2,8 +2,6 @@ import { App, TFile, TFolder, TAbstractFile } from 'obsidian';
 import type { ProjectData, TaskData } from '../types';
 import { projectsStore, tasksStore } from '../stores/data';
 
-const PROJECTS_FOLDER = 'projects';
-const TASKS_FOLDER = 'tasks';
 
 export function parseFrontmatter(content: string): Record<string, any> {
   const m = content.match(/^---\r?\n([\s\S]*?)\r?\n---/);
@@ -46,12 +44,17 @@ export interface ProjectFileInfo {
   mtime: number;
 }
 
+import type ProximaPlugin from '../main';
+
 export class FileManager {
-  constructor(public app: App) {}
+  projects: ProjectData[] = [];
+  tasks: TaskData[] = [];
+
+  constructor(public app: App, public plugin: ProximaPlugin) {}
 
   async initialize() {
-    await this.ensureFolder(PROJECTS_FOLDER);
-    await this.ensureFolder(TASKS_FOLDER);
+    await this.ensureFolder(this.plugin.settings.projectsFolder);
+    await this.ensureFolder(this.plugin.settings.tasksFolder);
     await this.loadAll();
   }
 
@@ -72,8 +75,8 @@ export class FileManager {
    */
   resolveProjectNotePath(id: string): string | null {
     // Prefer subfolder convention
-    const subfolderPath = `${PROJECTS_FOLDER}/${id}/index.md`;
-    const flatPath = `${PROJECTS_FOLDER}/${id}.md`;
+    const subfolderPath = `${this.plugin.settings.projectsFolder}/${id}/index.md`;
+    const flatPath = `${this.plugin.settings.projectsFolder}/${id}.md`;
     
     if (this.app.vault.getAbstractFileByPath(subfolderPath) instanceof TFile) {
       return subfolderPath;
@@ -88,7 +91,7 @@ export class FileManager {
    * Check if a project uses the subfolder convention.
    */
   isSubfolderProject(id: string): boolean {
-    const subfolderPath = `${PROJECTS_FOLDER}/${id}/index.md`;
+    const subfolderPath = `${this.plugin.settings.projectsFolder}/${id}/index.md`;
     return this.app.vault.getAbstractFileByPath(subfolderPath) instanceof TFile;
   }
 
@@ -98,7 +101,7 @@ export class FileManager {
    * For flat projects: projects/ (but files are the single .md)
    */
   getProjectFolderPath(id: string): string {
-    return `${PROJECTS_FOLDER}/${id}`;
+    return `${this.plugin.settings.projectsFolder}/${id}`;
   }
 
   async loadAll() {
@@ -107,7 +110,7 @@ export class FileManager {
     const seenProjectIds = new Set<string>();
 
     // Scan for subfolder-based projects: projects/{id}/index.md
-    const allFiles = this.app.vault.getMarkdownFiles().filter(f => f.path.startsWith(PROJECTS_FOLDER + '/'));
+    const allFiles = this.app.vault.getMarkdownFiles().filter(f => f.path.startsWith(this.plugin.settings.projectsFolder + '/'));
     
     for (const f of allFiles) {
       const c = await this.app.vault.read(f);
@@ -116,7 +119,7 @@ export class FileManager {
       
       // Determine project ID based on path convention
       let projectId: string;
-      const pathParts = f.path.replace(PROJECTS_FOLDER + '/', '').split('/');
+      const pathParts = f.path.replace(this.plugin.settings.projectsFolder + '/', '').split('/');
       
       if (pathParts.length >= 2 && f.name === 'index.md') {
         // Subfolder convention: projects/{id}/index.md
@@ -142,7 +145,7 @@ export class FileManager {
     projects.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
     projectsStore.set(projects);
 
-    const taskFiles = this.app.vault.getMarkdownFiles().filter(f => f.path.startsWith(TASKS_FOLDER + '/'));
+    const taskFiles = this.app.vault.getMarkdownFiles().filter(f => f.path.startsWith(this.plugin.settings.tasksFolder + '/'));
     for (const f of taskFiles) {
       const c = await this.app.vault.read(f);
       const fm = parseFrontmatter(c);
@@ -173,8 +176,73 @@ export class FileManager {
         startDate: startDate,
         deadline: deadline,
         ganttRow: fm.ganttRow || 0,
-        tags: Array.isArray(fm.tags) ? fm.tags : [],
-        priority: (fm.priority === 1 || fm.priority === 2 || fm.priority === 3) ? fm.priority : 2,
+        properties: await (async () => {
+          const props: Record<string, any> = {};
+          if (this.plugin && this.plugin.settings && this.plugin.settings.taskSchema) {
+            // First pass: basic properties and rollups
+            for (const schema of this.plugin.settings.taskSchema) {
+              if (schema.type === 'rollup' && schema.relationProperty && schema.targetProperty && schema.aggregation) {
+                let relationVal = fm[schema.relationProperty];
+                if (!relationVal) {
+                  props[schema.id] = 0;
+                  continue;
+                }
+                const links = Array.isArray(relationVal) ? relationVal : [relationVal];
+                const vals: any[] = [];
+                for (const link of links) {
+                  const match = String(link).match(/\[\[(.*?)\]\]/);
+                  if (match) {
+                    const targetName = match[1];
+                    const targetFile = this.app.metadataCache.getFirstLinkpathDest(targetName, f.path);
+                    if (targetFile) {
+                      const tc = await this.app.vault.read(targetFile);
+                      const tfm = parseFrontmatter(tc);
+                      // Convert property name to ID since target files might be storing it by ID if they are also tasks
+                      // But wait, the user specifies the ID in `targetProperty`? Let's check both ID and Name to be safe.
+                      let tVal = tfm[schema.targetProperty];
+                      if (tVal === undefined) {
+                        const ts = this.plugin.settings.taskSchema.find(x => x.name === schema.targetProperty);
+                        if (ts && tfm[ts.id] !== undefined) tVal = tfm[ts.id];
+                      }
+                      if (tVal !== undefined) vals.push(tVal);
+                    }
+                  }
+                }
+                
+                const nums = vals.map(v => Number(v)).filter(n => !isNaN(n));
+                if (schema.aggregation === 'sum') props[schema.id] = nums.reduce((a, b) => a + b, 0);
+                else if (schema.aggregation === 'average') props[schema.id] = nums.length ? nums.reduce((a, b) => a + b, 0) / nums.length : 0;
+                else if (schema.aggregation === 'count') props[schema.id] = vals.length;
+                else if (schema.aggregation === 'unique') props[schema.id] = [...new Set(vals)].length;
+                else if (schema.aggregation === 'min') props[schema.id] = nums.length ? Math.min(...nums) : 0;
+                else if (schema.aggregation === 'max') props[schema.id] = nums.length ? Math.max(...nums) : 0;
+              } else if (schema.type === 'formula') {
+                // Skip formulas for now
+              } else if (fm[schema.id] !== undefined) {
+                props[schema.id] = fm[schema.id];
+              } else if (schema.type === 'multi-select' || schema.type === 'relation') {
+                props[schema.id] = [];
+              }
+            }
+            
+            // Second pass: formulas (can reference rollups and basic props)
+            for (const schema of this.plugin.settings.taskSchema) {
+               if (schema.type === 'formula' && schema.expression) {
+                  try {
+                     const prop = (propName: string) => {
+                        const s = this.plugin.settings.taskSchema.find(x => x.name === propName);
+                        return s ? props[s.id] : undefined;
+                     };
+                     const evaluator = new Function('prop', `return ${schema.expression}`);
+                     props[schema.id] = evaluator(prop);
+                  } catch (e) {
+                     props[schema.id] = 'Error';
+                  }
+               }
+            }
+          }
+          return props;
+        })()
       });
     }
     tasks.sort((a, b) => a.orderIndex - b.orderIndex);
@@ -192,7 +260,7 @@ export class FileManager {
     });
 
     // 2. Persist to disk
-    const file = this.app.vault.getAbstractFileByPath(`${TASKS_FOLDER}/${id}.md`);
+    const file = this.app.vault.getAbstractFileByPath(`${this.plugin.settings.tasksFolder}/${id}.md`);
     if (!(file instanceof TFile)) return;
     
     // Read fresh just to be safe
@@ -209,6 +277,12 @@ export class FileManager {
     const fmUpdates = { ...updates };
     delete fmUpdates.id;
     delete fmUpdates.description;
+    
+    // Spread dynamic properties to top level of frontmatter
+    if (fmUpdates.properties) {
+      Object.assign(fm, fmUpdates.properties);
+      delete fmUpdates.properties;
+    }
     
     Object.assign(fm, fmUpdates);
     for (const k in fm) if (fm[k] === undefined) delete fm[k];
@@ -228,15 +302,16 @@ export class FileManager {
       isFixedDuration: data.isFixedDuration || false,
       fixedDuration: data.isFixedDuration ? data.fixedDuration : null,
       isCompleted: false,
-      createdAt: new Date().toISOString(),
-      tags: data.tags || [],
-      priority: data.priority || 2,
+      createdAt: new Date().toISOString()
     };
+    if (data.properties) {
+      Object.assign(fm, data.properties);
+    }
     if (data.deadline) fm.deadline = data.deadline;
     if (data.startDate) fm.startDate = data.startDate;
     
     const c = serializeFrontmatter(fm) + '\n' + (data.description || '');
-    await this.app.vault.create(`${TASKS_FOLDER}/${id}.md`, c);
+    await this.app.vault.create(`${this.plugin.settings.tasksFolder}/${id}.md`, c);
     
     // Update store
     tasksStore.update(t => [...t, {
@@ -251,8 +326,7 @@ export class FileManager {
       maxDuration: fm.maxDuration || null,
       isCompleted: false,
       createdAt: fm.createdAt,
-      tags: fm.tags,
-      priority: fm.priority,
+      properties: data.properties || {},
       startDate: fm.startDate || null,
       deadline: fm.deadline || null,
       description: data.description || '',
@@ -265,7 +339,7 @@ export class FileManager {
   
   async deleteTask(id: string) {
     tasksStore.update(tasks => tasks.filter(t => t.id !== id));
-    const file = this.app.vault.getAbstractFileByPath(`${TASKS_FOLDER}/${id}.md`);
+    const file = this.app.vault.getAbstractFileByPath(`${this.plugin.settings.tasksFolder}/${id}.md`);
     if (file instanceof TFile) await this.app.vault.delete(file);
   }
 
@@ -344,7 +418,7 @@ export class FileManager {
     
     if (!(folder instanceof TFolder)) {
       // Flat project — only has the single .md file
-      const flatPath = `${PROJECTS_FOLDER}/${id}.md`;
+      const flatPath = `${this.plugin.settings.projectsFolder}/${id}.md`;
       const flatFile = this.app.vault.getAbstractFileByPath(flatPath);
       if (flatFile instanceof TFile) {
         return [{
@@ -412,3 +486,4 @@ export class FileManager {
     return file instanceof TFile ? file : null;
   }
 }
+
