@@ -6833,13 +6833,17 @@ function instance($$self, $$props, $$invalidate) {
     $$invalidate(0, boardColumns[colIndex].items = e.detail.items, boardColumns);
     $$invalidate(0, boardColumns = [...boardColumns]);
     const promises = [];
-    boardColumns[colIndex].items.forEach((t, idx) => {
-      if (t.status !== colId || t.orderIndex !== idx) {
-        t.status = colId;
-        t.orderIndex = idx;
-        promises.push(fileManager.updateTask(t.id, { status: colId, orderIndex: idx }));
-      }
-    });
+    $$invalidate(
+      0,
+      boardColumns[colIndex].items = boardColumns[colIndex].items.map((t, idx) => {
+        if (t.status !== colId || t.orderIndex !== idx) {
+          promises.push(fileManager.updateTask(t.id, { status: colId, orderIndex: idx }));
+          return { ...t, status: colId, orderIndex: idx };
+        }
+        return t;
+      }),
+      boardColumns
+    );
     clearTimeout(dragTaskTimeout);
     dragTaskTimeout = setTimeout(
       () => {
@@ -20126,10 +20130,15 @@ var ProximaPlugin = class extends import_obsidian9.Plugin {
         name: "Open Proxima Dashboard",
         callback: () => this.activateView()
       });
+      let loadAllTimeout = null;
       this.registerEvent(
-        this.app.metadataCache.on("changed", async (file) => {
+        this.app.metadataCache.on("changed", (file) => {
           if (file.path.startsWith("tasks/") || file.path.startsWith("projects/")) {
-            await this.fileManager.loadAll();
+            if (loadAllTimeout)
+              clearTimeout(loadAllTimeout);
+            loadAllTimeout = setTimeout(async () => {
+              await this.fileManager.loadAll();
+            }, 300);
           }
         })
       );

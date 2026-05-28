@@ -199,13 +199,17 @@ export default class ProximaPlugin extends Plugin {
       });
 
       // Reactive listener for external changes
-      this.registerEvent(
-        this.app.metadataCache.on('changed', async (file) => {
-          if (file.path.startsWith('tasks/') || file.path.startsWith('projects/')) {
-            await this.fileManager.loadAll();
-          }
-        })
-      );
+      let loadAllTimeout: any = null;
+        this.registerEvent(
+          this.app.metadataCache.on('changed', (file) => {
+            if (file.path.startsWith('tasks/') || file.path.startsWith('projects/')) {
+              if (loadAllTimeout) clearTimeout(loadAllTimeout);
+              loadAllTimeout = setTimeout(async () => {
+                await this.fileManager.loadAll();
+              }, 300);
+            }
+          })
+        );
 
       this.registerEvent(
         this.app.vault.on('create', async (file) => {
