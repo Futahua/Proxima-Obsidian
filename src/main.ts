@@ -99,6 +99,8 @@ export default class ProximaPlugin extends Plugin {
   settings!: ProximaSettings;
 
   async onload() {
+    window.addEventListener('error', e => require('fs').appendFileSync('c:/Users/admin/proxima-debug.log', `[ERROR] ${e.message} at ${e.filename}:${e.lineno}\n`));
+    window.addEventListener('unhandledrejection', e => require('fs').appendFileSync('c:/Users/admin/proxima-debug.log', `[PROMISE_ERROR] ${e.reason}\n`));
     try {
       console.log("Initializing Proxima...");
       new Notice("Initializing Proxima...");

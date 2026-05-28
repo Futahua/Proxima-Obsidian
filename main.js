@@ -18337,6 +18337,10 @@ var ProximaPlugin = class extends import_obsidian9.Plugin {
     __publicField(this, "settings");
   }
   async onload() {
+    window.addEventListener("error", (e) => require("fs").appendFileSync("c:/Users/admin/proxima-debug.log", `[ERROR] ${e.message} at ${e.filename}:${e.lineno}
+`));
+    window.addEventListener("unhandledrejection", (e) => require("fs").appendFileSync("c:/Users/admin/proxima-debug.log", `[PROMISE_ERROR] ${e.reason}
+`));
     try {
       console.log("Initializing Proxima...");
       new import_obsidian9.Notice("Initializing Proxima...");
