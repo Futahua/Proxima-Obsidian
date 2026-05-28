@@ -228,8 +228,7 @@
   const flipDurationMs = 200;
 </script>
 
-<div class="pos-board-scroll-container">
-  <div class="pos-board-container" use:dndzone={{items: boardColumns, flipDurationMs, type: 'columns'}} on:consider={handleColumnConsider} on:finalize={handleColumnFinalize}>
+<div class="pos-board-workspace" use:dndzone={{items: boardColumns, flipDurationMs, type: 'columns'}} on:consider={handleColumnConsider} on:finalize={handleColumnFinalize}>
     {#each boardColumns as col (col.id)}
     <div class="pos-board-col" class:pos-col-elastic={col.isCore}>
       <h4 class="pos-board-col-title" 
@@ -294,4 +293,3 @@
       <button class="pos-btn" style="white-space: nowrap;" on:click={addColumn}>+ Add Kanban Column</button>
     </div>
   </div>
-</div>

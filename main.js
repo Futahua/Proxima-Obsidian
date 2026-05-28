@@ -6632,7 +6632,6 @@ function create_each_block(key_1, ctx) {
   };
 }
 function create_fragment(ctx) {
-  let div2;
   let div1;
   let each_blocks = [];
   let each_1_lookup = /* @__PURE__ */ new Map();
@@ -6657,7 +6656,6 @@ function create_fragment(ctx) {
   }
   return {
     c() {
-      div2 = element("div");
       div1 = element("div");
       for (let i = 0; i < each_blocks.length; i += 1) {
         each_blocks[i].c();
@@ -6671,12 +6669,10 @@ function create_fragment(ctx) {
       set_style(div0, "padding", "10px");
       set_style(div0, "display", "flex");
       set_style(div0, "align-items", "flex-start");
-      attr(div1, "class", "pos-board-container");
-      attr(div2, "class", "pos-board-scroll-container");
+      attr(div1, "class", "pos-board-workspace");
     },
     m(target, anchor) {
-      insert(target, div2, anchor);
-      append(div2, div1);
+      insert(target, div1, anchor);
       for (let i = 0; i < each_blocks.length; i += 1) {
         if (each_blocks[i]) {
           each_blocks[i].m(div1, null);
@@ -6741,7 +6737,7 @@ function create_fragment(ctx) {
     o: noop,
     d(detaching) {
       if (detaching) {
-        detach(div2);
+        detach(div1);
       }
       for (let i = 0; i < each_blocks.length; i += 1) {
         each_blocks[i].d();
