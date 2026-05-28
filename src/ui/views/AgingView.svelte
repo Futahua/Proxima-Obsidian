@@ -94,12 +94,7 @@
   }
 
   function handleSelectProject(id: string) {
-    const pFile = fileManager.getProjectNoteFile(id);
-    if (pFile) {
-      app.workspace.getLeaf('tab').openFile(pFile);
-    } else {
-      new Notice('Project note not found');
-    }
+    plugin.activateWorkspaceView(id);
   }
 
   $: allTimes = displayProjects.map(p => new Date(p.createdAt).getTime());

@@ -162,7 +162,7 @@
     <!-- SUB-TABS NAVIGATION HEADER -->
     <header class="pos-editor-header">
       <div class="pos-editor-header-left">
-        <button class="pos-back-btn" on:click={() => selectedProjectId = null}>
+        {#if !isFullPage}<button class="pos-back-btn" on:click={() => selectedProjectId = null}>
           ← Back
         </button>
         <div class="pos-editor-project-title">
