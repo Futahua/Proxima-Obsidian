@@ -6833,17 +6833,11 @@ function instance($$self, $$props, $$invalidate) {
     $$invalidate(0, boardColumns[colIndex].items = e.detail.items, boardColumns);
     $$invalidate(0, boardColumns = [...boardColumns]);
     const promises = [];
-    $$invalidate(
-      0,
-      boardColumns[colIndex].items = boardColumns[colIndex].items.map((t, idx) => {
-        if (t.status !== colId || t.orderIndex !== idx) {
-          promises.push(fileManager.updateTask(t.id, { status: colId, orderIndex: idx }));
-          return { ...t, status: colId, orderIndex: idx };
-        }
-        return t;
-      }),
-      boardColumns
-    );
+    e.detail.items.forEach((t, idx) => {
+      if (t.status !== colId || t.orderIndex !== idx) {
+        promises.push(fileManager.updateTask(t.id, { status: colId, orderIndex: idx }));
+      }
+    });
     clearTimeout(dragTaskTimeout);
     dragTaskTimeout = setTimeout(
       () => {

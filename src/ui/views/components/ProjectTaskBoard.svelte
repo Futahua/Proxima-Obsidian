@@ -132,12 +132,10 @@
     boardColumns = [...boardColumns];
     
     const promises = [];
-    boardColumns[colIndex].items = boardColumns[colIndex].items.map((t, idx) => {
+    e.detail.items.forEach((t, idx) => {
       if (t.status !== colId || t.orderIndex !== idx) {
         promises.push(fileManager.updateTask(t.id, { status: colId, orderIndex: idx }));
-        return { ...t, status: colId, orderIndex: idx };
       }
-      return t;
     });
     
     clearTimeout(dragTaskTimeout);
