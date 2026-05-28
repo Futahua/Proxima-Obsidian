@@ -777,7 +777,7 @@
                   <div class="pos-dl-cc-right">
                     <div class="pos-dl-cc-timer">{formatCountdown(diff)}</div>
                     <div class="pos-dl-cc-progress-track">
-                      <div class="pos-dl-cc-progress-fill" style="width: {progress * 100}%; background: {getRuleColor(task, diff)};" style="width: {progress * 100}%;"></div>
+                      <div class="pos-dl-cc-progress-fill" style="width: {progress * 100}%; background: {getRuleColor(task, diff)};"></div>
                     </div>
                   </div>
                 </div>
