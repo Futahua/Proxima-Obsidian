@@ -1,11 +1,15 @@
 <script lang="ts">
   import { App } from 'obsidian';
+  import { onMount } from 'svelte';
   import type { TaskData } from '../../../types';
   import type { FileManager } from '../../../data/FileManager';
   import { NewTaskModal, QuickEditTaskModal } from '../../../modals/Modals';
 
   export let app: App;
   export let fileManager: FileManager;
+  onMount(() => {
+    require('fs').writeFileSync('c:/proxima-debug.txt', 'ProjectTaskBoard MOUNTED SUCCESSFULLY\n', { flag: 'a' });
+  });
   export let projectId: string;
   export let projectTasks: TaskData[];
 
@@ -108,6 +112,7 @@
   }
 
   function handleColDragStart(e: DragEvent, id: string) {
+    e.stopPropagation();
     if (editingColId === id) { e.preventDefault(); return; } // Don't drag while editing
     dragColId = id;
     if (e.dataTransfer) {
@@ -118,12 +123,14 @@
     }
   }
   function handleColDragEnd(e: DragEvent) {
+    e.stopPropagation();
     dragColId = null;
     dragOverColId = null;
     dragOverColIndex = -1;
     if (e.currentTarget) (e.currentTarget as HTMLElement).style.opacity = '1';
   }
   function handleColDragOver(e: DragEvent, id: string) {
+    e.stopPropagation();
     if (!dragColId || dragColId === id) return;
     e.preventDefault();
     if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
@@ -137,6 +144,7 @@
   }
   
   async function handleColDrop(e: DragEvent, id: string) {
+    e.stopPropagation();
     if (!dragColId || dragColId === id) return;
     e.preventDefault();
     const settings = await ensureProjectStatuses();
@@ -226,6 +234,8 @@
   }
 
   function handleDragStart(e: DragEvent, id: string) {
+    e.stopPropagation();
+    console.log('Drag started:', id);
     dragId = id;
     if (e.dataTransfer) {
       e.dataTransfer.effectAllowed = 'move';
@@ -237,6 +247,7 @@
   }
 
   function handleDragEnd(e: DragEvent) {
+    e.stopPropagation();
     dragId = null;
     dragOverStatus = null;
     dragOverIndex = -1;
@@ -244,6 +255,7 @@
   }
 
   function handleDragOver(e: DragEvent, status: string) {
+    e.stopPropagation();
     if (!dragId || dragColId) return;
     e.preventDefault();
     if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
@@ -263,6 +275,8 @@
   }
 
   async function handleDrop(e: DragEvent, status: string) {
+    e.stopPropagation();
+    console.log('Dropped on status:', status);
     e.preventDefault();
     if (!dragId) return;
     
@@ -296,6 +310,7 @@
   }
 
   function createPlannedTask(statusId: string) {
+    console.log('Creating task in status:', statusId);
     new NewTaskModal(app, async (name) => {
       let pid = projectId;
       if (pid === '-- All Projects --') pid = '';
@@ -304,6 +319,7 @@
   }
 
   function editTask(task: TaskData) {
+    console.log('Editing task:', task.id);
     new QuickEditTaskModal(app, fileManager.plugin, task, async (updates) => {
       await fileManager.updateTask(task.id, updates);
     }).open();
@@ -410,7 +426,7 @@
           <div class="pos-card pos-board-card" class:pos-dragging-source={dragId === task.id} draggable="true" on:dragstart={(e) => handleDragStart(e, task.id)} on:dragend={handleDragEnd}>
             <div class="pos-ptc-header">
               <!-- svelte-ignore a11y-click-events-have-key-events -->
-              <div class="pos-ptc-body" style="cursor: pointer;" on:click={() => editTask(task)}>
+              <div class="pos-ptc-body" style="cursor: pointer;" on:click|stopPropagation={() => editTask(task)}>
                 <div class="pos-card-name">{task.name}</div>
                 {#if task.description}<div class="pos-card-desc">{task.description}</div>{/if}
                 <div class="pos-ptc-meta" style="display: flex; flex-direction: column; gap: 4px; margin-top: 8px; align-items: flex-start;">
@@ -437,7 +453,7 @@
         {#if dragOverStatus === col.id && dragOverIndex >= col.tasks.length}
           <div class="pos-drag-placeholder" style="height: {dragHeight}px"></div>
         {/if}
-        <button class="pos-board-add-btn" on:click={() => createPlannedTask(col.id)}>+ Add Task</button>
+        <button class="pos-board-add-btn" on:click|stopPropagation={() => createPlannedTask(col.id)}>+ Add Task</button>
       </div>
     </div>
   </div>

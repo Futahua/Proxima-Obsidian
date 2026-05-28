@@ -4166,7 +4166,7 @@ function create_each_block_1(key_1, ctx) {
       append(div4, button);
       if (!mounted) {
         dispose = [
-          listen(div2, "click", click_handler_1),
+          listen(div2, "click", stop_propagation(click_handler_1)),
           listen(button, "click", click_handler_2),
           listen(div5, "dragstart", dragstart_handler_1),
           listen(
@@ -4562,7 +4562,7 @@ function create_each_block(key_1, ctx) {
           listen(h4, "dragover", dragover_handler),
           listen(h4, "drop", drop_handler),
           listen(h4, "dblclick", dblclick_handler),
-          listen(button, "click", click_handler_3),
+          listen(button, "click", stop_propagation(click_handler_3)),
           listen(div2, "dragover", dragover_handler_1),
           listen(div2, "drop", drop_handler_1)
         ];
@@ -4865,6 +4865,9 @@ function instance($$self, $$props, $$invalidate) {
   let columns;
   let { app } = $$props;
   let { fileManager } = $$props;
+  onMount(() => {
+    require("fs").writeFileSync("c:/proxima-debug.txt", "ProjectTaskBoard MOUNTED SUCCESSFULLY\n", { flag: "a" });
+  });
   let { projectId } = $$props;
   let { projectTasks } = $$props;
   const sortTasks = (tasks) => tasks.sort((a, b) => {
@@ -4920,6 +4923,7 @@ function instance($$self, $$props, $$invalidate) {
     return settings;
   }
   function handleColDragStart(e, id) {
+    e.stopPropagation();
     if (editingColId === id) {
       e.preventDefault();
       return;
@@ -4933,6 +4937,7 @@ function instance($$self, $$props, $$invalidate) {
     }
   }
   function handleColDragEnd(e) {
+    e.stopPropagation();
     $$invalidate(6, dragColId = null);
     $$invalidate(7, dragOverColId = null);
     $$invalidate(8, dragOverColIndex = -1);
@@ -4940,6 +4945,7 @@ function instance($$self, $$props, $$invalidate) {
       e.currentTarget.style.opacity = "1";
   }
   function handleColDragOver(e, id) {
+    e.stopPropagation();
     if (!dragColId || dragColId === id)
       return;
     e.preventDefault();
@@ -4955,6 +4961,7 @@ function instance($$self, $$props, $$invalidate) {
       $$invalidate(8, dragOverColIndex = colIndex);
   }
   async function handleColDrop(e, id) {
+    e.stopPropagation();
     if (!dragColId || dragColId === id)
       return;
     e.preventDefault();
@@ -5048,6 +5055,8 @@ function instance($$self, $$props, $$invalidate) {
     $$invalidate(9, editingColId = newId);
   }
   function handleDragStart(e, id) {
+    e.stopPropagation();
+    console.log("Drag started:", id);
     $$invalidate(2, dragId = id);
     if (e.dataTransfer) {
       e.dataTransfer.effectAllowed = "move";
@@ -5058,6 +5067,7 @@ function instance($$self, $$props, $$invalidate) {
     }
   }
   function handleDragEnd(e) {
+    e.stopPropagation();
     $$invalidate(2, dragId = null);
     $$invalidate(3, dragOverStatus = null);
     $$invalidate(4, dragOverIndex = -1);
@@ -5065,6 +5075,7 @@ function instance($$self, $$props, $$invalidate) {
       e.currentTarget.classList.remove("pos-dragging");
   }
   function handleDragOver(e, status) {
+    e.stopPropagation();
     if (!dragId || dragColId)
       return;
     e.preventDefault();
@@ -5087,6 +5098,8 @@ function instance($$self, $$props, $$invalidate) {
   }
   async function handleDrop(e, status) {
     var _a;
+    e.stopPropagation();
+    console.log("Dropped on status:", status);
     e.preventDefault();
     if (!dragId)
       return;
@@ -5120,6 +5133,7 @@ function instance($$self, $$props, $$invalidate) {
     await Promise.all(promises);
   }
   function createPlannedTask(statusId) {
+    console.log("Creating task in status:", statusId);
     new NewTaskModal(
       app,
       async (name) => {
@@ -5131,6 +5145,7 @@ function instance($$self, $$props, $$invalidate) {
     ).open();
   }
   function editTask(task) {
+    console.log("Editing task:", task.id);
     new QuickEditTaskModal(
       app,
       fileManager.plugin,
