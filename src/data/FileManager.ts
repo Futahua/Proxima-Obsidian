@@ -254,7 +254,7 @@ export class FileManager {
         })()
       });
     }
-    tasks.sort((a, b) => a.orderIndex - b.orderIndex);
+    tasks.sort((a, b) => (Number(a.orderIndex) || 0) - (Number(b.orderIndex) || 0));
     tasksStore.set(tasks);
   }
 

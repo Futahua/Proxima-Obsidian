@@ -17,7 +17,8 @@
   $: rawProjectStatuses = (fileManager.plugin.settings.projectStatuses || {})[projectId];
   $: statuses = (() => {
     let ps = rawProjectStatuses;
-    if (!ps) {
+    if (!ps || !Array.isArray(ps)) {
+
       ps = [
         { id: 'backlog' },
         { id: 'planned', name: 'Planned', color: '#0984e3' },

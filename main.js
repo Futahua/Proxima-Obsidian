@@ -2809,7 +2809,7 @@ var FileManager = class {
         })()
       });
     }
-    tasks.sort((a, b) => a.orderIndex - b.orderIndex);
+    tasks.sort((a, b) => (Number(a.orderIndex) || 0) - (Number(b.orderIndex) || 0));
     tasksStore.set(tasks);
   }
   async updateTask(id, updates) {
@@ -5262,7 +5262,7 @@ function instance($$self, $$props, $$invalidate) {
         $$invalidate(30, statuses = (() => {
           var _a, _b, _c, _d, _e, _f;
           let ps = rawProjectStatuses;
-          if (!ps) {
+          if (!ps || !Array.isArray(ps)) {
             ps = [
               { id: "backlog" },
               {
@@ -12925,7 +12925,7 @@ function get_else_ctx2(ctx) {
     /*$tasksStore*/
     child_ctx[11].filter((t) => t.project === /*selectedProject*/
     child_ctx[5].id && /*selectedProject*/
-    child_ctx[5].status !== "archived").sort((a, b) => a.orderIndex - b.orderIndex)
+    child_ctx[5].status !== "archived").sort((a, b) => (Number(a.orderIndex) || 0) - (Number(b.orderIndex) || 0))
   );
   child_ctx[37] = constants_0;
   return child_ctx;
