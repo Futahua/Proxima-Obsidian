@@ -208,7 +208,7 @@
 
       <div class="pos-editor-header-right" style="padding-right: 20px;">
         <button class="pos-ptc-start-btn" on:click={() => {
-          new ProjectSchemaModal(app, plugin, selectedProjectId).open();
+          new ProjectSchemaModal(app, plugin, selectedProjectId, () => { settingsVersion++; }).open();
         }}>? Properties</button>
       </div>
     </header>
@@ -276,7 +276,8 @@
         {@const projectTasks = $tasksStore.filter(t => t.project === selectedProject.id && selectedProject.status !== 'archived').sort((a, b) => a.orderIndex - b.orderIndex)}
         {#if projectTab === 'board'}
           <!-- 📋 TASK BOARD VIEW (KANBAN) -->
-          <ProjectTaskBoard 
+          {#key settingsVersion}
+        <ProjectTaskBoard 
             {app} 
             {fileManager} 
             projectId={selectedProject.id} 

@@ -406,7 +406,7 @@ export class ProjectSchemaModal extends Modal {
   projectId: string;
   plugin: any;
 
-  constructor(app: App, plugin: any, projectId: string) {
+  constructor(app: App, plugin: any, projectId: string, public onCloseCallback?: () => void) {
     super(app);
     this.plugin = plugin;
     this.projectId = projectId;
