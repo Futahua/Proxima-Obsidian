@@ -31,23 +31,39 @@
     const cols = [];
     
     // Core columns first, if they don't exist in ps, add them in default order
-    const hasBacklog = ps.find(s => s.id === 'backlog');
-    if (!hasBacklog) cols.push({ id: 'backlog', name: g['backlog']?.name || 'Elastic Backlog', color: g['backlog']?.color || '#636e72', isCore: true });
-
-    ps.forEach(s => {
-      cols.push({ ...s, name: s.name || s.id, color: s.color || '#a29bfe', isCore: s.id === 'backlog' || s.id === 'running' || s.id === 'review' });
-    });
-
-    if (!cols.find(c => c.id === 'running')) cols.push({ id: 'running', name: g['running']?.name || 'Elastic Running', color: g['running']?.color || '#00b894', isCore: true });
-    if (!cols.find(c => c.id === 'review')) cols.push({ id: 'review', name: g['review']?.name || 'Finished', color: g['review']?.color || '#fdcb6e', isCore: true });
-
+    // Force all columns into a single unified array mapped from ps and defaults
     const activeStatuses = new Set(projectTasks.map(t => t.status));
+    
+    const finalCols = [];
+    
+    // 1. Gather all known columns
+    const knownIds = new Set();
+    
+    // Add ps items exactly in order
+    ps.forEach(s => {
+      finalCols.push({ ...s, name: s.name || s.id, color: s.color || '#a29bfe', isCore: s.id === 'backlog' || s.id === 'running' || s.id === 'review' });
+      knownIds.add(s.id);
+    });
+    
+    // 2. If core items are missing, place them where they belong
+    if (!knownIds.has('backlog')) {
+      finalCols.unshift({ id: 'backlog', name: g['backlog']?.name || 'Elastic Backlog', color: g['backlog']?.color || '#636e72', isCore: true });
+    }
+    if (!knownIds.has('running')) {
+      finalCols.push({ id: 'running', name: g['running']?.name || 'Elastic Running', color: g['running']?.color || '#00b894', isCore: true });
+    }
+    if (!knownIds.has('review')) {
+      finalCols.push({ id: 'review', name: g['review']?.name || 'Finished', color: g['review']?.color || '#fdcb6e', isCore: true });
+    }
+    
+    // 3. Any active statuses not tracked anywhere get appended
     activeStatuses.forEach(statusId => {
-      if (!cols.find(c => c.id === statusId)) {
-        cols.push({ id: statusId, name: statusId, color: '#a29bfe', isCore: false });
+      if (!finalCols.find(c => c.id === statusId)) {
+        finalCols.push({ id: statusId, name: statusId, color: '#a29bfe', isCore: false });
       }
     });
-    return cols;
+    
+    return finalCols;
   })();
 
   $: columns = statuses.map(s => ({
@@ -138,29 +154,19 @@
     if (!dragColId || dragColId === id) return;
     e.preventDefault();
     const settings = await ensureProjectStatuses();
-    let ps = settings.projectStatuses[projectId];
     
-    const fromIndex = ps.findIndex(s => s.id === dragColId);
-      let movedItem;
-      if (fromIndex !== -1) {
-        [movedItem] = ps.splice(fromIndex, 1);
-      } else {
-        movedItem = columns.find(c => c.id === dragColId);
-      }
-      if (movedItem) {
-      const [movedItem] = ps.splice(fromIndex, 1);
+    let newOrder = [...columns];
+    const fromIndex = newOrder.findIndex(c => c.id === dragColId);
+    if (fromIndex !== -1) {
+      const [movedItem] = newOrder.splice(fromIndex, 1);
       let insertIndex = dragOverColIndex;
-      if (insertIndex < columns.length) {
-         const targetColId = columns[insertIndex].id;
-         let toIndex = ps.findIndex(s => s.id === targetColId);
-         if (toIndex !== -1) ps.splice(toIndex, 0, movedItem);
-         else ps.push(movedItem);
-      } else {
-         ps.push(movedItem);
-      }
+      if (insertIndex > newOrder.length) insertIndex = newOrder.length;
+      newOrder.splice(insertIndex, 0, movedItem);
+      
+      settings.projectStatuses[projectId] = newOrder.map(c => ({ id: c.id, name: c.name, color: c.color }));
       await fileManager.plugin.saveSettings();
       fileManager.plugin.settings = settings;
-    fileManager = fileManager; // Force Svelte Reactivity
+      fileManager = fileManager;
     }
     dragColId = null;
     dragOverColId = null;
@@ -251,8 +257,9 @@
   }
 
   function handleDragOver(e: DragEvent, status: string) {
-    e.stopPropagation();
-    if (!dragId || dragColId) return;
+      if (dragColId) return; // Let it bubble to column handler
+      e.stopPropagation();
+      if (!dragId) return;
     e.preventDefault();
     if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
     
@@ -271,11 +278,11 @@
   }
 
   async function handleDrop(e: DragEvent, status: string) {
-      
-    e.stopPropagation();
-    console.log('Dropped on status:', status);
-    e.preventDefault();
-    if (!dragId) return;
+      if (dragColId) return; // Let it bubble to column handler
+      e.stopPropagation();
+      console.log('Dropped on status:', status);
+      e.preventDefault();
+      if (!dragId) return;
     
     const targetIndex = dragOverIndex === -1 ? columns.find(c => c.id === status)?.tasks.length || 0 : dragOverIndex;
     const task = projectTasks.find(t => t.id === dragId);
@@ -389,7 +396,7 @@
   {#if dragOverColId && dragOverColIndex === colIdx}
     <div class="pos-board-col-placeholder" style="width: 300px; min-width: 300px; border: 2px dashed var(--interactive-accent); border-radius: 8px; margin: 0 10px; background: rgba(var(--interactive-accent-rgb), 0.05);"></div>
   {/if}
-  <div class="pos-board-col" data-col-id={col.id} class:pos-dragging-source={dragColId === col.id} class:pos-col-elastic={col.isCore}>
+  <div class="pos-board-col" data-col-id={col.id} class:pos-dragging-source={dragColId === col.id} class:pos-col-elastic={col.isCore} on:dragover={(e) => { if(dragColId) handleColDragOver(e, col.id); }} on:drop={(e) => { if(dragColId) handleColDrop(e, col.id); }}>
     <h4 class="pos-board-col-title" 
         style="color: {col.color}; border-bottom: 2px solid {col.color}40; display: flex; align-items: center; justify-content: space-between;"
         draggable="true"
