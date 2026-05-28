@@ -16,14 +16,13 @@
   });
   $: settingsStatuses = fileManager.plugin.settings.statuses || [];
   $: statuses = (() => {
-    const cols = [ 
-      { id: 'backlog', name: 'Elastic Backlog', color: '#636e72' },
-      { id: 'running', name: 'Elastic Running', color: '#00b894' },
-      { id: 'review', name: 'Finished', color: '#fdcb6e' }
-    ];
-    settingsStatuses.forEach(s => {
-      if (!cols.find(c => c.id === s.id)) cols.push(s);
-    });
+    const cols = [];
+    settingsStatuses.forEach(s => cols.push(s));
+    
+    if (!cols.find(c => c.id === 'backlog')) cols.unshift({ id: 'backlog', name: 'Elastic Backlog', color: '#636e72' });
+    if (!cols.find(c => c.id === 'running')) cols.push({ id: 'running', name: 'Elastic Running', color: '#00b894' });
+    if (!cols.find(c => c.id === 'review')) cols.push({ id: 'review', name: 'Finished', color: '#fdcb6e' });
+    
     const activeStatuses = new Set(projectTasks.map(t => t.status));
     activeStatuses.forEach(statusId => {
       if (!cols.find(c => c.id === statusId)) {
@@ -276,17 +275,23 @@
         const mouseX = e.clientX;
         let targetIndex = cols.length;
         
+        let targetId = null;
         for (let i = 0; i < cols.length; i++) {
           const rect = cols[i].getBoundingClientRect();
           const middle = rect.left + rect.width / 2;
           if (mouseX < middle) {
-            targetIndex = i;
+            targetId = cols[i].dataset.colId;
             break;
           }
         }
         
+        let actualIndex = columns.length;
+        if (targetId) {
+          actualIndex = columns.findIndex(c => c.id === targetId);
+        }
+        
         dragOverColId = 'workspace';
-        dragOverColIndex = targetIndex;
+        dragOverColIndex = actualIndex;
       }
     }}
     on:drop={async (e) => {
@@ -325,7 +330,7 @@
   {#if dragOverColId && dragOverColIndex === colIdx}
     <div class="pos-board-col-placeholder" style="width: 300px; min-width: 300px; border: 2px dashed var(--interactive-accent); border-radius: 8px; margin: 0 10px; background: rgba(var(--interactive-accent-rgb), 0.05);"></div>
   {/if}
-  <div class="pos-board-col" class:pos-dragging-source={dragColId === col.id} class:pos-col-elastic={['backlog', 'running', 'review'].includes(col.id)}>
+  <div class="pos-board-col" data-col-id={col.id} class:pos-dragging-source={dragColId === col.id} class:pos-col-elastic={['backlog', 'running', 'review'].includes(col.id)}>
     <h4 class="pos-board-col-title" 
         style="color: {col.color}; border-bottom: 2px solid {col.color}40; display: flex; align-items: center; justify-content: space-between;"
         draggable="true"

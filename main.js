@@ -3940,6 +3940,7 @@ function create_each_block(key_1, ctx) {
   let t7;
   let t8;
   let button;
+  let div2_data_col_id_value;
   let mounted;
   let dispose;
   let if_block0 = (
@@ -4094,6 +4095,8 @@ function create_each_block(key_1, ctx) {
       attr(div0, "class", "pos-board-list");
       attr(div1, "class", "pos-board-list-wrapper");
       attr(div2, "class", "pos-board-col");
+      attr(div2, "data-col-id", div2_data_col_id_value = /*col*/
+      ctx[40].id);
       toggle_class(
         div2,
         "pos-dragging-source",
@@ -4224,6 +4227,11 @@ function create_each_block(key_1, ctx) {
         if_block1.d(1);
         if_block1 = null;
       }
+      if (dirty[0] & /*columns*/
+      256 && div2_data_col_id_value !== (div2_data_col_id_value = /*col*/
+      ctx[40].id)) {
+        attr(div2, "data-col-id", div2_data_col_id_value);
+      }
       if (dirty[0] & /*dragColId, columns*/
       258) {
         toggle_class(
@@ -4349,7 +4357,7 @@ function create_fragment(ctx) {
       }
     },
     p(ctx2, dirty) {
-      if (dirty[0] & /*dragColId, columns, handleDragOver, handleDrop, createPlannedTask, dragHeight, dragOverStatus, dragOverIndex, dragId, handleDragStart, handleDragEnd, deleteTask, editTask, getCustomProps, handleColDragStart, handleColDragEnd, handleColDrop, updateColumnColor, dragOverColId, dragOverColIndex*/
+      if (dirty[0] & /*columns, dragColId, handleDragOver, handleDrop, createPlannedTask, dragHeight, dragOverStatus, dragOverIndex, dragId, handleDragStart, handleDragEnd, deleteTask, editTask, getCustomProps, handleColDragStart, handleColDragEnd, handleColDrop, updateColumnColor, dragOverColId, dragOverColIndex*/
       2097150) {
         each_value = ensure_array_like(
           /*columns*/
@@ -4660,16 +4668,21 @@ function instance($$self, $$props, $$invalidate) {
       const cols = Array.from(e.currentTarget.children).filter((c) => c.classList.contains("pos-board-col") && !c.classList.contains("pos-dragging-source"));
       const mouseX = e.clientX;
       let targetIndex = cols.length;
+      let targetId = null;
       for (let i = 0; i < cols.length; i++) {
         const rect = cols[i].getBoundingClientRect();
         const middle = rect.left + rect.width / 2;
         if (mouseX < middle) {
-          targetIndex = i;
+          targetId = cols[i].dataset.colId;
           break;
         }
       }
+      let actualIndex = columns.length;
+      if (targetId) {
+        actualIndex = columns.findIndex((c) => c.id === targetId);
+      }
       $$invalidate(2, dragOverColId = "workspace");
-      $$invalidate(3, dragOverColIndex = targetIndex);
+      $$invalidate(3, dragOverColIndex = actualIndex);
     }
   };
   const drop_handler_2 = async (e) => {
@@ -4721,27 +4734,26 @@ function instance($$self, $$props, $$invalidate) {
     41943040) {
       $:
         $$invalidate(24, statuses = (() => {
-          const cols = [
-            {
+          const cols = [];
+          settingsStatuses.forEach((s) => cols.push(s));
+          if (!cols.find((c) => c.id === "backlog"))
+            cols.unshift({
               id: "backlog",
               name: "Elastic Backlog",
               color: "#636e72"
-            },
-            {
+            });
+          if (!cols.find((c) => c.id === "running"))
+            cols.push({
               id: "running",
               name: "Elastic Running",
               color: "#00b894"
-            },
-            {
+            });
+          if (!cols.find((c) => c.id === "review"))
+            cols.push({
               id: "review",
               name: "Finished",
               color: "#fdcb6e"
-            }
-          ];
-          settingsStatuses.forEach((s) => {
-            if (!cols.find((c) => c.id === s.id))
-              cols.push(s);
-          });
+            });
           const activeStatuses = new Set(projectTasks.map((t) => t.status));
           activeStatuses.forEach((statusId) => {
             if (!cols.find((c) => c.id === statusId)) {
