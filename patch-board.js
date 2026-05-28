@@ -1,4 +1,7 @@
-<script lang="ts">
+const fs = require('fs');
+const file = 'c:/Users/admin/Dropbox/Apps/remotely-save/Croptop/.obsidian/plugins/proxima/src/ui/views/components/ProjectTaskBoard.svelte';
+
+const content = `<script lang="ts">
   import { App } from 'obsidian';
   import type { TaskData } from '../../../types';
   import type { FileManager } from '../../../data/FileManager';
@@ -433,3 +436,6 @@
     <span style="font-size: 1.2em; font-weight: 600; color: var(--text-muted);">+ Add Column</span>
   </div>
 </div>
+`;
+fs.writeFileSync(file, content);
+console.log('Replaced ProjectTaskBoard.svelte');

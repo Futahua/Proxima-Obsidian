@@ -1,4 +1,4 @@
-export type TaskStatus = 'planned' | 'backlog' | 'running' | 'review';
+export type TaskStatus = string;
 export type ProjectStatus = 'active' | 'archived';
 
 export type PropertyType = 'text' | 'number' | 'select' | 'multi-select' | 'date' | 'checkbox' | 'relation' | 'rollup' | 'formula';

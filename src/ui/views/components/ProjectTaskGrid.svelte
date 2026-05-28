@@ -197,6 +197,32 @@
   }
 
 
+  
+  function getStatusName(statusId) {
+    if (['backlog', 'running', 'review'].includes(statusId)) {
+       const g = (fileManager.plugin.settings.globalStatuses || {})[statusId] || {};
+       if (statusId === 'backlog') return g.name || 'Elastic Backlog';
+       if (statusId === 'running') return g.name || 'Elastic Running';
+       if (statusId === 'review') return g.name || 'Finished';
+    }
+    const ps = (fileManager.plugin.settings.projectStatuses || {})[projectId] || [];
+    const col = ps.find(s => s.id === statusId);
+    return col ? col.name : statusId;
+  }
+  
+  function getStatusColor(statusId) {
+    if (['backlog', 'running', 'review'].includes(statusId)) {
+       const g = (fileManager.plugin.settings.globalStatuses || {})[statusId] || {};
+       if (statusId === 'backlog') return g.color || '#636e72';
+       if (statusId === 'running') return g.color || '#00b894';
+       if (statusId === 'review') return g.color || '#fdcb6e';
+    }
+    if (statusId === 'planned') return '#0984e3';
+    const ps = (fileManager.plugin.settings.projectStatuses || {})[projectId] || [];
+    const col = ps.find(s => s.id === statusId);
+    return col ? (col.color || '#a29bfe') : '#a29bfe';
+  }
+
   function getTaskCustomProp(task, propId) {
     const val = task.properties ? task.properties[propId] : undefined;
     if (val === undefined || val === null || val === '') return null;
@@ -288,11 +314,11 @@
         {#if filter.operator !== 'is-empty' && filter.operator !== 'not-empty'}
           {#if filter.property === 'status'}
             <select bind:value={filter.value} on:change={saveFilters} class="pos-grid-select-filter">
-              <option value="backlog">Elastic Backlog</option>
+              <option value="backlog">{(fileManager.plugin.settings.globalStatuses || {})['backlog']?.name || 'Elastic Backlog'}</option>
               <option value="planned">Planned</option>
-              <option value="running">Elastic Running</option>
-              <option value="review">Finished</option>
-              {#each (fileManager.plugin.settings.statuses || []) as st}
+              <option value="running">{(fileManager.plugin.settings.globalStatuses || {})['running']?.name || 'Elastic Running'}</option>
+              <option value="review">{(fileManager.plugin.settings.globalStatuses || {})['review']?.name || 'Finished'}</option>
+              {#each ((fileManager.plugin.settings.projectStatuses || {})[projectId] || []) as st}
                  {#if !['backlog', 'planned', 'running', 'review'].includes(st.id)}
                    <option value={st.id}>{st.name}</option>
                  {/if}
@@ -399,28 +425,38 @@
                 </div>
               </td>
               <td class="pos-td-status">
-                <span class="pos-ptc-status-badge {task.status}">
-                  {task.status.toUpperCase()}
+                <span class="pos-status-badge" style="background-color: {getStatusColor(task.status)}20; color: {getStatusColor(task.status)}; border: 1px solid {getStatusColor(task.status)}40; padding: 2px 6px; border-radius: 4px; font-size: 0.8em; font-weight: bold;">
+                  {getStatusName(task.status)}
                 </span>
               </td>
-              <td class="pos-td-priority">
-                {#if task.priority === 1}
-                  <span class="pos-priority-badge high">High</span>
-                {:else if task.priority === 2}
-                  <span class="pos-priority-badge medium">Medium</span>
-                {:else}
-                  <span class="pos-priority-badge low">Low</span>
+              {#each schema as prop}
+                {#if ((fileManager.plugin.settings.projectVisibleProps || {})[projectId] || []).includes(prop.id)}
+                  <td class="pos-td-custom">
+                    {#if prop.type === 'multi-select' || prop.type === 'relation'}
+                       <div class="pos-grid-tags">
+                         {#each getTaskCustomPropList(task, prop.id) as tag}
+                           <span class="pos-tag-pill" style="background-color: {tag.color || '#cccccc'}20; color: {tag.color || '#cccccc'}; border: 1px solid {tag.color || '#cccccc'}40;">
+                             {tag.value}
+                           </span>
+                         {/each}
+                       </div>
+                    {:else}
+                       {@const p = getTaskCustomProp(task, prop.id)}
+                       {#if p}
+                         {#if p.color}
+                           <span class="pos-tag-pill" style="background-color: {p.color}20; color: {p.color}; border: 1px solid {p.color}40;">
+                             {p.value}
+                           </span>
+                         {:else}
+                           <span class="pos-text-cell">{p.value}</span>
+                         {/if}
+                       {:else}
+                         <span class="pos-text-cell" style="color: var(--text-muted);">-</span>
+                       {/if}
+                    {/if}
+                  </td>
                 {/if}
-              </td>
-              <td class="pos-td-tags">
-                <div class="pos-card-meta">
-                  {#if task.tags}
-                    {#each task.tags as tag}
-                      <span class="pos-tag-pill" style="cursor: pointer;" on:click|stopPropagation={() => tagFilter = tag}>{tag}</span>
-                    {/each}
-                  {/if}
-                </div>
-              </td>
+              {/each}
               <td class="pos-td-weight font-mono">
                 {task.weight}
               </td>

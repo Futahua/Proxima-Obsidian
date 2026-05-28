@@ -401,7 +401,7 @@ export class QuickEditTaskModal extends Modal {
 }
 
 
-import { DropdownComponent } from 'obsidian';
+import { DropdownComponent, ButtonComponent, TextComponent } from 'obsidian';
 export class ProjectSchemaModal extends Modal {
   projectId: string;
   plugin: any;
