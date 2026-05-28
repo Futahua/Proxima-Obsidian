@@ -12,12 +12,9 @@
   });
   export let projectId: string;
   export let projectTasks: TaskData[];
+  $: console.log('PROJECT TASKS UPDATED:', projectTasks.length, 'columns:', columns.length);
 
-  const sortTasks = (tasks: TaskData[]) => tasks.sort((a, b) => {
-    const pA = (a.properties && a.properties['priority']) ? parseInt(a.properties['priority'], 10) : 3;
-    const pB = (b.properties && b.properties['priority']) ? parseInt(b.properties['priority'], 10) : 3;
-    return (pA - pB) || (a.orderIndex - b.orderIndex);
-  });
+  const sortTasks = (tasks: TaskData[]) => tasks.sort((a, b) => a.orderIndex - b.orderIndex);
 
   $: rawProjectStatuses = (fileManager.plugin.settings.projectStatuses || {})[projectId];
   $: statuses = (() => {
@@ -275,6 +272,7 @@
   }
 
   async function handleDrop(e: DragEvent, status: string) {
+      require('fs').appendFileSync('c:/Users/admin/proxima-debug.log', `[handleDrop] status=${status} dragId=${dragId}\n`);
     e.stopPropagation();
     console.log('Dropped on status:', status);
     e.preventDefault();
@@ -310,11 +308,15 @@
   }
 
   function createPlannedTask(statusId: string) {
+    require('fs').appendFileSync('c:/Users/admin/proxima-debug.log', `[createPlannedTask] status=${statusId}\n`);
     console.log('Creating task in status:', statusId);
     new NewTaskModal(app, async (name) => {
       let pid = projectId;
       if (pid === '-- All Projects --') pid = '';
-      await fileManager.createTask({ name, project: pid, status: statusId });
+      const colTasks = projectTasks.filter(t => t.status === statusId);
+        const maxOrder = colTasks.length > 0 ? Math.max(...colTasks.map(t => t.orderIndex)) + 1 : 0;
+        await fileManager.createTask({ name, project: pid, status: statusId, orderIndex: maxOrder });
+        require('fs').appendFileSync('c:/Users/admin/proxima-debug.log', `[createPlannedTask] SUCCESS name=${name}\n`);
     }).open();
   }
 

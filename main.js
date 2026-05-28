@@ -2814,11 +2814,12 @@ var FileManager = class {
   }
   async updateTask(id, updates) {
     tasksStore.update((tasks) => {
-      const i = tasks.findIndex((t) => t.id === id);
+      const newTasks = [...tasks];
+      const i = newTasks.findIndex((t) => t.id === id);
       if (i > -1) {
-        tasks[i] = { ...tasks[i], ...updates };
+        newTasks[i] = { ...newTasks[i], ...updates };
       }
-      return tasks;
+      return newTasks;
     });
     const file = this.app.vault.getAbstractFileByPath(`${this.plugin.settings.tasksFolder}/${id}.md`);
     if (!(file instanceof import_obsidian.TFile))
@@ -3613,11 +3614,11 @@ function create_else_block_1(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*columns*/
-      1024 && t0_value !== (t0_value = /*col*/
+      4 && t0_value !== (t0_value = /*col*/
       ctx2[49].name + ""))
         set_data(t0, t0_value);
       if (dirty[0] & /*columns*/
-      1024 && t3_value !== (t3_value = /*col*/
+      4 && t3_value !== (t3_value = /*col*/
       ctx2[49].tasks.length + ""))
         set_data(t3, t3_value);
     },
@@ -3686,12 +3687,12 @@ function create_if_block_6(ctx) {
     p(new_ctx, dirty) {
       ctx = new_ctx;
       if (dirty[0] & /*columns*/
-      1024 && input_value_value !== (input_value_value = /*col*/
+      4 && input_value_value !== (input_value_value = /*col*/
       ctx[49].name) && input.value !== input_value_value) {
         input.value = input_value_value;
       }
       if (dirty[0] & /*columns*/
-      1024) {
+      4) {
         set_style(input, "border", "1px solid " + /*col*/
         ctx[49].color);
       }
@@ -3756,7 +3757,7 @@ function create_if_block_4(ctx) {
         div2,
         "height",
         /*dragHeight*/
-        ctx[5] + "px"
+        ctx[6] + "px"
       );
     },
     m(target, anchor) {
@@ -3764,12 +3765,12 @@ function create_if_block_4(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*dragHeight*/
-      32) {
+      64) {
         set_style(
           div2,
           "height",
           /*dragHeight*/
-          ctx2[5] + "px"
+          ctx2[6] + "px"
         );
       }
     },
@@ -3799,7 +3800,7 @@ function create_if_block_3(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*columns*/
-      1024 && t_value !== (t_value = /*task*/
+      4 && t_value !== (t_value = /*task*/
       ctx2[52].description + ""))
         set_data(t, t_value);
     },
@@ -3855,11 +3856,11 @@ function create_else_block(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*columns*/
-      1024 && t0_value !== (t0_value = /*prop*/
+      4 && t0_value !== (t0_value = /*prop*/
       ctx2[55].name + ""))
         set_data(t0, t0_value);
       if (dirty[0] & /*columns*/
-      1024 && t2_value !== (t2_value = /*prop*/
+      4 && t2_value !== (t2_value = /*prop*/
       ctx2[55].value + ""))
         set_data(t2, t2_value);
     },
@@ -3926,15 +3927,15 @@ function create_if_block_2(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*columns*/
-      1024 && t0_value !== (t0_value = /*prop*/
+      4 && t0_value !== (t0_value = /*prop*/
       ctx2[55].name + ""))
         set_data(t0, t0_value);
       if (dirty[0] & /*columns*/
-      1024 && t2_value !== (t2_value = /*prop*/
+      4 && t2_value !== (t2_value = /*prop*/
       ctx2[55].value + ""))
         set_data(t2, t2_value);
       if (dirty[0] & /*columns*/
-      1024) {
+      4) {
         set_style(
           span1,
           "background-color",
@@ -3943,7 +3944,7 @@ function create_if_block_2(ctx) {
         );
       }
       if (dirty[0] & /*columns*/
-      1024) {
+      4) {
         set_style(
           span1,
           "color",
@@ -3952,7 +3953,7 @@ function create_if_block_2(ctx) {
         );
       }
       if (dirty[0] & /*columns*/
-      1024) {
+      4) {
         set_style(span1, "border", "1px solid " + /*prop*/
         ctx2[55].color + "40");
       }
@@ -4035,9 +4036,9 @@ function create_each_block_1(key_1, ctx) {
   let dispose;
   let if_block0 = (
     /*dragOverStatus*/
-    ctx[3] === /*col*/
+    ctx[4] === /*col*/
     ctx[49].id && /*dragOverIndex*/
-    ctx[4] === /*i*/
+    ctx[5] === /*i*/
     ctx[54] && create_if_block_4(ctx)
   );
   let if_block1 = (
@@ -4132,7 +4133,7 @@ function create_each_block_1(key_1, ctx) {
         div5,
         "pos-dragging-source",
         /*dragId*/
-        ctx[2] === /*task*/
+        ctx[3] === /*task*/
         ctx[52].id
       );
       this.first = first;
@@ -4183,9 +4184,9 @@ function create_each_block_1(key_1, ctx) {
       ctx = new_ctx;
       if (
         /*dragOverStatus*/
-        ctx[3] === /*col*/
+        ctx[4] === /*col*/
         ctx[49].id && /*dragOverIndex*/
-        ctx[4] === /*i*/
+        ctx[5] === /*i*/
         ctx[54]
       ) {
         if (if_block0) {
@@ -4200,7 +4201,7 @@ function create_each_block_1(key_1, ctx) {
         if_block0 = null;
       }
       if (dirty[0] & /*columns*/
-      1024 && t1_value !== (t1_value = /*task*/
+      4 && t1_value !== (t1_value = /*task*/
       ctx[52].name + ""))
         set_data(t1, t1_value);
       if (
@@ -4219,11 +4220,11 @@ function create_each_block_1(key_1, ctx) {
         if_block1 = null;
       }
       if (dirty[0] & /*columns*/
-      1024 && t5_value !== (t5_value = /*task*/
+      4 && t5_value !== (t5_value = /*task*/
       (ctx[52].weight || 1) + ""))
         set_data(t5, t5_value);
       if (dirty[0] & /*getCustomProps, columns*/
-      3072) {
+      2052) {
         each_value_2 = ensure_array_like(
           /*getCustomProps*/
           ctx[11](
@@ -4248,12 +4249,12 @@ function create_each_block_1(key_1, ctx) {
         each_blocks.length = each_value_2.length;
       }
       if (dirty[0] & /*dragId, columns*/
-      1028) {
+      12) {
         toggle_class(
           div5,
           "pos-dragging-source",
           /*dragId*/
-          ctx[2] === /*task*/
+          ctx[3] === /*task*/
           ctx[52].id
         );
       }
@@ -4284,7 +4285,7 @@ function create_if_block_1(ctx) {
         div2,
         "height",
         /*dragHeight*/
-        ctx[5] + "px"
+        ctx[6] + "px"
       );
     },
     m(target, anchor) {
@@ -4292,12 +4293,12 @@ function create_if_block_1(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*dragHeight*/
-      32) {
+      64) {
         set_style(
           div2,
           "height",
           /*dragHeight*/
-          ctx2[5] + "px"
+          ctx2[6] + "px"
         );
       }
     },
@@ -4331,14 +4332,14 @@ function create_each_block(key_1, ctx) {
   let dispose;
   let if_block0 = (
     /*dragOverColId*/
-    ctx[7] && /*dragOverColIndex*/
-    ctx[8] === /*colIdx*/
+    ctx[8] && /*dragOverColIndex*/
+    ctx[9] === /*colIdx*/
     ctx[51] && create_if_block_7(ctx)
   );
   function select_block_type(ctx2, dirty) {
     if (
       /*editingColId*/
-      ctx2[9] === /*col*/
+      ctx2[10] === /*col*/
       ctx2[49].id
     )
       return create_if_block_6;
@@ -4412,9 +4413,9 @@ function create_each_block(key_1, ctx) {
   }
   let if_block3 = (
     /*dragOverStatus*/
-    ctx[3] === /*col*/
+    ctx[4] === /*col*/
     ctx[49].id && /*dragOverIndex*/
-    ctx[4] >= /*col*/
+    ctx[5] >= /*col*/
     ctx[49].tasks.length && create_if_block_1(ctx)
   );
   function click_handler_3() {
@@ -4511,7 +4512,7 @@ function create_each_block(key_1, ctx) {
         div3,
         "pos-dragging-source",
         /*dragColId*/
-        ctx[6] === /*col*/
+        ctx[7] === /*col*/
         ctx[49].id
       );
       toggle_class(
@@ -4573,8 +4574,8 @@ function create_each_block(key_1, ctx) {
       ctx = new_ctx;
       if (
         /*dragOverColId*/
-        ctx[7] && /*dragOverColIndex*/
-        ctx[8] === /*colIdx*/
+        ctx[8] && /*dragOverColIndex*/
+        ctx[9] === /*colIdx*/
         ctx[51]
       ) {
         if (if_block0) {
@@ -4598,7 +4599,7 @@ function create_each_block(key_1, ctx) {
         }
       }
       if (dirty[0] & /*columns*/
-      1024 && input_value_value !== (input_value_value = /*col*/
+      4 && input_value_value !== (input_value_value = /*col*/
       ctx[49].color)) {
         input.value = input_value_value;
       }
@@ -4616,7 +4617,7 @@ function create_each_block(key_1, ctx) {
         if_block2 = null;
       }
       if (dirty[0] & /*columns*/
-      1024) {
+      4) {
         set_style(
           h4,
           "color",
@@ -4625,12 +4626,12 @@ function create_each_block(key_1, ctx) {
         );
       }
       if (dirty[0] & /*columns*/
-      1024) {
+      4) {
         set_style(h4, "border-bottom", "2px solid " + /*col*/
         ctx[49].color + "40");
       }
       if (dirty[0] & /*dragId, columns, handleDragStart, handleDragEnd, deleteTask, editTask, getCustomProps, dragHeight, dragOverStatus, dragOverIndex*/
-      207621180) {
+      207620220) {
         each_value_1 = ensure_array_like(
           /*col*/
           ctx[49].tasks
@@ -4639,9 +4640,9 @@ function create_each_block(key_1, ctx) {
       }
       if (
         /*dragOverStatus*/
-        ctx[3] === /*col*/
+        ctx[4] === /*col*/
         ctx[49].id && /*dragOverIndex*/
-        ctx[4] >= /*col*/
+        ctx[5] >= /*col*/
         ctx[49].tasks.length
       ) {
         if (if_block3) {
@@ -4656,22 +4657,22 @@ function create_each_block(key_1, ctx) {
         if_block3 = null;
       }
       if (dirty[0] & /*columns*/
-      1024 && div3_data_col_id_value !== (div3_data_col_id_value = /*col*/
+      4 && div3_data_col_id_value !== (div3_data_col_id_value = /*col*/
       ctx[49].id)) {
         attr(div3, "data-col-id", div3_data_col_id_value);
       }
       if (dirty[0] & /*dragColId, columns*/
-      1088) {
+      132) {
         toggle_class(
           div3,
           "pos-dragging-source",
           /*dragColId*/
-          ctx[6] === /*col*/
+          ctx[7] === /*col*/
           ctx[49].id
         );
       }
       if (dirty[0] & /*columns*/
-      1024) {
+      4) {
         toggle_class(
           div3,
           "pos-col-elastic",
@@ -4736,7 +4737,7 @@ function create_fragment(ctx) {
   let dispose;
   let each_value = ensure_array_like(
     /*columns*/
-    ctx[10]
+    ctx[2]
   );
   const get_key = (ctx2) => (
     /*col*/
@@ -4749,9 +4750,9 @@ function create_fragment(ctx) {
   }
   let if_block = (
     /*dragOverColId*/
-    ctx[7] && /*dragOverColIndex*/
-    ctx[8] >= /*columns*/
-    ctx[10].length && create_if_block(ctx)
+    ctx[8] && /*dragOverColIndex*/
+    ctx[9] >= /*columns*/
+    ctx[2].length && create_if_block(ctx)
   );
   return {
     c() {
@@ -4820,15 +4821,15 @@ function create_fragment(ctx) {
       267382780) {
         each_value = ensure_array_like(
           /*columns*/
-          ctx2[10]
+          ctx2[2]
         );
         each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx2, each_value, each_1_lookup, div1, destroy_block, create_each_block, t2, get_each_context);
       }
       if (
         /*dragOverColId*/
-        ctx2[7] && /*dragOverColIndex*/
-        ctx2[8] >= /*columns*/
-        ctx2[10].length
+        ctx2[8] && /*dragOverColIndex*/
+        ctx2[9] >= /*columns*/
+        ctx2[2].length
       ) {
         if (if_block) {
         } else {
@@ -4870,11 +4871,7 @@ function instance($$self, $$props, $$invalidate) {
   });
   let { projectId } = $$props;
   let { projectTasks } = $$props;
-  const sortTasks = (tasks) => tasks.sort((a, b) => {
-    const pA = a.properties && a.properties["priority"] ? parseInt(a.properties["priority"], 10) : 3;
-    const pB = b.properties && b.properties["priority"] ? parseInt(b.properties["priority"], 10) : 3;
-    return pA - pB || a.orderIndex - b.orderIndex;
-  });
+  const sortTasks = (tasks) => tasks.sort((a, b) => a.orderIndex - b.orderIndex);
   function getCustomProps(task) {
     if (!task.properties || !((fileManager.plugin.settings.projectSchemas || {})[projectId] || []))
       return [];
@@ -4928,7 +4925,7 @@ function instance($$self, $$props, $$invalidate) {
       e.preventDefault();
       return;
     }
-    $$invalidate(6, dragColId = id);
+    $$invalidate(7, dragColId = id);
     if (e.dataTransfer) {
       e.dataTransfer.effectAllowed = "move";
       e.dataTransfer.setData("text/plain", "col:" + id);
@@ -4938,9 +4935,9 @@ function instance($$self, $$props, $$invalidate) {
   }
   function handleColDragEnd(e) {
     e.stopPropagation();
-    $$invalidate(6, dragColId = null);
-    $$invalidate(7, dragOverColId = null);
-    $$invalidate(8, dragOverColIndex = -1);
+    $$invalidate(7, dragColId = null);
+    $$invalidate(8, dragOverColId = null);
+    $$invalidate(9, dragOverColIndex = -1);
     if (e.currentTarget)
       e.currentTarget.style.opacity = "1";
   }
@@ -4951,14 +4948,14 @@ function instance($$self, $$props, $$invalidate) {
     e.preventDefault();
     if (e.dataTransfer)
       e.dataTransfer.dropEffect = "move";
-    $$invalidate(7, dragOverColId = id);
+    $$invalidate(8, dragOverColId = id);
     const colIndex = columns.findIndex((c) => c.id === id);
     const rect = e.currentTarget.getBoundingClientRect();
     const middle = rect.left + rect.width / 2;
     if (e.clientX > middle)
-      $$invalidate(8, dragOverColIndex = colIndex + 1);
+      $$invalidate(9, dragOverColIndex = colIndex + 1);
     else
-      $$invalidate(8, dragOverColIndex = colIndex);
+      $$invalidate(9, dragOverColIndex = colIndex);
   }
   async function handleColDrop(e, id) {
     e.stopPropagation();
@@ -4985,9 +4982,9 @@ function instance($$self, $$props, $$invalidate) {
       $$invalidate(0, fileManager.plugin.settings = settings, fileManager);
       $$invalidate(0, fileManager);
     }
-    $$invalidate(6, dragColId = null);
-    $$invalidate(7, dragOverColId = null);
-    $$invalidate(8, dragOverColIndex = -1);
+    $$invalidate(7, dragColId = null);
+    $$invalidate(8, dragOverColId = null);
+    $$invalidate(9, dragOverColIndex = -1);
   }
   async function updateColumnColor(colId, newColor) {
     const settings = await ensureProjectStatuses();
@@ -5022,7 +5019,7 @@ function instance($$self, $$props, $$invalidate) {
     await fileManager.plugin.saveSettings();
     $$invalidate(0, fileManager.plugin.settings = settings, fileManager);
     $$invalidate(0, fileManager);
-    $$invalidate(9, editingColId = null);
+    $$invalidate(10, editingColId = null);
   }
   async function deleteColumn(colId) {
     if (!confirm("Are you sure you want to delete this column? ALL TASKS inside this column will also be permanently deleted!"))
@@ -5052,25 +5049,25 @@ function instance($$self, $$props, $$invalidate) {
     await fileManager.plugin.saveSettings();
     $$invalidate(0, fileManager.plugin.settings = settings, fileManager);
     $$invalidate(0, fileManager);
-    $$invalidate(9, editingColId = newId);
+    $$invalidate(10, editingColId = newId);
   }
   function handleDragStart(e, id) {
     e.stopPropagation();
     console.log("Drag started:", id);
-    $$invalidate(2, dragId = id);
+    $$invalidate(3, dragId = id);
     if (e.dataTransfer) {
       e.dataTransfer.effectAllowed = "move";
       e.dataTransfer.setData("text/plain", id);
       const el = e.currentTarget;
-      $$invalidate(5, dragHeight = el.offsetHeight);
+      $$invalidate(6, dragHeight = el.offsetHeight);
       setTimeout(() => el.classList.add("pos-dragging"), 0);
     }
   }
   function handleDragEnd(e) {
     e.stopPropagation();
-    $$invalidate(2, dragId = null);
-    $$invalidate(3, dragOverStatus = null);
-    $$invalidate(4, dragOverIndex = -1);
+    $$invalidate(3, dragId = null);
+    $$invalidate(4, dragOverStatus = null);
+    $$invalidate(5, dragOverIndex = -1);
     if (e.currentTarget)
       e.currentTarget.classList.remove("pos-dragging");
   }
@@ -5093,11 +5090,13 @@ function instance($$self, $$props, $$invalidate) {
         break;
       }
     }
-    $$invalidate(3, dragOverStatus = status);
-    $$invalidate(4, dragOverIndex = targetIndex);
+    $$invalidate(4, dragOverStatus = status);
+    $$invalidate(5, dragOverIndex = targetIndex);
   }
   async function handleDrop(e, status) {
     var _a;
+    require("fs").appendFileSync("c:/Users/admin/proxima-debug.log", `[handleDrop] status=${status} dragId=${dragId}
+`);
     e.stopPropagation();
     console.log("Dropped on status:", status);
     e.preventDefault();
@@ -5105,9 +5104,9 @@ function instance($$self, $$props, $$invalidate) {
       return;
     const targetIndex = dragOverIndex === -1 ? ((_a = columns.find((c) => c.id === status)) == null ? void 0 : _a.tasks.length) || 0 : dragOverIndex;
     const task = projectTasks.find((t) => t.id === dragId);
-    $$invalidate(2, dragId = null);
-    $$invalidate(3, dragOverStatus = null);
-    $$invalidate(4, dragOverIndex = -1);
+    $$invalidate(3, dragId = null);
+    $$invalidate(4, dragOverStatus = null);
+    $$invalidate(5, dragOverIndex = -1);
     if (!task)
       return;
     const oldStatus = task.status;
@@ -5133,6 +5132,8 @@ function instance($$self, $$props, $$invalidate) {
     await Promise.all(promises);
   }
   function createPlannedTask(statusId) {
+    require("fs").appendFileSync("c:/Users/admin/proxima-debug.log", `[createPlannedTask] status=${statusId}
+`);
     console.log("Creating task in status:", statusId);
     new NewTaskModal(
       app,
@@ -5140,7 +5141,16 @@ function instance($$self, $$props, $$invalidate) {
         let pid = projectId;
         if (pid === "-- All Projects --")
           pid = "";
-        await fileManager.createTask({ name, project: pid, status: statusId });
+        const colTasks = projectTasks.filter((t) => t.status === statusId);
+        const maxOrder = colTasks.length > 0 ? Math.max(...colTasks.map((t) => t.orderIndex)) + 1 : 0;
+        await fileManager.createTask({
+          name,
+          project: pid,
+          status: statusId,
+          orderIndex: maxOrder
+        });
+        require("fs").appendFileSync("c:/Users/admin/proxima-debug.log", `[createPlannedTask] SUCCESS name=${name}
+`);
       }
     ).open();
   }
@@ -5163,14 +5173,14 @@ function instance($$self, $$props, $$invalidate) {
     if (e.key === "Enter")
       updateColumnName(col.id, e.currentTarget.value);
     if (e.key === "Escape")
-      $$invalidate(9, editingColId = null);
+      $$invalidate(10, editingColId = null);
   };
   const change_handler = (col, e) => updateColumnColor(col.id, e.currentTarget.value);
   const click_handler = (col) => deleteColumn(col.id);
   const dragstart_handler = (col, e) => handleColDragStart(e, col.id);
   const dragover_handler = (col, e) => handleColDragOver(e, col.id);
   const drop_handler = (col, e) => handleColDrop(e, col.id);
-  const dblclick_handler = (col) => $$invalidate(9, editingColId = col.id);
+  const dblclick_handler = (col) => $$invalidate(10, editingColId = col.id);
   const click_handler_1 = (task) => editTask(task);
   const click_handler_2 = (task) => deleteTask(task.id);
   const dragstart_handler_1 = (task, e) => handleDragStart(e, task.id);
@@ -5196,8 +5206,8 @@ function instance($$self, $$props, $$invalidate) {
       let actualIndex = columns.length;
       if (targetId)
         actualIndex = columns.findIndex((c) => c.id === targetId);
-      $$invalidate(7, dragOverColId = "workspace");
-      $$invalidate(8, dragOverColIndex = actualIndex);
+      $$invalidate(8, dragOverColId = "workspace");
+      $$invalidate(9, dragOverColIndex = actualIndex);
     }
   };
   const drop_handler_2 = async (e) => {
@@ -5223,9 +5233,9 @@ function instance($$self, $$props, $$invalidate) {
         $$invalidate(0, fileManager.plugin.settings = settings, fileManager);
         $$invalidate(0, fileManager);
       }
-      $$invalidate(6, dragColId = null);
-      $$invalidate(7, dragOverColId = null);
-      $$invalidate(8, dragOverColIndex = -1);
+      $$invalidate(7, dragColId = null);
+      $$invalidate(8, dragOverColId = null);
+      $$invalidate(9, dragOverColIndex = -1);
     }
   };
   $$self.$$set = ($$props2) => {
@@ -5324,15 +5334,21 @@ function instance($$self, $$props, $$invalidate) {
     if ($$self.$$.dirty[0] & /*statuses, projectTasks*/
     1610612736) {
       $:
-        $$invalidate(10, columns = statuses.map((s) => ({
+        $$invalidate(2, columns = statuses.map((s) => ({
           ...s,
           tasks: sortTasks(projectTasks.filter((t) => t.status === s.id))
         })));
+    }
+    if ($$self.$$.dirty[0] & /*projectTasks, columns*/
+    536870916) {
+      $:
+        console.log("PROJECT TASKS UPDATED:", projectTasks.length, "columns:", columns.length);
     }
   };
   return [
     fileManager,
     projectId,
+    columns,
     dragId,
     dragOverStatus,
     dragOverIndex,
@@ -5341,7 +5357,6 @@ function instance($$self, $$props, $$invalidate) {
     dragOverColId,
     dragOverColIndex,
     editingColId,
-    columns,
     getCustomProps,
     ensureProjectStatuses,
     handleColDragStart,

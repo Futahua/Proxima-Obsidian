@@ -260,13 +260,7 @@ export class FileManager {
 
   async updateTask(id: string, updates: Partial<TaskData>) {
     // 1. Optimistic UI update
-    tasksStore.update(tasks => {
-      const i = tasks.findIndex(t => t.id === id);
-      if (i > -1) {
-        tasks[i] = { ...tasks[i], ...updates };
-      }
-      return tasks;
-    });
+    tasksStore.update(tasks => { const newTasks = [...tasks]; const i = newTasks.findIndex(t => t.id === id); if (i > -1) { newTasks[i] = { ...newTasks[i], ...updates }; } return newTasks; });
 
     // 2. Persist to disk
     const file = this.app.vault.getAbstractFileByPath(`${this.plugin.settings.tasksFolder}/${id}.md`);
