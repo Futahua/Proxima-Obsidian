@@ -1,20 +1,18 @@
 <script lang="ts">
   import { App } from 'obsidian';
-  import { onMount } from 'svelte';
+  
   import type { TaskData } from '../../../types';
   import type { FileManager } from '../../../data/FileManager';
   import { NewTaskModal, QuickEditTaskModal } from '../../../modals/Modals';
 
   export let app: App;
   export let fileManager: FileManager;
-  onMount(() => {
-    require('fs').writeFileSync('c:/proxima-debug.txt', 'ProjectTaskBoard MOUNTED SUCCESSFULLY\n', { flag: 'a' });
-  });
+  
   export let projectId: string;
   export let projectTasks: TaskData[];
   $: console.log('PROJECT TASKS UPDATED:', projectTasks.length, 'columns:', columns.length);
 
-  const sortTasks = (tasks: TaskData[]) => tasks.sort((a, b) => a.orderIndex - b.orderIndex);
+  const sortTasks = (tasks: TaskData[]) => tasks.sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0));
 
   $: rawProjectStatuses = (fileManager.plugin.settings.projectStatuses || {})[projectId];
   $: statuses = (() => {
@@ -272,7 +270,7 @@
   }
 
   async function handleDrop(e: DragEvent, status: string) {
-      require('fs').appendFileSync('c:/Users/admin/proxima-debug.log', `[handleDrop] status=${status} dragId=${dragId}\n`);
+      
     e.stopPropagation();
     console.log('Dropped on status:', status);
     e.preventDefault();
@@ -308,7 +306,7 @@
   }
 
   function createPlannedTask(statusId: string) {
-    require('fs').appendFileSync('c:/Users/admin/proxima-debug.log', `[createPlannedTask] status=${statusId}\n`);
+    
     console.log('Creating task in status:', statusId);
     new NewTaskModal(app, async (name) => {
       let pid = projectId;
@@ -316,7 +314,7 @@
       const colTasks = projectTasks.filter(t => t.status === statusId);
         const maxOrder = colTasks.length > 0 ? Math.max(...colTasks.map(t => t.orderIndex)) + 1 : 0;
         await fileManager.createTask({ name, project: pid, status: statusId, orderIndex: maxOrder });
-        require('fs').appendFileSync('c:/Users/admin/proxima-debug.log', `[createPlannedTask] SUCCESS name=${name}\n`);
+        
     }).open();
   }
 

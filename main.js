@@ -4866,12 +4866,9 @@ function instance($$self, $$props, $$invalidate) {
   let columns;
   let { app } = $$props;
   let { fileManager } = $$props;
-  onMount(() => {
-    require("fs").writeFileSync("c:/proxima-debug.txt", "ProjectTaskBoard MOUNTED SUCCESSFULLY\n", { flag: "a" });
-  });
   let { projectId } = $$props;
   let { projectTasks } = $$props;
-  const sortTasks = (tasks) => tasks.sort((a, b) => a.orderIndex - b.orderIndex);
+  const sortTasks = (tasks) => tasks.sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0));
   function getCustomProps(task) {
     if (!task.properties || !((fileManager.plugin.settings.projectSchemas || {})[projectId] || []))
       return [];
@@ -5095,8 +5092,6 @@ function instance($$self, $$props, $$invalidate) {
   }
   async function handleDrop(e, status) {
     var _a;
-    require("fs").appendFileSync("c:/Users/admin/proxima-debug.log", `[handleDrop] status=${status} dragId=${dragId}
-`);
     e.stopPropagation();
     console.log("Dropped on status:", status);
     e.preventDefault();
@@ -5132,8 +5127,6 @@ function instance($$self, $$props, $$invalidate) {
     await Promise.all(promises);
   }
   function createPlannedTask(statusId) {
-    require("fs").appendFileSync("c:/Users/admin/proxima-debug.log", `[createPlannedTask] status=${statusId}
-`);
     console.log("Creating task in status:", statusId);
     new NewTaskModal(
       app,
@@ -5149,8 +5142,6 @@ function instance($$self, $$props, $$invalidate) {
           status: statusId,
           orderIndex: maxOrder
         });
-        require("fs").appendFileSync("c:/Users/admin/proxima-debug.log", `[createPlannedTask] SUCCESS name=${name}
-`);
       }
     ).open();
   }
