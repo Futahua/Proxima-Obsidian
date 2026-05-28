@@ -2330,27 +2330,27 @@
 }
 
 /* Urgency Colors (shared for pills, bars, cards, headers) */
-.overdue {
+.pos-dl-gantt-bar.overdue {
   background: #E5484D !important;
   color: white !important;
   border-color: #ce4045 !important;
 }
-.critical {
+.pos-dl-gantt-bar.critical {
   background: #FFB224 !important;
   color: #4A3100 !important;
   border-color: #e5a020 !important;
 }
-.warning {
+.pos-dl-gantt-bar.warning {
   background: #FFD60A !important;
   color: #4A3E00 !important;
   border-color: #e5c009 !important;
 }
-.caution {
+.pos-dl-gantt-bar.caution {
   background: #A7C957 !important;
   color: #101010 !important;
   border-color: #96b54e !important;
 }
-.safe {
+.pos-dl-gantt-bar.safe {
   background: #46A758 !important;
   color: white !important;
   border-color: #3f964f !important;

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount, onDestroy, tick } from 'svelte';
   import type { FileManager } from '../../../data/FileManager';
-  import { tasksStore, getProjectTasks } from '../../../stores/data';
+  import { tasksStore, projectsStore, getProjectTasks } from '../../../stores/data';
   import { formatCountdown } from '../../../utils';
   import { QuickEditTaskModal } from '../../../modals/Modals';
 
@@ -10,7 +10,7 @@
   export let projectId;
   export let plugin;
 
-  $: projectTasks = getProjectTasks($tasksStore, projectId);
+  $: projectTasks = getProjectTasks($tasksStore, projectId, $projectsStore);
   $: deadlinedTasks = projectTasks.filter(t => t.deadline && !t.isCompleted).sort((a, b) =>
     new Date(a.deadline || '').getTime() - new Date(b.deadline || '').getTime()
   );

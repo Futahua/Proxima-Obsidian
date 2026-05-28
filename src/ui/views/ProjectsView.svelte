@@ -265,7 +265,7 @@
         </div>
 
       {:else}
-        {@const projectTasks = $tasksStore.filter(t => t.project === selectedProject.id).sort((a, b) => a.orderIndex - b.orderIndex)}
+        {@const projectTasks = $tasksStore.filter(t => t.project === selectedProject.id && selectedProject.status !== 'archived').sort((a, b) => a.orderIndex - b.orderIndex)}
         {#if projectTab === 'board'}
           <!-- 📋 TASK BOARD VIEW (KANBAN) -->
           <ProjectTaskBoard 

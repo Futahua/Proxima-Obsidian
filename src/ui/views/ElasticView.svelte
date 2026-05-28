@@ -2,7 +2,7 @@
   import { onMount, onDestroy } from 'svelte';
   import { App as ObsidianApp, TFile } from 'obsidian';
   import type { FileManager } from '../../data/FileManager';
-  import { tasksStore, getProjectTasks } from '../../stores/data';
+  import { tasksStore, projectsStore, getProjectTasks } from '../../stores/data';
   import { calculateLiquidTimeline, fmtDate, fmtTime, fmtDur } from '../../utils';
   import { QuickEditTaskModal, ConfirmModal, NewTaskModal } from '../../modals/Modals';
   import type { TaskData, TaskStatus, TimelineItem } from '../../types';
@@ -11,7 +11,7 @@
   export let fileManager;
   export let projectId;
 
-  $: projectTasks = getProjectTasks($tasksStore, projectId);
+  $: projectTasks = getProjectTasks($tasksStore, projectId, $projectsStore);
   const sortTasks = (tasks: TaskData[]) => tasks.sort((a, b) => {
     const pA = (a.properties && a.properties['priority']) ? parseInt(a.properties['priority'], 10) : 3;
     const pB = (b.properties && b.properties['priority']) ? parseInt(b.properties['priority'], 10) : 3;
@@ -292,7 +292,7 @@
     dragOverIndex = -1;
 
     // Filter project-specific tasks to reindex correctly
-    const allTasksOfProject = getProjectTasks($tasksStore, projectId);
+    const allTasksOfProject = getProjectTasks($tasksStore, projectId, $projectsStore);
     
     if (oldStatus === status) {
       // Reordering within the same column

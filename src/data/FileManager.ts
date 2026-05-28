@@ -381,8 +381,9 @@ export class FileManager {
       newBody = c;
     }
     
-    const newFileContent = stringifyYamlFrontmatter(fm) + newBody;
-    await this.app.vault.modify(file, newFileContent);
+    const newFileContent = serializeFrontmatter(fm) + '\n' + newBody;
+      await this.app.vault.modify(file, newFileContent);
+      await this.loadAll();
   }
 
   async archiveProject(id: string): Promise<void> {
