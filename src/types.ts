@@ -54,3 +54,11 @@ export interface TimelineItem {
   endTime: string;
   calculatedDuration: number;
 }
+
+export interface ColorRule {
+  id: string;
+  targetDate: 'deadline' | 'createdAt';
+  condition: 'is relative to today';
+  value: 'overdue' | 'today' | 'next 2 days' | 'next 3 days' | 'next week' | 'next month';
+  color: string;
+}

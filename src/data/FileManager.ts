@@ -1,4 +1,5 @@
-import { App, TFile, TFolder, TAbstractFile } from 'obsidian';
+import { App, TFile, TFolder, TAbstractFile, Notice } from 'obsidian';
+import { Parser } from 'expr-eval';
 import type { ProjectData, TaskData } from '../types';
 import { projectsStore, tasksStore } from '../stores/data';
 
@@ -229,12 +230,13 @@ export class FileManager {
             for (const schema of this.plugin.settings.taskSchema) {
                if (schema.type === 'formula' && schema.expression) {
                   try {
-                     const prop = (propName: string) => {
-                        const s = this.plugin.settings.taskSchema.find(x => x.name === propName);
-                        return s ? props[s.id] : undefined;
-                     };
-                     const evaluator = new Function('prop', `return ${schema.expression}`);
-                     props[schema.id] = evaluator(prop);
+                    const scope: Record<string, any> = {};
+                    for (const s of this.plugin.settings.taskSchema) {
+                      if (s.name && props[s.id] !== undefined) {
+                        scope[s.name] = props[s.id];
+                      }
+                    }
+                    props[schema.id] = Parser.evaluate(schema.expression || '', scope);
                   } catch (e) {
                      props[schema.id] = 'Error';
                   }

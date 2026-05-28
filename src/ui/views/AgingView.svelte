@@ -62,7 +62,7 @@
   }
 
   async function handleDeleteProject(id: string) {
-    if (confirm('Delete project and its Markdown file? Tasks remain but will be uncategorized.')) {
+    if (confirm('Delete project and ALL its child tasks? This will permanently delete the Markdown files of all tasks inside this project.')) {
       const file = app.vault.getAbstractFileByPath(`projects/${id}.md`) || app.vault.getAbstractFileByPath(`projects/${id}/index.md`);
       if (file) {
         await app.vault.delete(file);
@@ -70,7 +70,7 @@
         // Unlink all tasks belonging to this project
         const linked = tasks.filter(t => t.project === id);
         for (const t of linked) {
-          await fileManager.updateTask(t.id, { project: null });
+          await fileManager.deleteTask(t.id);
         }
         
         await fileManager.loadAll();

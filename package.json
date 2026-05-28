@@ -9,6 +9,7 @@
   },
   "author": "futahua",
   "dependencies": {
+    "expr-eval": "^2.0.2",
     "svelte": "^4.2.12"
   },
   "devDependencies": {

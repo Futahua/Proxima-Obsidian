@@ -83,15 +83,26 @@
     return 120 * (daysLeft / threshold);
   }
 
-  function urgencyClass(diffMs: number): string {
-    const days = diffMs / 86400000;
-    const near = plugin.settings.nearDeadlineDays || 7;
-    const urgent = plugin.settings.urgentDeadlineDays || 2;
-    if (days < 0) return 'overdue';
-    if (days < 1) return 'critical';
-    if (days < urgent) return 'warning';
-    if (days < near) return 'caution';
-    return 'safe';
+    function getRuleColor(task: TaskData, diffMs: number): string {
+    const rules = plugin.settings.colorRules || [];
+    const nowMs = Date.now();
+    for (const rule of rules) {
+      const targetDateStr = rule.targetDate === 'deadline' ? task.deadline : task.createdAt;
+      if (!targetDateStr) continue;
+      const targetMs = new Date(targetDateStr).getTime();
+      const diffDays = (targetMs - nowMs) / 86400000;
+      
+      let matches = false;
+      if (rule.value === 'overdue' && diffDays < 0) matches = true;
+      else if (rule.value === 'today' && diffDays >= 0 && diffDays <= 1) matches = true;
+      else if (rule.value === 'next 2 days' && diffDays >= 0 && diffDays <= 2) matches = true;
+      else if (rule.value === 'next 3 days' && diffDays >= 0 && diffDays <= 3) matches = true;
+      else if (rule.value === 'next week' && diffDays >= 0 && diffDays <= 7) matches = true;
+      else if (rule.value === 'next month' && diffDays >= 0 && diffDays <= 30) matches = true;
+      
+      if (matches) return rule.color;
+    }
+    return 'var(--background-modifier-border)'; // fallback
   }
 
   let currentDate = new Date();
@@ -664,7 +675,7 @@
                 <div class="pos-dl-cal-week-events" style="height: {week.tasks.length > 0 ? Math.max(...week.tasks.map(t => t.row + 1)) * 28 + 10 : 10}px">
                   {#each week.tasks as pt (pt.task.id)}
                     <button
-                      class="pos-dl-cal-bar {urgencyClass(pt.diffMs)}"
+                      class="pos-dl-cal-bar" style="background: {getRuleColor(pt.task, pt.diffMs)}; border-color: {getRuleColor(pt.task, pt.diffMs)};"
                       class:is-start={pt.isStart}
                       class:is-end={pt.isEnd}
                       style="left: {pt.leftPct}%; width: {pt.widthPct}%; top: {pt.row * 28 + 4}px;"
@@ -716,11 +727,11 @@
                   {@const hue = diffMs > 0 ? getHueForRemaining(diffMs) : 0}
                   
                   <div
-                    class="pos-dl-gantt-bar {urgencyClass(diffMs)}"
+                    class="pos-dl-gantt-bar"
                     class:dragging={draggingTaskId === task.id}
                     class:hover-left-half={hoverTaskId === task.id && hoverSide === 'left'}
                     class:hover-right-half={hoverTaskId === task.id && hoverSide === 'right'}
-                    style="left: {draggingTaskId === task.id ? tempDragLeft : pos.leftPx}px; width: {draggingTaskId === task.id ? tempDragWidth : pos.widthPx}px; --bar-hue: {hue}; transform: translateY({draggingTaskId === task.id && ganttDragMode === 'move' ? tempDragTranslateY : 0}px);"
+                    style="background: {getRuleColor(task, diffMs)}; border-color: {getRuleColor(task, diffMs)}; left: {draggingTaskId === task.id ? tempDragLeft : pos.leftPx}px; width: {draggingTaskId === task.id ? tempDragWidth : pos.widthPx}px; --bar-hue: {hue}; transform: translateY({draggingTaskId === task.id && ganttDragMode === 'move' ? tempDragTranslateY : 0}px);"
                     title="{task.priority ? 'P' + task.priority + ' - ' : ''}{task.name} {(task.tags && task.tags.length > 0) ? '[' + task.tags.join(', ') + ']' : ''} — {formatCountdown(diffMs)}"
                     on:mousemove={(e) => handleBarMouseMove(e, task.id)}
                     on:mouseleave={handleBarMouseLeave}
@@ -740,14 +751,14 @@
       <div class="pos-dl-countdown-list">
         {#each countdownGroups as group}
           <div class="pos-dl-group">
-            <div class="pos-dl-group-header {group.cls}">{group.label} <span class="pos-dl-group-count">{group.tasks.length}</span></div>
+            <div class="pos-dl-group-header">{group.label} <span class="pos-dl-group-count">{group.tasks.length}</span></div>
             <div class="pos-dl-group-items">
               {#each group.tasks as task (task.id)}
                 {@const diff = new Date(task.deadline || '').getTime() - now}
                 {@const totalMs = new Date(task.deadline || '').getTime() - new Date(task.createdAt).getTime()}
                 {@const elapsed = now - new Date(task.createdAt).getTime()}
                 {@const progress = totalMs > 0 ? Math.min(1, Math.max(0, elapsed / totalMs)) : 1}
-                <div class="pos-dl-countdown-card {urgencyClass(diff)}" on:click={() => openTaskEditor(task)}>
+                <div class="pos-dl-countdown-card" style="border-left: 4px solid {getRuleColor(task, diff)};" on:click={() => openTaskEditor(task)}>
                   <div class="pos-dl-cc-info">
                     <div class="pos-dl-cc-name">
                       {#if task.priority === 1}<span class="pos-priority-badge high" style="margin-right: 6px; font-size: 10px; padding: 2px 4px;">P1</span>{/if}
@@ -766,7 +777,7 @@
                   <div class="pos-dl-cc-right">
                     <div class="pos-dl-cc-timer">{formatCountdown(diff)}</div>
                     <div class="pos-dl-cc-progress-track">
-                      <div class="pos-dl-cc-progress-fill {urgencyClass(diff)}" style="width: {progress * 100}%;"></div>
+                      <div class="pos-dl-cc-progress-fill" style="width: {progress * 100}%; background: {getRuleColor(task, diff)};" style="width: {progress * 100}%;"></div>
                     </div>
                   </div>
                 </div>
