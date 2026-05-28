@@ -16,7 +16,7 @@ var __copyProps = (to, from, except, desc) => {
   }
   return to;
 };
-var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+var __toCommonJS = (mod2) => __copyProps(__defProp({}, "__esModule", { value: true }), mod2);
 var __publicField = (obj, key, value) => {
   __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
   return value;
@@ -941,6 +941,1619 @@ function writable(value, start = noop) {
 // src/data/FileManager.ts
 var import_obsidian = require("obsidian");
 
+// node_modules/expr-eval/dist/index.mjs
+var INUMBER = "INUMBER";
+var IOP1 = "IOP1";
+var IOP2 = "IOP2";
+var IOP3 = "IOP3";
+var IVAR = "IVAR";
+var IVARNAME = "IVARNAME";
+var IFUNCALL = "IFUNCALL";
+var IFUNDEF = "IFUNDEF";
+var IEXPR = "IEXPR";
+var IEXPREVAL = "IEXPREVAL";
+var IMEMBER = "IMEMBER";
+var IENDSTATEMENT = "IENDSTATEMENT";
+var IARRAY = "IARRAY";
+function Instruction(type, value) {
+  this.type = type;
+  this.value = value !== void 0 && value !== null ? value : 0;
+}
+Instruction.prototype.toString = function() {
+  switch (this.type) {
+    case INUMBER:
+    case IOP1:
+    case IOP2:
+    case IOP3:
+    case IVAR:
+    case IVARNAME:
+    case IENDSTATEMENT:
+      return this.value;
+    case IFUNCALL:
+      return "CALL " + this.value;
+    case IFUNDEF:
+      return "DEF " + this.value;
+    case IARRAY:
+      return "ARRAY " + this.value;
+    case IMEMBER:
+      return "." + this.value;
+    default:
+      return "Invalid Instruction";
+  }
+};
+function unaryInstruction(value) {
+  return new Instruction(IOP1, value);
+}
+function binaryInstruction(value) {
+  return new Instruction(IOP2, value);
+}
+function ternaryInstruction(value) {
+  return new Instruction(IOP3, value);
+}
+function simplify(tokens, unaryOps, binaryOps, ternaryOps, values) {
+  var nstack = [];
+  var newexpression = [];
+  var n1, n2, n3;
+  var f;
+  for (var i = 0; i < tokens.length; i++) {
+    var item = tokens[i];
+    var type = item.type;
+    if (type === INUMBER || type === IVARNAME) {
+      if (Array.isArray(item.value)) {
+        nstack.push.apply(nstack, simplify(item.value.map(function(x) {
+          return new Instruction(INUMBER, x);
+        }).concat(new Instruction(IARRAY, item.value.length)), unaryOps, binaryOps, ternaryOps, values));
+      } else {
+        nstack.push(item);
+      }
+    } else if (type === IVAR && values.hasOwnProperty(item.value)) {
+      item = new Instruction(INUMBER, values[item.value]);
+      nstack.push(item);
+    } else if (type === IOP2 && nstack.length > 1) {
+      n2 = nstack.pop();
+      n1 = nstack.pop();
+      f = binaryOps[item.value];
+      item = new Instruction(INUMBER, f(n1.value, n2.value));
+      nstack.push(item);
+    } else if (type === IOP3 && nstack.length > 2) {
+      n3 = nstack.pop();
+      n2 = nstack.pop();
+      n1 = nstack.pop();
+      if (item.value === "?") {
+        nstack.push(n1.value ? n2.value : n3.value);
+      } else {
+        f = ternaryOps[item.value];
+        item = new Instruction(INUMBER, f(n1.value, n2.value, n3.value));
+        nstack.push(item);
+      }
+    } else if (type === IOP1 && nstack.length > 0) {
+      n1 = nstack.pop();
+      f = unaryOps[item.value];
+      item = new Instruction(INUMBER, f(n1.value));
+      nstack.push(item);
+    } else if (type === IEXPR) {
+      while (nstack.length > 0) {
+        newexpression.push(nstack.shift());
+      }
+      newexpression.push(new Instruction(IEXPR, simplify(item.value, unaryOps, binaryOps, ternaryOps, values)));
+    } else if (type === IMEMBER && nstack.length > 0) {
+      n1 = nstack.pop();
+      nstack.push(new Instruction(INUMBER, n1.value[item.value]));
+    } else {
+      while (nstack.length > 0) {
+        newexpression.push(nstack.shift());
+      }
+      newexpression.push(item);
+    }
+  }
+  while (nstack.length > 0) {
+    newexpression.push(nstack.shift());
+  }
+  return newexpression;
+}
+function substitute(tokens, variable, expr) {
+  var newexpression = [];
+  for (var i = 0; i < tokens.length; i++) {
+    var item = tokens[i];
+    var type = item.type;
+    if (type === IVAR && item.value === variable) {
+      for (var j = 0; j < expr.tokens.length; j++) {
+        var expritem = expr.tokens[j];
+        var replitem;
+        if (expritem.type === IOP1) {
+          replitem = unaryInstruction(expritem.value);
+        } else if (expritem.type === IOP2) {
+          replitem = binaryInstruction(expritem.value);
+        } else if (expritem.type === IOP3) {
+          replitem = ternaryInstruction(expritem.value);
+        } else {
+          replitem = new Instruction(expritem.type, expritem.value);
+        }
+        newexpression.push(replitem);
+      }
+    } else if (type === IEXPR) {
+      newexpression.push(new Instruction(IEXPR, substitute(item.value, variable, expr)));
+    } else {
+      newexpression.push(item);
+    }
+  }
+  return newexpression;
+}
+function evaluate(tokens, expr, values) {
+  var nstack = [];
+  var n1, n2, n3;
+  var f, args, argCount;
+  if (isExpressionEvaluator(tokens)) {
+    return resolveExpression(tokens, values);
+  }
+  var numTokens = tokens.length;
+  for (var i = 0; i < numTokens; i++) {
+    var item = tokens[i];
+    var type = item.type;
+    if (type === INUMBER || type === IVARNAME) {
+      nstack.push(item.value);
+    } else if (type === IOP2) {
+      n2 = nstack.pop();
+      n1 = nstack.pop();
+      if (item.value === "and") {
+        nstack.push(n1 ? !!evaluate(n2, expr, values) : false);
+      } else if (item.value === "or") {
+        nstack.push(n1 ? true : !!evaluate(n2, expr, values));
+      } else if (item.value === "=") {
+        f = expr.binaryOps[item.value];
+        nstack.push(f(n1, evaluate(n2, expr, values), values));
+      } else {
+        f = expr.binaryOps[item.value];
+        nstack.push(f(resolveExpression(n1, values), resolveExpression(n2, values)));
+      }
+    } else if (type === IOP3) {
+      n3 = nstack.pop();
+      n2 = nstack.pop();
+      n1 = nstack.pop();
+      if (item.value === "?") {
+        nstack.push(evaluate(n1 ? n2 : n3, expr, values));
+      } else {
+        f = expr.ternaryOps[item.value];
+        nstack.push(f(resolveExpression(n1, values), resolveExpression(n2, values), resolveExpression(n3, values)));
+      }
+    } else if (type === IVAR) {
+      if (item.value in expr.functions) {
+        nstack.push(expr.functions[item.value]);
+      } else if (item.value in expr.unaryOps && expr.parser.isOperatorEnabled(item.value)) {
+        nstack.push(expr.unaryOps[item.value]);
+      } else {
+        var v = values[item.value];
+        if (v !== void 0) {
+          nstack.push(v);
+        } else {
+          throw new Error("undefined variable: " + item.value);
+        }
+      }
+    } else if (type === IOP1) {
+      n1 = nstack.pop();
+      f = expr.unaryOps[item.value];
+      nstack.push(f(resolveExpression(n1, values)));
+    } else if (type === IFUNCALL) {
+      argCount = item.value;
+      args = [];
+      while (argCount-- > 0) {
+        args.unshift(resolveExpression(nstack.pop(), values));
+      }
+      f = nstack.pop();
+      if (f.apply && f.call) {
+        nstack.push(f.apply(void 0, args));
+      } else {
+        throw new Error(f + " is not a function");
+      }
+    } else if (type === IFUNDEF) {
+      nstack.push(function() {
+        var n22 = nstack.pop();
+        var args2 = [];
+        var argCount2 = item.value;
+        while (argCount2-- > 0) {
+          args2.unshift(nstack.pop());
+        }
+        var n12 = nstack.pop();
+        var f2 = function() {
+          var scope = Object.assign({}, values);
+          for (var i2 = 0, len = args2.length; i2 < len; i2++) {
+            scope[args2[i2]] = arguments[i2];
+          }
+          return evaluate(n22, expr, scope);
+        };
+        Object.defineProperty(f2, "name", {
+          value: n12,
+          writable: false
+        });
+        values[n12] = f2;
+        return f2;
+      }());
+    } else if (type === IEXPR) {
+      nstack.push(createExpressionEvaluator(item, expr));
+    } else if (type === IEXPREVAL) {
+      nstack.push(item);
+    } else if (type === IMEMBER) {
+      n1 = nstack.pop();
+      nstack.push(n1[item.value]);
+    } else if (type === IENDSTATEMENT) {
+      nstack.pop();
+    } else if (type === IARRAY) {
+      argCount = item.value;
+      args = [];
+      while (argCount-- > 0) {
+        args.unshift(nstack.pop());
+      }
+      nstack.push(args);
+    } else {
+      throw new Error("invalid Expression");
+    }
+  }
+  if (nstack.length > 1) {
+    throw new Error("invalid Expression (parity)");
+  }
+  return nstack[0] === 0 ? 0 : resolveExpression(nstack[0], values);
+}
+function createExpressionEvaluator(token, expr, values) {
+  if (isExpressionEvaluator(token))
+    return token;
+  return {
+    type: IEXPREVAL,
+    value: function(scope) {
+      return evaluate(token.value, expr, scope);
+    }
+  };
+}
+function isExpressionEvaluator(n) {
+  return n && n.type === IEXPREVAL;
+}
+function resolveExpression(n, values) {
+  return isExpressionEvaluator(n) ? n.value(values) : n;
+}
+function expressionToString(tokens, toJS) {
+  var nstack = [];
+  var n1, n2, n3;
+  var f, args, argCount;
+  for (var i = 0; i < tokens.length; i++) {
+    var item = tokens[i];
+    var type = item.type;
+    if (type === INUMBER) {
+      if (typeof item.value === "number" && item.value < 0) {
+        nstack.push("(" + item.value + ")");
+      } else if (Array.isArray(item.value)) {
+        nstack.push("[" + item.value.map(escapeValue).join(", ") + "]");
+      } else {
+        nstack.push(escapeValue(item.value));
+      }
+    } else if (type === IOP2) {
+      n2 = nstack.pop();
+      n1 = nstack.pop();
+      f = item.value;
+      if (toJS) {
+        if (f === "^") {
+          nstack.push("Math.pow(" + n1 + ", " + n2 + ")");
+        } else if (f === "and") {
+          nstack.push("(!!" + n1 + " && !!" + n2 + ")");
+        } else if (f === "or") {
+          nstack.push("(!!" + n1 + " || !!" + n2 + ")");
+        } else if (f === "||") {
+          nstack.push("(function(a,b){ return Array.isArray(a) && Array.isArray(b) ? a.concat(b) : String(a) + String(b); }((" + n1 + "),(" + n2 + ")))");
+        } else if (f === "==") {
+          nstack.push("(" + n1 + " === " + n2 + ")");
+        } else if (f === "!=") {
+          nstack.push("(" + n1 + " !== " + n2 + ")");
+        } else if (f === "[") {
+          nstack.push(n1 + "[(" + n2 + ") | 0]");
+        } else {
+          nstack.push("(" + n1 + " " + f + " " + n2 + ")");
+        }
+      } else {
+        if (f === "[") {
+          nstack.push(n1 + "[" + n2 + "]");
+        } else {
+          nstack.push("(" + n1 + " " + f + " " + n2 + ")");
+        }
+      }
+    } else if (type === IOP3) {
+      n3 = nstack.pop();
+      n2 = nstack.pop();
+      n1 = nstack.pop();
+      f = item.value;
+      if (f === "?") {
+        nstack.push("(" + n1 + " ? " + n2 + " : " + n3 + ")");
+      } else {
+        throw new Error("invalid Expression");
+      }
+    } else if (type === IVAR || type === IVARNAME) {
+      nstack.push(item.value);
+    } else if (type === IOP1) {
+      n1 = nstack.pop();
+      f = item.value;
+      if (f === "-" || f === "+") {
+        nstack.push("(" + f + n1 + ")");
+      } else if (toJS) {
+        if (f === "not") {
+          nstack.push("(!" + n1 + ")");
+        } else if (f === "!") {
+          nstack.push("fac(" + n1 + ")");
+        } else {
+          nstack.push(f + "(" + n1 + ")");
+        }
+      } else if (f === "!") {
+        nstack.push("(" + n1 + "!)");
+      } else {
+        nstack.push("(" + f + " " + n1 + ")");
+      }
+    } else if (type === IFUNCALL) {
+      argCount = item.value;
+      args = [];
+      while (argCount-- > 0) {
+        args.unshift(nstack.pop());
+      }
+      f = nstack.pop();
+      nstack.push(f + "(" + args.join(", ") + ")");
+    } else if (type === IFUNDEF) {
+      n2 = nstack.pop();
+      argCount = item.value;
+      args = [];
+      while (argCount-- > 0) {
+        args.unshift(nstack.pop());
+      }
+      n1 = nstack.pop();
+      if (toJS) {
+        nstack.push("(" + n1 + " = function(" + args.join(", ") + ") { return " + n2 + " })");
+      } else {
+        nstack.push("(" + n1 + "(" + args.join(", ") + ") = " + n2 + ")");
+      }
+    } else if (type === IMEMBER) {
+      n1 = nstack.pop();
+      nstack.push(n1 + "." + item.value);
+    } else if (type === IARRAY) {
+      argCount = item.value;
+      args = [];
+      while (argCount-- > 0) {
+        args.unshift(nstack.pop());
+      }
+      nstack.push("[" + args.join(", ") + "]");
+    } else if (type === IEXPR) {
+      nstack.push("(" + expressionToString(item.value, toJS) + ")");
+    } else if (type === IENDSTATEMENT)
+      ;
+    else {
+      throw new Error("invalid Expression");
+    }
+  }
+  if (nstack.length > 1) {
+    if (toJS) {
+      nstack = [nstack.join(",")];
+    } else {
+      nstack = [nstack.join(";")];
+    }
+  }
+  return String(nstack[0]);
+}
+function escapeValue(v) {
+  if (typeof v === "string") {
+    return JSON.stringify(v).replace(/\u2028/g, "\\u2028").replace(/\u2029/g, "\\u2029");
+  }
+  return v;
+}
+function contains(array, obj) {
+  for (var i = 0; i < array.length; i++) {
+    if (array[i] === obj) {
+      return true;
+    }
+  }
+  return false;
+}
+function getSymbols(tokens, symbols, options) {
+  options = options || {};
+  var withMembers = !!options.withMembers;
+  var prevVar = null;
+  for (var i = 0; i < tokens.length; i++) {
+    var item = tokens[i];
+    if (item.type === IVAR || item.type === IVARNAME) {
+      if (!withMembers && !contains(symbols, item.value)) {
+        symbols.push(item.value);
+      } else if (prevVar !== null) {
+        if (!contains(symbols, prevVar)) {
+          symbols.push(prevVar);
+        }
+        prevVar = item.value;
+      } else {
+        prevVar = item.value;
+      }
+    } else if (item.type === IMEMBER && withMembers && prevVar !== null) {
+      prevVar += "." + item.value;
+    } else if (item.type === IEXPR) {
+      getSymbols(item.value, symbols, options);
+    } else if (prevVar !== null) {
+      if (!contains(symbols, prevVar)) {
+        symbols.push(prevVar);
+      }
+      prevVar = null;
+    }
+  }
+  if (prevVar !== null && !contains(symbols, prevVar)) {
+    symbols.push(prevVar);
+  }
+}
+function Expression(tokens, parser) {
+  this.tokens = tokens;
+  this.parser = parser;
+  this.unaryOps = parser.unaryOps;
+  this.binaryOps = parser.binaryOps;
+  this.ternaryOps = parser.ternaryOps;
+  this.functions = parser.functions;
+}
+Expression.prototype.simplify = function(values) {
+  values = values || {};
+  return new Expression(simplify(this.tokens, this.unaryOps, this.binaryOps, this.ternaryOps, values), this.parser);
+};
+Expression.prototype.substitute = function(variable, expr) {
+  if (!(expr instanceof Expression)) {
+    expr = this.parser.parse(String(expr));
+  }
+  return new Expression(substitute(this.tokens, variable, expr), this.parser);
+};
+Expression.prototype.evaluate = function(values) {
+  values = values || {};
+  return evaluate(this.tokens, this, values);
+};
+Expression.prototype.toString = function() {
+  return expressionToString(this.tokens, false);
+};
+Expression.prototype.symbols = function(options) {
+  options = options || {};
+  var vars = [];
+  getSymbols(this.tokens, vars, options);
+  return vars;
+};
+Expression.prototype.variables = function(options) {
+  options = options || {};
+  var vars = [];
+  getSymbols(this.tokens, vars, options);
+  var functions = this.functions;
+  return vars.filter(function(name) {
+    return !(name in functions);
+  });
+};
+Expression.prototype.toJSFunction = function(param, variables) {
+  var expr = this;
+  var f = new Function(param, "with(this.functions) with (this.ternaryOps) with (this.binaryOps) with (this.unaryOps) { return " + expressionToString(this.simplify(variables).tokens, true) + "; }");
+  return function() {
+    return f.apply(expr, arguments);
+  };
+};
+var TEOF = "TEOF";
+var TOP = "TOP";
+var TNUMBER = "TNUMBER";
+var TSTRING = "TSTRING";
+var TPAREN = "TPAREN";
+var TBRACKET = "TBRACKET";
+var TCOMMA = "TCOMMA";
+var TNAME = "TNAME";
+var TSEMICOLON = "TSEMICOLON";
+function Token(type, value, index) {
+  this.type = type;
+  this.value = value;
+  this.index = index;
+}
+Token.prototype.toString = function() {
+  return this.type + ": " + this.value;
+};
+function TokenStream(parser, expression) {
+  this.pos = 0;
+  this.current = null;
+  this.unaryOps = parser.unaryOps;
+  this.binaryOps = parser.binaryOps;
+  this.ternaryOps = parser.ternaryOps;
+  this.consts = parser.consts;
+  this.expression = expression;
+  this.savedPosition = 0;
+  this.savedCurrent = null;
+  this.options = parser.options;
+  this.parser = parser;
+}
+TokenStream.prototype.newToken = function(type, value, pos) {
+  return new Token(type, value, pos != null ? pos : this.pos);
+};
+TokenStream.prototype.save = function() {
+  this.savedPosition = this.pos;
+  this.savedCurrent = this.current;
+};
+TokenStream.prototype.restore = function() {
+  this.pos = this.savedPosition;
+  this.current = this.savedCurrent;
+};
+TokenStream.prototype.next = function() {
+  if (this.pos >= this.expression.length) {
+    return this.newToken(TEOF, "EOF");
+  }
+  if (this.isWhitespace() || this.isComment()) {
+    return this.next();
+  } else if (this.isRadixInteger() || this.isNumber() || this.isOperator() || this.isString() || this.isParen() || this.isBracket() || this.isComma() || this.isSemicolon() || this.isNamedOp() || this.isConst() || this.isName()) {
+    return this.current;
+  } else {
+    this.parseError('Unknown character "' + this.expression.charAt(this.pos) + '"');
+  }
+};
+TokenStream.prototype.isString = function() {
+  var r = false;
+  var startPos = this.pos;
+  var quote = this.expression.charAt(startPos);
+  if (quote === "'" || quote === '"') {
+    var index = this.expression.indexOf(quote, startPos + 1);
+    while (index >= 0 && this.pos < this.expression.length) {
+      this.pos = index + 1;
+      if (this.expression.charAt(index - 1) !== "\\") {
+        var rawString = this.expression.substring(startPos + 1, index);
+        this.current = this.newToken(TSTRING, this.unescape(rawString), startPos);
+        r = true;
+        break;
+      }
+      index = this.expression.indexOf(quote, index + 1);
+    }
+  }
+  return r;
+};
+TokenStream.prototype.isParen = function() {
+  var c = this.expression.charAt(this.pos);
+  if (c === "(" || c === ")") {
+    this.current = this.newToken(TPAREN, c);
+    this.pos++;
+    return true;
+  }
+  return false;
+};
+TokenStream.prototype.isBracket = function() {
+  var c = this.expression.charAt(this.pos);
+  if ((c === "[" || c === "]") && this.isOperatorEnabled("[")) {
+    this.current = this.newToken(TBRACKET, c);
+    this.pos++;
+    return true;
+  }
+  return false;
+};
+TokenStream.prototype.isComma = function() {
+  var c = this.expression.charAt(this.pos);
+  if (c === ",") {
+    this.current = this.newToken(TCOMMA, ",");
+    this.pos++;
+    return true;
+  }
+  return false;
+};
+TokenStream.prototype.isSemicolon = function() {
+  var c = this.expression.charAt(this.pos);
+  if (c === ";") {
+    this.current = this.newToken(TSEMICOLON, ";");
+    this.pos++;
+    return true;
+  }
+  return false;
+};
+TokenStream.prototype.isConst = function() {
+  var startPos = this.pos;
+  var i = startPos;
+  for (; i < this.expression.length; i++) {
+    var c = this.expression.charAt(i);
+    if (c.toUpperCase() === c.toLowerCase()) {
+      if (i === this.pos || c !== "_" && c !== "." && (c < "0" || c > "9")) {
+        break;
+      }
+    }
+  }
+  if (i > startPos) {
+    var str = this.expression.substring(startPos, i);
+    if (str in this.consts) {
+      this.current = this.newToken(TNUMBER, this.consts[str]);
+      this.pos += str.length;
+      return true;
+    }
+  }
+  return false;
+};
+TokenStream.prototype.isNamedOp = function() {
+  var startPos = this.pos;
+  var i = startPos;
+  for (; i < this.expression.length; i++) {
+    var c = this.expression.charAt(i);
+    if (c.toUpperCase() === c.toLowerCase()) {
+      if (i === this.pos || c !== "_" && (c < "0" || c > "9")) {
+        break;
+      }
+    }
+  }
+  if (i > startPos) {
+    var str = this.expression.substring(startPos, i);
+    if (this.isOperatorEnabled(str) && (str in this.binaryOps || str in this.unaryOps || str in this.ternaryOps)) {
+      this.current = this.newToken(TOP, str);
+      this.pos += str.length;
+      return true;
+    }
+  }
+  return false;
+};
+TokenStream.prototype.isName = function() {
+  var startPos = this.pos;
+  var i = startPos;
+  var hasLetter = false;
+  for (; i < this.expression.length; i++) {
+    var c = this.expression.charAt(i);
+    if (c.toUpperCase() === c.toLowerCase()) {
+      if (i === this.pos && (c === "$" || c === "_")) {
+        if (c === "_") {
+          hasLetter = true;
+        }
+        continue;
+      } else if (i === this.pos || !hasLetter || c !== "_" && (c < "0" || c > "9")) {
+        break;
+      }
+    } else {
+      hasLetter = true;
+    }
+  }
+  if (hasLetter) {
+    var str = this.expression.substring(startPos, i);
+    this.current = this.newToken(TNAME, str);
+    this.pos += str.length;
+    return true;
+  }
+  return false;
+};
+TokenStream.prototype.isWhitespace = function() {
+  var r = false;
+  var c = this.expression.charAt(this.pos);
+  while (c === " " || c === "	" || c === "\n" || c === "\r") {
+    r = true;
+    this.pos++;
+    if (this.pos >= this.expression.length) {
+      break;
+    }
+    c = this.expression.charAt(this.pos);
+  }
+  return r;
+};
+var codePointPattern = /^[0-9a-f]{4}$/i;
+TokenStream.prototype.unescape = function(v) {
+  var index = v.indexOf("\\");
+  if (index < 0) {
+    return v;
+  }
+  var buffer = v.substring(0, index);
+  while (index >= 0) {
+    var c = v.charAt(++index);
+    switch (c) {
+      case "'":
+        buffer += "'";
+        break;
+      case '"':
+        buffer += '"';
+        break;
+      case "\\":
+        buffer += "\\";
+        break;
+      case "/":
+        buffer += "/";
+        break;
+      case "b":
+        buffer += "\b";
+        break;
+      case "f":
+        buffer += "\f";
+        break;
+      case "n":
+        buffer += "\n";
+        break;
+      case "r":
+        buffer += "\r";
+        break;
+      case "t":
+        buffer += "	";
+        break;
+      case "u":
+        var codePoint = v.substring(index + 1, index + 5);
+        if (!codePointPattern.test(codePoint)) {
+          this.parseError("Illegal escape sequence: \\u" + codePoint);
+        }
+        buffer += String.fromCharCode(parseInt(codePoint, 16));
+        index += 4;
+        break;
+      default:
+        throw this.parseError('Illegal escape sequence: "\\' + c + '"');
+    }
+    ++index;
+    var backslash = v.indexOf("\\", index);
+    buffer += v.substring(index, backslash < 0 ? v.length : backslash);
+    index = backslash;
+  }
+  return buffer;
+};
+TokenStream.prototype.isComment = function() {
+  var c = this.expression.charAt(this.pos);
+  if (c === "/" && this.expression.charAt(this.pos + 1) === "*") {
+    this.pos = this.expression.indexOf("*/", this.pos) + 2;
+    if (this.pos === 1) {
+      this.pos = this.expression.length;
+    }
+    return true;
+  }
+  return false;
+};
+TokenStream.prototype.isRadixInteger = function() {
+  var pos = this.pos;
+  if (pos >= this.expression.length - 2 || this.expression.charAt(pos) !== "0") {
+    return false;
+  }
+  ++pos;
+  var radix;
+  var validDigit;
+  if (this.expression.charAt(pos) === "x") {
+    radix = 16;
+    validDigit = /^[0-9a-f]$/i;
+    ++pos;
+  } else if (this.expression.charAt(pos) === "b") {
+    radix = 2;
+    validDigit = /^[01]$/i;
+    ++pos;
+  } else {
+    return false;
+  }
+  var valid = false;
+  var startPos = pos;
+  while (pos < this.expression.length) {
+    var c = this.expression.charAt(pos);
+    if (validDigit.test(c)) {
+      pos++;
+      valid = true;
+    } else {
+      break;
+    }
+  }
+  if (valid) {
+    this.current = this.newToken(TNUMBER, parseInt(this.expression.substring(startPos, pos), radix));
+    this.pos = pos;
+  }
+  return valid;
+};
+TokenStream.prototype.isNumber = function() {
+  var valid = false;
+  var pos = this.pos;
+  var startPos = pos;
+  var resetPos = pos;
+  var foundDot = false;
+  var foundDigits = false;
+  var c;
+  while (pos < this.expression.length) {
+    c = this.expression.charAt(pos);
+    if (c >= "0" && c <= "9" || !foundDot && c === ".") {
+      if (c === ".") {
+        foundDot = true;
+      } else {
+        foundDigits = true;
+      }
+      pos++;
+      valid = foundDigits;
+    } else {
+      break;
+    }
+  }
+  if (valid) {
+    resetPos = pos;
+  }
+  if (c === "e" || c === "E") {
+    pos++;
+    var acceptSign = true;
+    var validExponent = false;
+    while (pos < this.expression.length) {
+      c = this.expression.charAt(pos);
+      if (acceptSign && (c === "+" || c === "-")) {
+        acceptSign = false;
+      } else if (c >= "0" && c <= "9") {
+        validExponent = true;
+        acceptSign = false;
+      } else {
+        break;
+      }
+      pos++;
+    }
+    if (!validExponent) {
+      pos = resetPos;
+    }
+  }
+  if (valid) {
+    this.current = this.newToken(TNUMBER, parseFloat(this.expression.substring(startPos, pos)));
+    this.pos = pos;
+  } else {
+    this.pos = resetPos;
+  }
+  return valid;
+};
+TokenStream.prototype.isOperator = function() {
+  var startPos = this.pos;
+  var c = this.expression.charAt(this.pos);
+  if (c === "+" || c === "-" || c === "*" || c === "/" || c === "%" || c === "^" || c === "?" || c === ":" || c === ".") {
+    this.current = this.newToken(TOP, c);
+  } else if (c === "\u2219" || c === "\u2022") {
+    this.current = this.newToken(TOP, "*");
+  } else if (c === ">") {
+    if (this.expression.charAt(this.pos + 1) === "=") {
+      this.current = this.newToken(TOP, ">=");
+      this.pos++;
+    } else {
+      this.current = this.newToken(TOP, ">");
+    }
+  } else if (c === "<") {
+    if (this.expression.charAt(this.pos + 1) === "=") {
+      this.current = this.newToken(TOP, "<=");
+      this.pos++;
+    } else {
+      this.current = this.newToken(TOP, "<");
+    }
+  } else if (c === "|") {
+    if (this.expression.charAt(this.pos + 1) === "|") {
+      this.current = this.newToken(TOP, "||");
+      this.pos++;
+    } else {
+      return false;
+    }
+  } else if (c === "=") {
+    if (this.expression.charAt(this.pos + 1) === "=") {
+      this.current = this.newToken(TOP, "==");
+      this.pos++;
+    } else {
+      this.current = this.newToken(TOP, c);
+    }
+  } else if (c === "!") {
+    if (this.expression.charAt(this.pos + 1) === "=") {
+      this.current = this.newToken(TOP, "!=");
+      this.pos++;
+    } else {
+      this.current = this.newToken(TOP, c);
+    }
+  } else {
+    return false;
+  }
+  this.pos++;
+  if (this.isOperatorEnabled(this.current.value)) {
+    return true;
+  } else {
+    this.pos = startPos;
+    return false;
+  }
+};
+TokenStream.prototype.isOperatorEnabled = function(op) {
+  return this.parser.isOperatorEnabled(op);
+};
+TokenStream.prototype.getCoordinates = function() {
+  var line = 0;
+  var column;
+  var newline = -1;
+  do {
+    line++;
+    column = this.pos - newline;
+    newline = this.expression.indexOf("\n", newline + 1);
+  } while (newline >= 0 && newline < this.pos);
+  return {
+    line,
+    column
+  };
+};
+TokenStream.prototype.parseError = function(msg) {
+  var coords = this.getCoordinates();
+  throw new Error("parse error [" + coords.line + ":" + coords.column + "]: " + msg);
+};
+function ParserState(parser, tokenStream, options) {
+  this.parser = parser;
+  this.tokens = tokenStream;
+  this.current = null;
+  this.nextToken = null;
+  this.next();
+  this.savedCurrent = null;
+  this.savedNextToken = null;
+  this.allowMemberAccess = options.allowMemberAccess !== false;
+}
+ParserState.prototype.next = function() {
+  this.current = this.nextToken;
+  return this.nextToken = this.tokens.next();
+};
+ParserState.prototype.tokenMatches = function(token, value) {
+  if (typeof value === "undefined") {
+    return true;
+  } else if (Array.isArray(value)) {
+    return contains(value, token.value);
+  } else if (typeof value === "function") {
+    return value(token);
+  } else {
+    return token.value === value;
+  }
+};
+ParserState.prototype.save = function() {
+  this.savedCurrent = this.current;
+  this.savedNextToken = this.nextToken;
+  this.tokens.save();
+};
+ParserState.prototype.restore = function() {
+  this.tokens.restore();
+  this.current = this.savedCurrent;
+  this.nextToken = this.savedNextToken;
+};
+ParserState.prototype.accept = function(type, value) {
+  if (this.nextToken.type === type && this.tokenMatches(this.nextToken, value)) {
+    this.next();
+    return true;
+  }
+  return false;
+};
+ParserState.prototype.expect = function(type, value) {
+  if (!this.accept(type, value)) {
+    var coords = this.tokens.getCoordinates();
+    throw new Error("parse error [" + coords.line + ":" + coords.column + "]: Expected " + (value || type));
+  }
+};
+ParserState.prototype.parseAtom = function(instr) {
+  var unaryOps = this.tokens.unaryOps;
+  function isPrefixOperator(token) {
+    return token.value in unaryOps;
+  }
+  if (this.accept(TNAME) || this.accept(TOP, isPrefixOperator)) {
+    instr.push(new Instruction(IVAR, this.current.value));
+  } else if (this.accept(TNUMBER)) {
+    instr.push(new Instruction(INUMBER, this.current.value));
+  } else if (this.accept(TSTRING)) {
+    instr.push(new Instruction(INUMBER, this.current.value));
+  } else if (this.accept(TPAREN, "(")) {
+    this.parseExpression(instr);
+    this.expect(TPAREN, ")");
+  } else if (this.accept(TBRACKET, "[")) {
+    if (this.accept(TBRACKET, "]")) {
+      instr.push(new Instruction(IARRAY, 0));
+    } else {
+      var argCount = this.parseArrayList(instr);
+      instr.push(new Instruction(IARRAY, argCount));
+    }
+  } else {
+    throw new Error("unexpected " + this.nextToken);
+  }
+};
+ParserState.prototype.parseExpression = function(instr) {
+  var exprInstr = [];
+  if (this.parseUntilEndStatement(instr, exprInstr)) {
+    return;
+  }
+  this.parseVariableAssignmentExpression(exprInstr);
+  if (this.parseUntilEndStatement(instr, exprInstr)) {
+    return;
+  }
+  this.pushExpression(instr, exprInstr);
+};
+ParserState.prototype.pushExpression = function(instr, exprInstr) {
+  for (var i = 0, len = exprInstr.length; i < len; i++) {
+    instr.push(exprInstr[i]);
+  }
+};
+ParserState.prototype.parseUntilEndStatement = function(instr, exprInstr) {
+  if (!this.accept(TSEMICOLON))
+    return false;
+  if (this.nextToken && this.nextToken.type !== TEOF && !(this.nextToken.type === TPAREN && this.nextToken.value === ")")) {
+    exprInstr.push(new Instruction(IENDSTATEMENT));
+  }
+  if (this.nextToken.type !== TEOF) {
+    this.parseExpression(exprInstr);
+  }
+  instr.push(new Instruction(IEXPR, exprInstr));
+  return true;
+};
+ParserState.prototype.parseArrayList = function(instr) {
+  var argCount = 0;
+  while (!this.accept(TBRACKET, "]")) {
+    this.parseExpression(instr);
+    ++argCount;
+    while (this.accept(TCOMMA)) {
+      this.parseExpression(instr);
+      ++argCount;
+    }
+  }
+  return argCount;
+};
+ParserState.prototype.parseVariableAssignmentExpression = function(instr) {
+  this.parseConditionalExpression(instr);
+  while (this.accept(TOP, "=")) {
+    var varName = instr.pop();
+    var varValue = [];
+    var lastInstrIndex = instr.length - 1;
+    if (varName.type === IFUNCALL) {
+      if (!this.tokens.isOperatorEnabled("()=")) {
+        throw new Error("function definition is not permitted");
+      }
+      for (var i = 0, len = varName.value + 1; i < len; i++) {
+        var index = lastInstrIndex - i;
+        if (instr[index].type === IVAR) {
+          instr[index] = new Instruction(IVARNAME, instr[index].value);
+        }
+      }
+      this.parseVariableAssignmentExpression(varValue);
+      instr.push(new Instruction(IEXPR, varValue));
+      instr.push(new Instruction(IFUNDEF, varName.value));
+      continue;
+    }
+    if (varName.type !== IVAR && varName.type !== IMEMBER) {
+      throw new Error("expected variable for assignment");
+    }
+    this.parseVariableAssignmentExpression(varValue);
+    instr.push(new Instruction(IVARNAME, varName.value));
+    instr.push(new Instruction(IEXPR, varValue));
+    instr.push(binaryInstruction("="));
+  }
+};
+ParserState.prototype.parseConditionalExpression = function(instr) {
+  this.parseOrExpression(instr);
+  while (this.accept(TOP, "?")) {
+    var trueBranch = [];
+    var falseBranch = [];
+    this.parseConditionalExpression(trueBranch);
+    this.expect(TOP, ":");
+    this.parseConditionalExpression(falseBranch);
+    instr.push(new Instruction(IEXPR, trueBranch));
+    instr.push(new Instruction(IEXPR, falseBranch));
+    instr.push(ternaryInstruction("?"));
+  }
+};
+ParserState.prototype.parseOrExpression = function(instr) {
+  this.parseAndExpression(instr);
+  while (this.accept(TOP, "or")) {
+    var falseBranch = [];
+    this.parseAndExpression(falseBranch);
+    instr.push(new Instruction(IEXPR, falseBranch));
+    instr.push(binaryInstruction("or"));
+  }
+};
+ParserState.prototype.parseAndExpression = function(instr) {
+  this.parseComparison(instr);
+  while (this.accept(TOP, "and")) {
+    var trueBranch = [];
+    this.parseComparison(trueBranch);
+    instr.push(new Instruction(IEXPR, trueBranch));
+    instr.push(binaryInstruction("and"));
+  }
+};
+var COMPARISON_OPERATORS = ["==", "!=", "<", "<=", ">=", ">", "in"];
+ParserState.prototype.parseComparison = function(instr) {
+  this.parseAddSub(instr);
+  while (this.accept(TOP, COMPARISON_OPERATORS)) {
+    var op = this.current;
+    this.parseAddSub(instr);
+    instr.push(binaryInstruction(op.value));
+  }
+};
+var ADD_SUB_OPERATORS = ["+", "-", "||"];
+ParserState.prototype.parseAddSub = function(instr) {
+  this.parseTerm(instr);
+  while (this.accept(TOP, ADD_SUB_OPERATORS)) {
+    var op = this.current;
+    this.parseTerm(instr);
+    instr.push(binaryInstruction(op.value));
+  }
+};
+var TERM_OPERATORS = ["*", "/", "%"];
+ParserState.prototype.parseTerm = function(instr) {
+  this.parseFactor(instr);
+  while (this.accept(TOP, TERM_OPERATORS)) {
+    var op = this.current;
+    this.parseFactor(instr);
+    instr.push(binaryInstruction(op.value));
+  }
+};
+ParserState.prototype.parseFactor = function(instr) {
+  var unaryOps = this.tokens.unaryOps;
+  function isPrefixOperator(token) {
+    return token.value in unaryOps;
+  }
+  this.save();
+  if (this.accept(TOP, isPrefixOperator)) {
+    if (this.current.value !== "-" && this.current.value !== "+") {
+      if (this.nextToken.type === TPAREN && this.nextToken.value === "(") {
+        this.restore();
+        this.parseExponential(instr);
+        return;
+      } else if (this.nextToken.type === TSEMICOLON || this.nextToken.type === TCOMMA || this.nextToken.type === TEOF || this.nextToken.type === TPAREN && this.nextToken.value === ")") {
+        this.restore();
+        this.parseAtom(instr);
+        return;
+      }
+    }
+    var op = this.current;
+    this.parseFactor(instr);
+    instr.push(unaryInstruction(op.value));
+  } else {
+    this.parseExponential(instr);
+  }
+};
+ParserState.prototype.parseExponential = function(instr) {
+  this.parsePostfixExpression(instr);
+  while (this.accept(TOP, "^")) {
+    this.parseFactor(instr);
+    instr.push(binaryInstruction("^"));
+  }
+};
+ParserState.prototype.parsePostfixExpression = function(instr) {
+  this.parseFunctionCall(instr);
+  while (this.accept(TOP, "!")) {
+    instr.push(unaryInstruction("!"));
+  }
+};
+ParserState.prototype.parseFunctionCall = function(instr) {
+  var unaryOps = this.tokens.unaryOps;
+  function isPrefixOperator(token) {
+    return token.value in unaryOps;
+  }
+  if (this.accept(TOP, isPrefixOperator)) {
+    var op = this.current;
+    this.parseAtom(instr);
+    instr.push(unaryInstruction(op.value));
+  } else {
+    this.parseMemberExpression(instr);
+    while (this.accept(TPAREN, "(")) {
+      if (this.accept(TPAREN, ")")) {
+        instr.push(new Instruction(IFUNCALL, 0));
+      } else {
+        var argCount = this.parseArgumentList(instr);
+        instr.push(new Instruction(IFUNCALL, argCount));
+      }
+    }
+  }
+};
+ParserState.prototype.parseArgumentList = function(instr) {
+  var argCount = 0;
+  while (!this.accept(TPAREN, ")")) {
+    this.parseExpression(instr);
+    ++argCount;
+    while (this.accept(TCOMMA)) {
+      this.parseExpression(instr);
+      ++argCount;
+    }
+  }
+  return argCount;
+};
+ParserState.prototype.parseMemberExpression = function(instr) {
+  this.parseAtom(instr);
+  while (this.accept(TOP, ".") || this.accept(TBRACKET, "[")) {
+    var op = this.current;
+    if (op.value === ".") {
+      if (!this.allowMemberAccess) {
+        throw new Error('unexpected ".", member access is not permitted');
+      }
+      this.expect(TNAME);
+      instr.push(new Instruction(IMEMBER, this.current.value));
+    } else if (op.value === "[") {
+      if (!this.tokens.isOperatorEnabled("[")) {
+        throw new Error('unexpected "[]", arrays are disabled');
+      }
+      this.parseExpression(instr);
+      this.expect(TBRACKET, "]");
+      instr.push(binaryInstruction("["));
+    } else {
+      throw new Error("unexpected symbol: " + op.value);
+    }
+  }
+};
+function add(a, b) {
+  return Number(a) + Number(b);
+}
+function sub(a, b) {
+  return a - b;
+}
+function mul(a, b) {
+  return a * b;
+}
+function div(a, b) {
+  return a / b;
+}
+function mod(a, b) {
+  return a % b;
+}
+function concat(a, b) {
+  if (Array.isArray(a) && Array.isArray(b)) {
+    return a.concat(b);
+  }
+  return "" + a + b;
+}
+function equal(a, b) {
+  return a === b;
+}
+function notEqual(a, b) {
+  return a !== b;
+}
+function greaterThan(a, b) {
+  return a > b;
+}
+function lessThan(a, b) {
+  return a < b;
+}
+function greaterThanEqual(a, b) {
+  return a >= b;
+}
+function lessThanEqual(a, b) {
+  return a <= b;
+}
+function andOperator(a, b) {
+  return Boolean(a && b);
+}
+function orOperator(a, b) {
+  return Boolean(a || b);
+}
+function inOperator(a, b) {
+  return contains(b, a);
+}
+function sinh(a) {
+  return (Math.exp(a) - Math.exp(-a)) / 2;
+}
+function cosh(a) {
+  return (Math.exp(a) + Math.exp(-a)) / 2;
+}
+function tanh(a) {
+  if (a === Infinity)
+    return 1;
+  if (a === -Infinity)
+    return -1;
+  return (Math.exp(a) - Math.exp(-a)) / (Math.exp(a) + Math.exp(-a));
+}
+function asinh(a) {
+  if (a === -Infinity)
+    return a;
+  return Math.log(a + Math.sqrt(a * a + 1));
+}
+function acosh(a) {
+  return Math.log(a + Math.sqrt(a * a - 1));
+}
+function atanh(a) {
+  return Math.log((1 + a) / (1 - a)) / 2;
+}
+function log10(a) {
+  return Math.log(a) * Math.LOG10E;
+}
+function neg(a) {
+  return -a;
+}
+function not(a) {
+  return !a;
+}
+function trunc(a) {
+  return a < 0 ? Math.ceil(a) : Math.floor(a);
+}
+function random(a) {
+  return Math.random() * (a || 1);
+}
+function factorial(a) {
+  return gamma(a + 1);
+}
+function isInteger(value) {
+  return isFinite(value) && value === Math.round(value);
+}
+var GAMMA_G = 4.7421875;
+var GAMMA_P = [
+  0.9999999999999971,
+  57.15623566586292,
+  -59.59796035547549,
+  14.136097974741746,
+  -0.4919138160976202,
+  3399464998481189e-20,
+  4652362892704858e-20,
+  -9837447530487956e-20,
+  1580887032249125e-19,
+  -21026444172410488e-20,
+  21743961811521265e-20,
+  -1643181065367639e-19,
+  8441822398385275e-20,
+  -26190838401581408e-21,
+  36899182659531625e-22
+];
+function gamma(n) {
+  var t, x;
+  if (isInteger(n)) {
+    if (n <= 0) {
+      return isFinite(n) ? Infinity : NaN;
+    }
+    if (n > 171) {
+      return Infinity;
+    }
+    var value = n - 2;
+    var res = n - 1;
+    while (value > 1) {
+      res *= value;
+      value--;
+    }
+    if (res === 0) {
+      res = 1;
+    }
+    return res;
+  }
+  if (n < 0.5) {
+    return Math.PI / (Math.sin(Math.PI * n) * gamma(1 - n));
+  }
+  if (n >= 171.35) {
+    return Infinity;
+  }
+  if (n > 85) {
+    var twoN = n * n;
+    var threeN = twoN * n;
+    var fourN = threeN * n;
+    var fiveN = fourN * n;
+    return Math.sqrt(2 * Math.PI / n) * Math.pow(n / Math.E, n) * (1 + 1 / (12 * n) + 1 / (288 * twoN) - 139 / (51840 * threeN) - 571 / (2488320 * fourN) + 163879 / (209018880 * fiveN) + 5246819 / (75246796800 * fiveN * n));
+  }
+  --n;
+  x = GAMMA_P[0];
+  for (var i = 1; i < GAMMA_P.length; ++i) {
+    x += GAMMA_P[i] / (n + i);
+  }
+  t = n + GAMMA_G + 0.5;
+  return Math.sqrt(2 * Math.PI) * Math.pow(t, n + 0.5) * Math.exp(-t) * x;
+}
+function stringOrArrayLength(s) {
+  if (Array.isArray(s)) {
+    return s.length;
+  }
+  return String(s).length;
+}
+function hypot() {
+  var sum = 0;
+  var larg = 0;
+  for (var i = 0; i < arguments.length; i++) {
+    var arg = Math.abs(arguments[i]);
+    var div2;
+    if (larg < arg) {
+      div2 = larg / arg;
+      sum = sum * div2 * div2 + 1;
+      larg = arg;
+    } else if (arg > 0) {
+      div2 = arg / larg;
+      sum += div2 * div2;
+    } else {
+      sum += arg;
+    }
+  }
+  return larg === Infinity ? Infinity : larg * Math.sqrt(sum);
+}
+function condition(cond, yep, nope) {
+  return cond ? yep : nope;
+}
+function roundTo(value, exp) {
+  if (typeof exp === "undefined" || +exp === 0) {
+    return Math.round(value);
+  }
+  value = +value;
+  exp = -+exp;
+  if (isNaN(value) || !(typeof exp === "number" && exp % 1 === 0)) {
+    return NaN;
+  }
+  value = value.toString().split("e");
+  value = Math.round(+(value[0] + "e" + (value[1] ? +value[1] - exp : -exp)));
+  value = value.toString().split("e");
+  return +(value[0] + "e" + (value[1] ? +value[1] + exp : exp));
+}
+function setVar(name, value, variables) {
+  if (variables)
+    variables[name] = value;
+  return value;
+}
+function arrayIndex(array, index) {
+  return array[index | 0];
+}
+function max(array) {
+  if (arguments.length === 1 && Array.isArray(array)) {
+    return Math.max.apply(Math, array);
+  } else {
+    return Math.max.apply(Math, arguments);
+  }
+}
+function min(array) {
+  if (arguments.length === 1 && Array.isArray(array)) {
+    return Math.min.apply(Math, array);
+  } else {
+    return Math.min.apply(Math, arguments);
+  }
+}
+function arrayMap(f, a) {
+  if (typeof f !== "function") {
+    throw new Error("First argument to map is not a function");
+  }
+  if (!Array.isArray(a)) {
+    throw new Error("Second argument to map is not an array");
+  }
+  return a.map(function(x, i) {
+    return f(x, i);
+  });
+}
+function arrayFold(f, init2, a) {
+  if (typeof f !== "function") {
+    throw new Error("First argument to fold is not a function");
+  }
+  if (!Array.isArray(a)) {
+    throw new Error("Second argument to fold is not an array");
+  }
+  return a.reduce(function(acc, x, i) {
+    return f(acc, x, i);
+  }, init2);
+}
+function arrayFilter(f, a) {
+  if (typeof f !== "function") {
+    throw new Error("First argument to filter is not a function");
+  }
+  if (!Array.isArray(a)) {
+    throw new Error("Second argument to filter is not an array");
+  }
+  return a.filter(function(x, i) {
+    return f(x, i);
+  });
+}
+function stringOrArrayIndexOf(target, s) {
+  if (!(Array.isArray(s) || typeof s === "string")) {
+    throw new Error("Second argument to indexOf is not a string or array");
+  }
+  return s.indexOf(target);
+}
+function arrayJoin(sep, a) {
+  if (!Array.isArray(a)) {
+    throw new Error("Second argument to join is not an array");
+  }
+  return a.join(sep);
+}
+function sign(x) {
+  return (x > 0) - (x < 0) || +x;
+}
+var ONE_THIRD = 1 / 3;
+function cbrt(x) {
+  return x < 0 ? -Math.pow(-x, ONE_THIRD) : Math.pow(x, ONE_THIRD);
+}
+function expm1(x) {
+  return Math.exp(x) - 1;
+}
+function log1p(x) {
+  return Math.log(1 + x);
+}
+function log2(x) {
+  return Math.log(x) / Math.LN2;
+}
+function Parser(options) {
+  this.options = options || {};
+  this.unaryOps = {
+    sin: Math.sin,
+    cos: Math.cos,
+    tan: Math.tan,
+    asin: Math.asin,
+    acos: Math.acos,
+    atan: Math.atan,
+    sinh: Math.sinh || sinh,
+    cosh: Math.cosh || cosh,
+    tanh: Math.tanh || tanh,
+    asinh: Math.asinh || asinh,
+    acosh: Math.acosh || acosh,
+    atanh: Math.atanh || atanh,
+    sqrt: Math.sqrt,
+    cbrt: Math.cbrt || cbrt,
+    log: Math.log,
+    log2: Math.log2 || log2,
+    ln: Math.log,
+    lg: Math.log10 || log10,
+    log10: Math.log10 || log10,
+    expm1: Math.expm1 || expm1,
+    log1p: Math.log1p || log1p,
+    abs: Math.abs,
+    ceil: Math.ceil,
+    floor: Math.floor,
+    round: Math.round,
+    trunc: Math.trunc || trunc,
+    "-": neg,
+    "+": Number,
+    exp: Math.exp,
+    not,
+    length: stringOrArrayLength,
+    "!": factorial,
+    sign: Math.sign || sign
+  };
+  this.binaryOps = {
+    "+": add,
+    "-": sub,
+    "*": mul,
+    "/": div,
+    "%": mod,
+    "^": Math.pow,
+    "||": concat,
+    "==": equal,
+    "!=": notEqual,
+    ">": greaterThan,
+    "<": lessThan,
+    ">=": greaterThanEqual,
+    "<=": lessThanEqual,
+    and: andOperator,
+    or: orOperator,
+    "in": inOperator,
+    "=": setVar,
+    "[": arrayIndex
+  };
+  this.ternaryOps = {
+    "?": condition
+  };
+  this.functions = {
+    random,
+    fac: factorial,
+    min,
+    max,
+    hypot: Math.hypot || hypot,
+    pyt: Math.hypot || hypot,
+    // backward compat
+    pow: Math.pow,
+    atan2: Math.atan2,
+    "if": condition,
+    gamma,
+    roundTo,
+    map: arrayMap,
+    fold: arrayFold,
+    filter: arrayFilter,
+    indexOf: stringOrArrayIndexOf,
+    join: arrayJoin
+  };
+  this.consts = {
+    E: Math.E,
+    PI: Math.PI,
+    "true": true,
+    "false": false
+  };
+}
+Parser.prototype.parse = function(expr) {
+  var instr = [];
+  var parserState = new ParserState(
+    this,
+    new TokenStream(this, expr),
+    { allowMemberAccess: this.options.allowMemberAccess }
+  );
+  parserState.parseExpression(instr);
+  parserState.expect(TEOF, "EOF");
+  return new Expression(instr, this);
+};
+Parser.prototype.evaluate = function(expr, variables) {
+  return this.parse(expr).evaluate(variables);
+};
+var sharedParser = new Parser();
+Parser.parse = function(expr) {
+  return sharedParser.parse(expr);
+};
+Parser.evaluate = function(expr, variables) {
+  return sharedParser.parse(expr).evaluate(variables);
+};
+var optionNameMap = {
+  "+": "add",
+  "-": "subtract",
+  "*": "multiply",
+  "/": "divide",
+  "%": "remainder",
+  "^": "power",
+  "!": "factorial",
+  "<": "comparison",
+  ">": "comparison",
+  "<=": "comparison",
+  ">=": "comparison",
+  "==": "comparison",
+  "!=": "comparison",
+  "||": "concatenate",
+  "and": "logical",
+  "or": "logical",
+  "not": "logical",
+  "?": "conditional",
+  ":": "conditional",
+  "=": "assignment",
+  "[": "array",
+  "()=": "fndef"
+};
+function getOptionName(op) {
+  return optionNameMap.hasOwnProperty(op) ? optionNameMap[op] : op;
+}
+Parser.prototype.isOperatorEnabled = function(op) {
+  var optionName = getOptionName(op);
+  var operators = this.options.operators || {};
+  return !(optionName in operators) || !!operators[optionName];
+};
+
 // src/stores/data.ts
 var projectsStore = writable([]);
 var tasksStore = writable([]);
@@ -1162,12 +2775,13 @@ var FileManager = class {
             for (const schema of this.plugin.settings.taskSchema) {
               if (schema.type === "formula" && schema.expression) {
                 try {
-                  const prop = (propName) => {
-                    const s = this.plugin.settings.taskSchema.find((x) => x.name === propName);
-                    return s ? props[s.id] : void 0;
-                  };
-                  const evaluator = new Function("prop", `return ${schema.expression}`);
-                  props[schema.id] = evaluator(prop);
+                  const scope = {};
+                  for (const s of this.plugin.settings.taskSchema) {
+                    if (s.name && props[s.id] !== void 0) {
+                      scope[s.name] = props[s.id];
+                    }
+                  }
+                  props[schema.id] = Parser.evaluate(schema.expression || "", scope);
                 } catch (e) {
                   props[schema.id] = "Error";
                 }
@@ -1758,8 +3372,8 @@ var QuickEditTaskModal = class extends import_obsidian2.Modal {
           };
           renderRelation();
         } else if (schema.type === "formula" || schema.type === "rollup") {
-          const div = row.createEl("div", { cls: "pos-modal-input", attr: { style: "background: transparent; border: none; padding-left: 0;" } });
-          div.setText(String(initialValue !== void 0 && initialValue !== null ? initialValue : "\u2014"));
+          const div2 = row.createEl("div", { cls: "pos-modal-input", attr: { style: "background: transparent; border: none; padding-left: 0;" } });
+          div2.setText(String(initialValue !== void 0 && initialValue !== null ? initialValue : "\u2014"));
           customPropValues[schema.id] = initialValue;
         }
       });
@@ -1986,7 +3600,7 @@ function create_if_block_6(ctx) {
   };
 }
 function create_if_block_5(ctx) {
-  let div;
+  let div2;
   let t_value = (
     /*p*/
     ctx[29].description + ""
@@ -1994,13 +3608,13 @@ function create_if_block_5(ctx) {
   let t;
   return {
     c() {
-      div = element("div");
+      div2 = element("div");
       t = text(t_value);
-      attr(div, "class", "pos-card-desc");
+      attr(div2, "class", "pos-card-desc");
     },
     m(target, anchor) {
-      insert(target, div, anchor);
-      append(div, t);
+      insert(target, div2, anchor);
+      append(div2, t);
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*displayProjects*/
@@ -2010,7 +3624,7 @@ function create_if_block_5(ctx) {
     },
     d(detaching) {
       if (detaching) {
-        detach(div);
+        detach(div2);
       }
     }
   };
@@ -2839,13 +4453,13 @@ function instance($$self, $$props, $$invalidate) {
     ).open();
   }
   async function handleDeleteProject(id) {
-    if (confirm("Delete project and its Markdown file? Tasks remain but will be uncategorized.")) {
+    if (confirm("Delete project and ALL its child tasks? This will permanently delete the Markdown files of all tasks inside this project.")) {
       const file = app.vault.getAbstractFileByPath(`projects/${id}.md`) || app.vault.getAbstractFileByPath(`projects/${id}/index.md`);
       if (file) {
         await app.vault.delete(file);
         const linked = tasks.filter((t) => t.project === id);
         for (const t of linked) {
-          await fileManager.updateTask(t.id, { project: null });
+          await fileManager.deleteTask(t.id);
         }
         await fileManager.loadAll();
         new import_obsidian3.Notice("Project deleted.");
@@ -3029,26 +4643,26 @@ function get_each_context_5(ctx, list, i) {
   return child_ctx;
 }
 function create_if_block_15(ctx) {
-  let div;
+  let div2;
   return {
     c() {
-      div = element("div");
-      attr(div, "class", "pos-drag-placeholder");
+      div2 = element("div");
+      attr(div2, "class", "pos-drag-placeholder");
       set_style(
-        div,
+        div2,
         "height",
         /*dragHeight*/
         ctx[15] + "px"
       );
     },
     m(target, anchor) {
-      insert(target, div, anchor);
+      insert(target, div2, anchor);
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*dragHeight*/
       32768) {
         set_style(
-          div,
+          div2,
           "height",
           /*dragHeight*/
           ctx2[15] + "px"
@@ -3057,13 +4671,13 @@ function create_if_block_15(ctx) {
     },
     d(detaching) {
       if (detaching) {
-        detach(div);
+        detach(div2);
       }
     }
   };
 }
 function create_if_block_14(ctx) {
-  let div;
+  let div2;
   let t_value = (
     /*task*/
     ctx[77].description + ""
@@ -3071,13 +4685,13 @@ function create_if_block_14(ctx) {
   let t;
   return {
     c() {
-      div = element("div");
+      div2 = element("div");
       t = text(t_value);
-      attr(div, "class", "pos-card-desc");
+      attr(div2, "class", "pos-card-desc");
     },
     m(target, anchor) {
-      insert(target, div, anchor);
-      append(div, t);
+      insert(target, div2, anchor);
+      append(div2, t);
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*backlog*/
@@ -3087,13 +4701,13 @@ function create_if_block_14(ctx) {
     },
     d(detaching) {
       if (detaching) {
-        detach(div);
+        detach(div2);
       }
     }
   };
 }
 function create_if_block_13(ctx) {
-  let div;
+  let div2;
   let each_value_5 = ensure_array_like(
     /*getCustomProps*/
     ctx[19](
@@ -3107,17 +4721,17 @@ function create_if_block_13(ctx) {
   }
   return {
     c() {
-      div = element("div");
+      div2 = element("div");
       for (let i = 0; i < each_blocks.length; i += 1) {
         each_blocks[i].c();
       }
-      attr(div, "class", "pos-card-meta");
+      attr(div2, "class", "pos-card-meta");
     },
     m(target, anchor) {
-      insert(target, div, anchor);
+      insert(target, div2, anchor);
       for (let i = 0; i < each_blocks.length; i += 1) {
         if (each_blocks[i]) {
-          each_blocks[i].m(div, null);
+          each_blocks[i].m(div2, null);
         }
       }
     },
@@ -3139,7 +4753,7 @@ function create_if_block_13(ctx) {
           } else {
             each_blocks[i] = create_each_block_5(child_ctx);
             each_blocks[i].c();
-            each_blocks[i].m(div, null);
+            each_blocks[i].m(div2, null);
           }
         }
         for (; i < each_blocks.length; i += 1) {
@@ -3150,7 +4764,7 @@ function create_if_block_13(ctx) {
     },
     d(detaching) {
       if (detaching) {
-        detach(div);
+        detach(div2);
       }
       destroy_each(each_blocks, detaching);
     }
@@ -3428,26 +5042,26 @@ function create_each_block_4(key_1, ctx) {
   };
 }
 function create_if_block_12(ctx) {
-  let div;
+  let div2;
   return {
     c() {
-      div = element("div");
-      attr(div, "class", "pos-drag-placeholder");
+      div2 = element("div");
+      attr(div2, "class", "pos-drag-placeholder");
       set_style(
-        div,
+        div2,
         "height",
         /*dragHeight*/
         ctx[15] + "px"
       );
     },
     m(target, anchor) {
-      insert(target, div, anchor);
+      insert(target, div2, anchor);
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*dragHeight*/
       32768) {
         set_style(
-          div,
+          div2,
           "height",
           /*dragHeight*/
           ctx2[15] + "px"
@@ -3456,32 +5070,32 @@ function create_if_block_12(ctx) {
     },
     d(detaching) {
       if (detaching) {
-        detach(div);
+        detach(div2);
       }
     }
   };
 }
 function create_if_block_11(ctx) {
-  let div;
+  let div2;
   return {
     c() {
-      div = element("div");
-      attr(div, "class", "pos-drag-placeholder");
+      div2 = element("div");
+      attr(div2, "class", "pos-drag-placeholder");
       set_style(
-        div,
+        div2,
         "height",
         /*dragHeight*/
         ctx[15] + "px"
       );
     },
     m(target, anchor) {
-      insert(target, div, anchor);
+      insert(target, div2, anchor);
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*dragHeight*/
       32768) {
         set_style(
-          div,
+          div2,
           "height",
           /*dragHeight*/
           ctx2[15] + "px"
@@ -3490,13 +5104,13 @@ function create_if_block_11(ctx) {
     },
     d(detaching) {
       if (detaching) {
-        detach(div);
+        detach(div2);
       }
     }
   };
 }
 function create_if_block_10(ctx) {
-  let div;
+  let div2;
   let t_value = (
     /*task*/
     ctx[77].description + ""
@@ -3504,13 +5118,13 @@ function create_if_block_10(ctx) {
   let t;
   return {
     c() {
-      div = element("div");
+      div2 = element("div");
       t = text(t_value);
-      attr(div, "class", "pos-card-desc");
+      attr(div2, "class", "pos-card-desc");
     },
     m(target, anchor) {
-      insert(target, div, anchor);
-      append(div, t);
+      insert(target, div2, anchor);
+      append(div2, t);
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*running*/
@@ -3520,7 +5134,7 @@ function create_if_block_10(ctx) {
     },
     d(detaching) {
       if (detaching) {
-        detach(div);
+        detach(div2);
       }
     }
   };
@@ -4230,26 +5844,26 @@ function create_each_block_2(key_1, ctx) {
   };
 }
 function create_if_block_52(ctx) {
-  let div;
+  let div2;
   return {
     c() {
-      div = element("div");
-      attr(div, "class", "pos-drag-placeholder");
+      div2 = element("div");
+      attr(div2, "class", "pos-drag-placeholder");
       set_style(
-        div,
+        div2,
         "height",
         /*dragHeight*/
         ctx[15] + "px"
       );
     },
     m(target, anchor) {
-      insert(target, div, anchor);
+      insert(target, div2, anchor);
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*dragHeight*/
       32768) {
         set_style(
-          div,
+          div2,
           "height",
           /*dragHeight*/
           ctx2[15] + "px"
@@ -4258,7 +5872,7 @@ function create_if_block_52(ctx) {
     },
     d(detaching) {
       if (detaching) {
-        detach(div);
+        detach(div2);
       }
     }
   };
@@ -4323,26 +5937,26 @@ function create_if_block_42(ctx) {
   };
 }
 function create_if_block_32(ctx) {
-  let div;
+  let div2;
   return {
     c() {
-      div = element("div");
-      attr(div, "class", "pos-drag-placeholder");
+      div2 = element("div");
+      attr(div2, "class", "pos-drag-placeholder");
       set_style(
-        div,
+        div2,
         "height",
         /*dragHeight*/
         ctx[15] + "px"
       );
     },
     m(target, anchor) {
-      insert(target, div, anchor);
+      insert(target, div2, anchor);
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*dragHeight*/
       32768) {
         set_style(
-          div,
+          div2,
           "height",
           /*dragHeight*/
           ctx2[15] + "px"
@@ -4351,13 +5965,13 @@ function create_if_block_32(ctx) {
     },
     d(detaching) {
       if (detaching) {
-        detach(div);
+        detach(div2);
       }
     }
   };
 }
 function create_if_block_22(ctx) {
-  let div;
+  let div2;
   let each_value_1 = ensure_array_like(
     /*getCustomProps*/
     ctx[19](
@@ -4371,17 +5985,17 @@ function create_if_block_22(ctx) {
   }
   return {
     c() {
-      div = element("div");
+      div2 = element("div");
       for (let i = 0; i < each_blocks.length; i += 1) {
         each_blocks[i].c();
       }
-      attr(div, "class", "pos-card-meta");
+      attr(div2, "class", "pos-card-meta");
     },
     m(target, anchor) {
-      insert(target, div, anchor);
+      insert(target, div2, anchor);
       for (let i = 0; i < each_blocks.length; i += 1) {
         if (each_blocks[i]) {
-          each_blocks[i].m(div, null);
+          each_blocks[i].m(div2, null);
         }
       }
     },
@@ -4403,7 +6017,7 @@ function create_if_block_22(ctx) {
           } else {
             each_blocks[i] = create_each_block_1(child_ctx);
             each_blocks[i].c();
-            each_blocks[i].m(div, null);
+            each_blocks[i].m(div2, null);
           }
         }
         for (; i < each_blocks.length; i += 1) {
@@ -4414,7 +6028,7 @@ function create_if_block_22(ctx) {
     },
     d(detaching) {
       if (detaching) {
-        detach(div);
+        detach(div2);
       }
       destroy_each(each_blocks, detaching);
     }
@@ -4664,26 +6278,26 @@ function create_each_block2(key_1, ctx) {
   };
 }
 function create_if_block_16(ctx) {
-  let div;
+  let div2;
   return {
     c() {
-      div = element("div");
-      attr(div, "class", "pos-drag-placeholder");
+      div2 = element("div");
+      attr(div2, "class", "pos-drag-placeholder");
       set_style(
-        div,
+        div2,
         "height",
         /*dragHeight*/
         ctx[15] + "px"
       );
     },
     m(target, anchor) {
-      insert(target, div, anchor);
+      insert(target, div2, anchor);
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*dragHeight*/
       32768) {
         set_style(
-          div,
+          div2,
           "height",
           /*dragHeight*/
           ctx2[15] + "px"
@@ -4692,13 +6306,13 @@ function create_if_block_16(ctx) {
     },
     d(detaching) {
       if (detaching) {
-        detach(div);
+        detach(div2);
       }
     }
   };
 }
 function create_if_block2(ctx) {
-  let div;
+  let div2;
   let button0;
   let t1;
   let button1;
@@ -4706,19 +6320,19 @@ function create_if_block2(ctx) {
   let dispose;
   return {
     c() {
-      div = element("div");
+      div2 = element("div");
       button0 = element("button");
       button0.textContent = "Restore All";
       t1 = space();
       button1 = element("button");
       button1.textContent = "Delete All";
-      attr(div, "class", "pos-bulk-row");
+      attr(div2, "class", "pos-bulk-row");
     },
     m(target, anchor) {
-      insert(target, div, anchor);
-      append(div, button0);
-      append(div, t1);
-      append(div, button1);
+      insert(target, div2, anchor);
+      append(div2, button0);
+      append(div2, t1);
+      append(div2, button1);
       if (!mounted) {
         dispose = [
           listen(
@@ -4740,7 +6354,7 @@ function create_if_block2(ctx) {
     p: noop,
     d(detaching) {
       if (detaching) {
-        detach(div);
+        detach(div2);
       }
       mounted = false;
       run_all(dispose);
@@ -6071,21 +7685,21 @@ function get_each_context_32(ctx, list, i) {
   return child_ctx;
 }
 function create_if_block_112(ctx) {
-  let div;
+  let div2;
   let button;
   let mounted;
   let dispose;
   return {
     c() {
-      div = element("div");
+      div2 = element("div");
       button = element("button");
       button.textContent = "Today";
       attr(button, "class", "pos-dl-nav-btn pos-dl-today-btn");
-      attr(div, "class", "pos-dl-cal-nav");
+      attr(div2, "class", "pos-dl-cal-nav");
     },
     m(target, anchor) {
-      insert(target, div, anchor);
-      append(div, button);
+      insert(target, div2, anchor);
+      append(div2, button);
       if (!mounted) {
         dispose = listen(
           button,
@@ -6099,7 +7713,7 @@ function create_if_block_112(ctx) {
     p: noop,
     d(detaching) {
       if (detaching) {
-        detach(div);
+        detach(div2);
       }
       mounted = false;
       dispose();
@@ -6107,7 +7721,7 @@ function create_if_block_112(ctx) {
   };
 }
 function create_if_block_102(ctx) {
-  let div;
+  let div2;
   let button0;
   let t1;
   let span;
@@ -6122,7 +7736,7 @@ function create_if_block_102(ctx) {
   let dispose;
   return {
     c() {
-      div = element("div");
+      div2 = element("div");
       button0 = element("button");
       button0.textContent = "\u2039";
       t1 = space();
@@ -6146,20 +7760,20 @@ function create_if_block_102(ctx) {
       attr(span, "class", "pos-dl-cal-label");
       attr(button1, "class", "pos-dl-nav-btn");
       attr(button2, "class", "pos-dl-nav-btn pos-dl-today-btn");
-      attr(div, "class", "pos-dl-cal-nav");
+      attr(div2, "class", "pos-dl-cal-nav");
     },
     m(target, anchor) {
-      insert(target, div, anchor);
-      append(div, button0);
-      append(div, t1);
-      append(div, span);
+      insert(target, div2, anchor);
+      append(div2, button0);
+      append(div2, t1);
+      append(div2, span);
       append(span, t2);
       append(span, t3);
       append(span, t4);
-      append(div, t5);
-      append(div, button1);
-      append(div, t7);
-      append(div, button2);
+      append(div2, t5);
+      append(div2, button1);
+      append(div2, t7);
+      append(div2, button2);
       if (!mounted) {
         dispose = [
           listen(
@@ -6202,7 +7816,7 @@ function create_if_block_102(ctx) {
     },
     d(detaching) {
       if (detaching) {
-        detach(div);
+        detach(div2);
       }
       mounted = false;
       run_all(dispose);
@@ -6210,7 +7824,7 @@ function create_if_block_102(ctx) {
   };
 }
 function create_else_block2(ctx) {
-  let div;
+  let div2;
   let each_value_7 = ensure_array_like(
     /*countdownGroups*/
     ctx[17]
@@ -6221,22 +7835,22 @@ function create_else_block2(ctx) {
   }
   return {
     c() {
-      div = element("div");
+      div2 = element("div");
       for (let i = 0; i < each_blocks.length; i += 1) {
         each_blocks[i].c();
       }
-      attr(div, "class", "pos-dl-countdown-list");
+      attr(div2, "class", "pos-dl-countdown-list");
     },
     m(target, anchor) {
-      insert(target, div, anchor);
+      insert(target, div2, anchor);
       for (let i = 0; i < each_blocks.length; i += 1) {
         if (each_blocks[i]) {
-          each_blocks[i].m(div, null);
+          each_blocks[i].m(div2, null);
         }
       }
     },
     p(ctx2, dirty) {
-      if (dirty[0] & /*countdownGroups, urgencyClass, now, openTaskEditor*/
+      if (dirty[0] & /*countdownGroups, getRuleColor, now, openTaskEditor*/
       541196290) {
         each_value_7 = ensure_array_like(
           /*countdownGroups*/
@@ -6250,7 +7864,7 @@ function create_else_block2(ctx) {
           } else {
             each_blocks[i] = create_each_block_7(child_ctx);
             each_blocks[i].c();
-            each_blocks[i].m(div, null);
+            each_blocks[i].m(div2, null);
           }
         }
         for (; i < each_blocks.length; i += 1) {
@@ -6261,7 +7875,7 @@ function create_else_block2(ctx) {
     },
     d(detaching) {
       if (detaching) {
-        detach(div);
+        detach(div2);
       }
       destroy_each(each_blocks, detaching);
     }
@@ -6376,7 +7990,7 @@ function create_if_block_23(ctx) {
         }
         each_blocks_1.length = each_value_6.length;
       }
-      if (dirty[0] & /*ganttZoom, gridRows, tasksByRow, urgencyClass, now, draggingTaskId, tempDragLeft, getGanttPixelOffsets, tempDragWidth, getHueForRemaining, ganttDragMode, tempDragTranslateY, hoverTaskId, hoverSide, todayColIndex*/
+      if (dirty[0] & /*ganttZoom, gridRows, tasksByRow, getRuleColor, now, draggingTaskId, tempDragLeft, getGanttPixelOffsets, tempDragWidth, getHueForRemaining, ganttDragMode, tempDragTranslateY, hoverTaskId, hoverSide, todayColIndex*/
       275905622 | dirty[1] & /*handleBarMouseMove, handleBarMouseLeave, onGanttMouseDown*/
       14) {
         each_value_4 = ensure_array_like(
@@ -6510,7 +8124,7 @@ function create_if_block_17(ctx) {
         }
         each_blocks_1.length = each_value_3.length;
       }
-      if (dirty[0] & /*gridWeeks, urgencyClass, openTaskEditor*/
+      if (dirty[0] & /*gridWeeks, getRuleColor, openTaskEditor*/
       541327360) {
         each_value = ensure_array_like(
           /*gridWeeks*/
@@ -6604,7 +8218,7 @@ function create_if_block_82(ctx) {
   };
 }
 function create_if_block_72(ctx) {
-  let div;
+  let div2;
   let each_value_9 = ensure_array_like(
     /*task*/
     ctx[93].tags
@@ -6615,19 +8229,19 @@ function create_if_block_72(ctx) {
   }
   return {
     c() {
-      div = element("div");
+      div2 = element("div");
       for (let i = 0; i < each_blocks.length; i += 1) {
         each_blocks[i].c();
       }
-      attr(div, "class", "pos-card-meta");
-      set_style(div, "margin-top", "4px");
-      set_style(div, "margin-bottom", "2px");
+      attr(div2, "class", "pos-card-meta");
+      set_style(div2, "margin-top", "4px");
+      set_style(div2, "margin-bottom", "2px");
     },
     m(target, anchor) {
-      insert(target, div, anchor);
+      insert(target, div2, anchor);
       for (let i = 0; i < each_blocks.length; i += 1) {
         if (each_blocks[i]) {
-          each_blocks[i].m(div, null);
+          each_blocks[i].m(div2, null);
         }
       }
     },
@@ -6646,7 +8260,7 @@ function create_if_block_72(ctx) {
           } else {
             each_blocks[i] = create_each_block_9(child_ctx);
             each_blocks[i].c();
-            each_blocks[i].m(div, null);
+            each_blocks[i].m(div2, null);
           }
         }
         for (; i < each_blocks.length; i += 1) {
@@ -6657,7 +8271,7 @@ function create_if_block_72(ctx) {
     },
     d(detaching) {
       if (detaching) {
-        detach(div);
+        detach(div2);
       }
       destroy_each(each_blocks, detaching);
     }
@@ -6724,9 +8338,7 @@ function create_each_block_8(key_1, ctx) {
   let t9;
   let div5;
   let div4;
-  let div4_class_value;
   let t10;
-  let div7_class_value;
   let mounted;
   let dispose;
   let if_block0 = (
@@ -6784,21 +8396,31 @@ function create_each_block_8(key_1, ctx) {
       attr(div1, "class", "pos-dl-cc-date");
       attr(div2, "class", "pos-dl-cc-info");
       attr(div3, "class", "pos-dl-cc-timer");
-      attr(div4, "class", div4_class_value = "pos-dl-cc-progress-fill " + /*urgencyClass*/
-      ctx[22](
-        /*diff*/
-        ctx[104]
-      ));
+      attr(div4, "class", "pos-dl-cc-progress-fill");
       set_style(
         div4,
         "width",
         /*progress*/
         ctx[107] * 100 + "%"
       );
+      set_style(
+        div4,
+        "background",
+        /*getRuleColor*/
+        ctx[22](
+          /*task*/
+          ctx[93],
+          /*diff*/
+          ctx[104]
+        )
+      );
       attr(div5, "class", "pos-dl-cc-progress-track");
       attr(div6, "class", "pos-dl-cc-right");
-      attr(div7, "class", div7_class_value = "pos-dl-countdown-card " + /*urgencyClass*/
+      attr(div7, "class", "pos-dl-countdown-card");
+      set_style(div7, "border-left", "4px solid " + /*getRuleColor*/
       ctx[22](
+        /*task*/
+        ctx[93],
         /*diff*/
         ctx[104]
       ));
@@ -6898,14 +8520,6 @@ function create_each_block_8(key_1, ctx) {
       ) + ""))
         set_data(t8, t8_value);
       if (dirty[0] & /*countdownGroups, now*/
-      131074 && div4_class_value !== (div4_class_value = "pos-dl-cc-progress-fill " + /*urgencyClass*/
-      ctx[22](
-        /*diff*/
-        ctx[104]
-      ))) {
-        attr(div4, "class", div4_class_value);
-      }
-      if (dirty[0] & /*countdownGroups, now*/
       131074) {
         set_style(
           div4,
@@ -6915,12 +8529,28 @@ function create_each_block_8(key_1, ctx) {
         );
       }
       if (dirty[0] & /*countdownGroups, now*/
-      131074 && div7_class_value !== (div7_class_value = "pos-dl-countdown-card " + /*urgencyClass*/
-      ctx[22](
-        /*diff*/
-        ctx[104]
-      ))) {
-        attr(div7, "class", div7_class_value);
+      131074) {
+        set_style(
+          div4,
+          "background",
+          /*getRuleColor*/
+          ctx[22](
+            /*task*/
+            ctx[93],
+            /*diff*/
+            ctx[104]
+          )
+        );
+      }
+      if (dirty[0] & /*countdownGroups, now*/
+      131074) {
+        set_style(div7, "border-left", "4px solid " + /*getRuleColor*/
+        ctx[22](
+          /*task*/
+          ctx[93],
+          /*diff*/
+          ctx[104]
+        ));
       }
     },
     d(detaching) {
@@ -6953,7 +8583,6 @@ function create_each_block_7(ctx) {
     ctx[101].tasks.length + ""
   );
   let t2;
-  let div0_class_value;
   let t3;
   let div1;
   let each_blocks = [];
@@ -6987,8 +8616,7 @@ function create_each_block_7(ctx) {
       }
       t4 = space();
       attr(span, "class", "pos-dl-group-count");
-      attr(div0, "class", div0_class_value = "pos-dl-group-header " + /*group*/
-      ctx[101].cls);
+      attr(div0, "class", "pos-dl-group-header");
       attr(div1, "class", "pos-dl-group-items");
       attr(div2, "class", "pos-dl-group");
     },
@@ -7017,12 +8645,7 @@ function create_each_block_7(ctx) {
       131072 && t2_value !== (t2_value = /*group*/
       ctx2[101].tasks.length + ""))
         set_data(t2, t2_value);
-      if (dirty[0] & /*countdownGroups*/
-      131072 && div0_class_value !== (div0_class_value = "pos-dl-group-header " + /*group*/
-      ctx2[101].cls)) {
-        attr(div0, "class", div0_class_value);
-      }
-      if (dirty[0] & /*urgencyClass, countdownGroups, now, openTaskEditor*/
+      if (dirty[0] & /*getRuleColor, countdownGroups, now, openTaskEditor*/
       541196290) {
         each_value_8 = ensure_array_like(
           /*group*/
@@ -7059,25 +8682,25 @@ function create_if_block_63(ctx) {
   };
 }
 function create_if_block_53(ctx) {
-  let div;
+  let div2;
   return {
     c() {
-      div = element("div");
-      div.innerHTML = `<span>12a</span><span>6a</span><span>12p</span><span>6p</span>`;
-      attr(div, "class", "pos-dl-gantt-hours");
+      div2 = element("div");
+      div2.innerHTML = `<span>12a</span><span>6a</span><span>12p</span><span>6p</span>`;
+      attr(div2, "class", "pos-dl-gantt-hours");
     },
     m(target, anchor) {
-      insert(target, div, anchor);
+      insert(target, div2, anchor);
     },
     d(detaching) {
       if (detaching) {
-        detach(div);
+        detach(div2);
       }
     }
   };
 }
 function create_each_block_6(ctx) {
-  let div;
+  let div2;
   let span0;
   let t0_value = (
     /*td*/
@@ -7104,7 +8727,7 @@ function create_each_block_6(ctx) {
   );
   return {
     c() {
-      div = element("div");
+      div2 = element("div");
       span0 = element("span");
       t0 = text(t0_value);
       t1 = space();
@@ -7119,46 +8742,46 @@ function create_each_block_6(ctx) {
       t5 = space();
       attr(span0, "class", "pos-dl-gd-day");
       attr(span1, "class", "pos-dl-gd-num");
-      attr(div, "class", "pos-dl-gantt-date");
+      attr(div2, "class", "pos-dl-gantt-date");
       toggle_class(
-        div,
+        div2,
         "today",
         /*td*/
         ctx[99].isToday
       );
       toggle_class(
-        div,
+        div2,
         "weekend",
         /*td*/
         ctx[99].isWeekend
       );
       toggle_class(
-        div,
+        div2,
         "is-monday",
         /*td*/
         ctx[99].isMonday
       );
       toggle_class(
-        div,
+        div2,
         "is-month-start",
         /*td*/
         ctx[99].isMonthStart
       );
     },
     m(target, anchor) {
-      insert(target, div, anchor);
-      append(div, span0);
+      insert(target, div2, anchor);
+      append(div2, span0);
       append(span0, t0);
-      append(div, t1);
-      append(div, span1);
+      append(div2, t1);
+      append(div2, span1);
       append(span1, t2);
-      append(div, t3);
+      append(div2, t3);
       if (if_block0)
-        if_block0.m(div, null);
-      append(div, t4);
+        if_block0.m(div2, null);
+      append(div2, t4);
       if (if_block1)
-        if_block1.m(div, null);
-      append(div, t5);
+        if_block1.m(div2, null);
+      append(div2, t5);
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*timelineDates*/
@@ -7177,7 +8800,7 @@ function create_each_block_6(ctx) {
         } else {
           if_block0 = create_if_block_63(ctx2);
           if_block0.c();
-          if_block0.m(div, t4);
+          if_block0.m(div2, t4);
         }
       } else if (if_block0) {
         if_block0.d(1);
@@ -7191,7 +8814,7 @@ function create_each_block_6(ctx) {
         } else {
           if_block1 = create_if_block_53(ctx2);
           if_block1.c();
-          if_block1.m(div, t5);
+          if_block1.m(div2, t5);
         }
       } else if (if_block1) {
         if_block1.d(1);
@@ -7200,7 +8823,7 @@ function create_each_block_6(ctx) {
       if (dirty[0] & /*timelineDates*/
       128) {
         toggle_class(
-          div,
+          div2,
           "today",
           /*td*/
           ctx2[99].isToday
@@ -7209,7 +8832,7 @@ function create_each_block_6(ctx) {
       if (dirty[0] & /*timelineDates*/
       128) {
         toggle_class(
-          div,
+          div2,
           "weekend",
           /*td*/
           ctx2[99].isWeekend
@@ -7218,7 +8841,7 @@ function create_each_block_6(ctx) {
       if (dirty[0] & /*timelineDates*/
       128) {
         toggle_class(
-          div,
+          div2,
           "is-monday",
           /*td*/
           ctx2[99].isMonday
@@ -7227,7 +8850,7 @@ function create_each_block_6(ctx) {
       if (dirty[0] & /*timelineDates*/
       128) {
         toggle_class(
-          div,
+          div2,
           "is-month-start",
           /*td*/
           ctx2[99].isMonthStart
@@ -7236,7 +8859,7 @@ function create_each_block_6(ctx) {
     },
     d(detaching) {
       if (detaching) {
-        detach(div);
+        detach(div2);
       }
       if (if_block0)
         if_block0.d();
@@ -7246,27 +8869,27 @@ function create_each_block_6(ctx) {
   };
 }
 function create_if_block_43(ctx) {
-  let div;
+  let div2;
   return {
     c() {
-      div = element("div");
-      attr(div, "class", "pos-dl-gantt-today-line");
-      set_style(div, "left", "calc(var(--gantt-col-width, 40px) * " + /*todayColIndex*/
+      div2 = element("div");
+      attr(div2, "class", "pos-dl-gantt-today-line");
+      set_style(div2, "left", "calc(var(--gantt-col-width, 40px) * " + /*todayColIndex*/
       ctx[6] + " + (var(--gantt-col-width, 40px) / 2))");
     },
     m(target, anchor) {
-      insert(target, div, anchor);
+      insert(target, div2, anchor);
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*todayColIndex*/
       64) {
-        set_style(div, "left", "calc(var(--gantt-col-width, 40px) * " + /*todayColIndex*/
+        set_style(div2, "left", "calc(var(--gantt-col-width, 40px) * " + /*todayColIndex*/
         ctx2[6] + " + (var(--gantt-col-width, 40px) / 2))");
       }
     },
     d(detaching) {
       if (detaching) {
-        detach(div);
+        detach(div2);
       }
     }
   };
@@ -7307,7 +8930,7 @@ function create_if_block_33(ctx) {
       insert(target, each_1_anchor, anchor);
     },
     p(ctx2, dirty) {
-      if (dirty[0] & /*urgencyClass, tasksByRow, gridRows, now, draggingTaskId, tempDragLeft, getGanttPixelOffsets, ganttZoom, tempDragWidth, getHueForRemaining, ganttDragMode, tempDragTranslateY, hoverTaskId, hoverSide*/
+      if (dirty[0] & /*getRuleColor, tasksByRow, gridRows, now, draggingTaskId, tempDragLeft, getGanttPixelOffsets, ganttZoom, tempDragWidth, getHueForRemaining, ganttDragMode, tempDragTranslateY, hoverTaskId, hoverSide*/
       275905558 | dirty[1] & /*handleBarMouseMove, handleBarMouseLeave, onGanttMouseDown*/
       14) {
         each_value_5 = ensure_array_like(
@@ -7331,7 +8954,7 @@ function create_if_block_33(ctx) {
   };
 }
 function create_each_block_52(key_1, ctx) {
-  let div;
+  let div2;
   let span;
   let t0_value = (
     /*task*/
@@ -7339,7 +8962,6 @@ function create_each_block_52(key_1, ctx) {
   );
   let t0;
   let t1;
-  let div_class_value;
   let div_title_value;
   let mounted;
   let dispose;
@@ -7367,18 +8989,36 @@ function create_each_block_52(key_1, ctx) {
     key: key_1,
     first: null,
     c() {
-      div = element("div");
+      div2 = element("div");
       span = element("span");
       t0 = text(t0_value);
       t1 = space();
       attr(span, "class", "pos-dl-gantt-bar-label");
-      attr(div, "class", div_class_value = "pos-dl-gantt-bar " + /*urgencyClass*/
-      ctx[22](
-        /*diffMs*/
-        ctx[95]
-      ));
+      attr(div2, "class", "pos-dl-gantt-bar");
       set_style(
-        div,
+        div2,
+        "background",
+        /*getRuleColor*/
+        ctx[22](
+          /*task*/
+          ctx[93],
+          /*diffMs*/
+          ctx[95]
+        )
+      );
+      set_style(
+        div2,
+        "border-color",
+        /*getRuleColor*/
+        ctx[22](
+          /*task*/
+          ctx[93],
+          /*diffMs*/
+          ctx[95]
+        )
+      );
+      set_style(
+        div2,
         "left",
         /*draggingTaskId*/
         (ctx[10] === /*task*/
@@ -7391,7 +9031,7 @@ function create_each_block_52(key_1, ctx) {
         )) + "px"
       );
       set_style(
-        div,
+        div2,
         "width",
         /*draggingTaskId*/
         (ctx[10] === /*task*/
@@ -7404,19 +9044,19 @@ function create_each_block_52(key_1, ctx) {
         )) + "px"
       );
       set_style(
-        div,
+        div2,
         "--bar-hue",
         /*hue*/
         ctx[96]
       );
-      set_style(div, "transform", "translateY(" + /*draggingTaskId*/
+      set_style(div2, "transform", "translateY(" + /*draggingTaskId*/
       (ctx[10] === /*task*/
       ctx[93].id && /*ganttDragMode*/
       ctx[11] === "move" ? (
         /*tempDragTranslateY*/
         ctx[14]
       ) : 0) + "px)");
-      attr(div, "title", div_title_value = /*task*/
+      attr(div2, "title", div_title_value = /*task*/
       (ctx[93].priority ? "P" + /*task*/
       ctx[93].priority + " - " : "") + /*task*/
       ctx[93].name + " " + /*task*/
@@ -7427,14 +9067,14 @@ function create_each_block_52(key_1, ctx) {
         ctx[95]
       ));
       toggle_class(
-        div,
+        div2,
         "dragging",
         /*draggingTaskId*/
         ctx[10] === /*task*/
         ctx[93].id
       );
       toggle_class(
-        div,
+        div2,
         "hover-left-half",
         /*hoverTaskId*/
         ctx[15] === /*task*/
@@ -7442,30 +9082,30 @@ function create_each_block_52(key_1, ctx) {
         ctx[16] === "left"
       );
       toggle_class(
-        div,
+        div2,
         "hover-right-half",
         /*hoverTaskId*/
         ctx[15] === /*task*/
         ctx[93].id && /*hoverSide*/
         ctx[16] === "right"
       );
-      this.first = div;
+      this.first = div2;
     },
     m(target, anchor) {
-      insert(target, div, anchor);
-      append(div, span);
+      insert(target, div2, anchor);
+      append(div2, span);
       append(span, t0);
-      append(div, t1);
+      append(div2, t1);
       if (!mounted) {
         dispose = [
-          listen(div, "mousemove", mousemove_handler),
+          listen(div2, "mousemove", mousemove_handler),
           listen(
-            div,
+            div2,
             "mouseleave",
             /*handleBarMouseLeave*/
             ctx[33]
           ),
-          listen(div, "mousedown", mousedown_handler)
+          listen(div2, "mousedown", mousedown_handler)
         ];
         mounted = true;
       }
@@ -7477,17 +9117,37 @@ function create_each_block_52(key_1, ctx) {
       ctx[93].name + ""))
         set_data(t0, t0_value);
       if (dirty[0] & /*tasksByRow, gridRows, now*/
-      1048594 && div_class_value !== (div_class_value = "pos-dl-gantt-bar " + /*urgencyClass*/
-      ctx[22](
-        /*diffMs*/
-        ctx[95]
-      ))) {
-        attr(div, "class", div_class_value);
+      1048594) {
+        set_style(
+          div2,
+          "background",
+          /*getRuleColor*/
+          ctx[22](
+            /*task*/
+            ctx[93],
+            /*diffMs*/
+            ctx[95]
+          )
+        );
+      }
+      if (dirty[0] & /*tasksByRow, gridRows, now*/
+      1048594) {
+        set_style(
+          div2,
+          "border-color",
+          /*getRuleColor*/
+          ctx[22](
+            /*task*/
+            ctx[93],
+            /*diffMs*/
+            ctx[95]
+          )
+        );
       }
       if (dirty[0] & /*draggingTaskId, tasksByRow, gridRows, tempDragLeft, ganttZoom*/
       1053716) {
         set_style(
-          div,
+          div2,
           "left",
           /*draggingTaskId*/
           (ctx[10] === /*task*/
@@ -7503,7 +9163,7 @@ function create_each_block_52(key_1, ctx) {
       if (dirty[0] & /*draggingTaskId, tasksByRow, gridRows, tempDragWidth, ganttZoom*/
       1057812) {
         set_style(
-          div,
+          div2,
           "width",
           /*draggingTaskId*/
           (ctx[10] === /*task*/
@@ -7519,7 +9179,7 @@ function create_each_block_52(key_1, ctx) {
       if (dirty[0] & /*tasksByRow, gridRows, now*/
       1048594) {
         set_style(
-          div,
+          div2,
           "--bar-hue",
           /*hue*/
           ctx[96]
@@ -7527,7 +9187,7 @@ function create_each_block_52(key_1, ctx) {
       }
       if (dirty[0] & /*draggingTaskId, tasksByRow, gridRows, ganttDragMode, tempDragTranslateY*/
       1068048) {
-        set_style(div, "transform", "translateY(" + /*draggingTaskId*/
+        set_style(div2, "transform", "translateY(" + /*draggingTaskId*/
         (ctx[10] === /*task*/
         ctx[93].id && /*ganttDragMode*/
         ctx[11] === "move" ? (
@@ -7546,22 +9206,22 @@ function create_each_block_52(key_1, ctx) {
         /*diffMs*/
         ctx[95]
       ))) {
-        attr(div, "title", div_title_value);
+        attr(div2, "title", div_title_value);
       }
-      if (dirty[0] & /*tasksByRow, gridRows, now, draggingTaskId, tasksByRow, gridRows*/
-      1049618) {
+      if (dirty[0] & /*draggingTaskId, tasksByRow, gridRows*/
+      1049616) {
         toggle_class(
-          div,
+          div2,
           "dragging",
           /*draggingTaskId*/
           ctx[10] === /*task*/
           ctx[93].id
         );
       }
-      if (dirty[0] & /*tasksByRow, gridRows, now, hoverTaskId, tasksByRow, gridRows, hoverSide*/
-      1146898) {
+      if (dirty[0] & /*hoverTaskId, tasksByRow, gridRows, hoverSide*/
+      1146896) {
         toggle_class(
-          div,
+          div2,
           "hover-left-half",
           /*hoverTaskId*/
           ctx[15] === /*task*/
@@ -7569,10 +9229,10 @@ function create_each_block_52(key_1, ctx) {
           ctx[16] === "left"
         );
       }
-      if (dirty[0] & /*tasksByRow, gridRows, now, hoverTaskId, tasksByRow, gridRows, hoverSide*/
-      1146898) {
+      if (dirty[0] & /*hoverTaskId, tasksByRow, gridRows, hoverSide*/
+      1146896) {
         toggle_class(
-          div,
+          div2,
           "hover-right-half",
           /*hoverTaskId*/
           ctx[15] === /*task*/
@@ -7583,7 +9243,7 @@ function create_each_block_52(key_1, ctx) {
     },
     d(detaching) {
       if (detaching) {
-        detach(div);
+        detach(div2);
       }
       mounted = false;
       run_all(dispose);
@@ -7591,7 +9251,7 @@ function create_each_block_52(key_1, ctx) {
   };
 }
 function create_each_block_42(ctx) {
-  let div;
+  let div2;
   let t0;
   let t1;
   let div_style_value;
@@ -7608,35 +9268,35 @@ function create_each_block_42(ctx) {
   );
   return {
     c() {
-      div = element("div");
+      div2 = element("div");
       if (if_block0)
         if_block0.c();
       t0 = space();
       if (if_block1)
         if_block1.c();
       t1 = space();
-      attr(div, "class", "pos-dl-gantt-row");
-      attr(div, "style", div_style_value = /*ganttZoom*/
+      attr(div2, "class", "pos-dl-gantt-row");
+      attr(div2, "style", div_style_value = /*ganttZoom*/
       ctx[2] > 150 ? "background-image: repeating-linear-gradient(90deg, transparent, transparent calc(" + /*ganttZoom*/
       ctx[2] + "px / 4 - 1px), rgba(0,0,0,0.05) calc(" + /*ganttZoom*/
       ctx[2] + "px / 4 - 1px), rgba(0,0,0,0.05) calc(" + /*ganttZoom*/
       ctx[2] + "px / 4)); background-size: " + /*ganttZoom*/
       ctx[2] + "px 100%;" : "");
       toggle_class(
-        div,
+        div2,
         "alt",
         /*rowIdx*/
         ctx[90] % 2 === 1
       );
     },
     m(target, anchor) {
-      insert(target, div, anchor);
+      insert(target, div2, anchor);
       if (if_block0)
-        if_block0.m(div, null);
-      append(div, t0);
+        if_block0.m(div2, null);
+      append(div2, t0);
       if (if_block1)
-        if_block1.m(div, null);
-      append(div, t1);
+        if_block1.m(div2, null);
+      append(div2, t1);
     },
     p(ctx2, dirty) {
       if (
@@ -7648,7 +9308,7 @@ function create_each_block_42(ctx) {
         } else {
           if_block0 = create_if_block_43(ctx2);
           if_block0.c();
-          if_block0.m(div, t0);
+          if_block0.m(div2, t0);
         }
       } else if (if_block0) {
         if_block0.d(1);
@@ -7666,7 +9326,7 @@ function create_each_block_42(ctx) {
         } else {
           if_block1 = create_if_block_33(ctx2);
           if_block1.c();
-          if_block1.m(div, t1);
+          if_block1.m(div2, t1);
         }
       } else if (if_block1) {
         if_block1.d(1);
@@ -7679,12 +9339,12 @@ function create_each_block_42(ctx) {
       ctx2[2] + "px / 4 - 1px), rgba(0,0,0,0.05) calc(" + /*ganttZoom*/
       ctx2[2] + "px / 4)); background-size: " + /*ganttZoom*/
       ctx2[2] + "px 100%;" : "")) {
-        attr(div, "style", div_style_value);
+        attr(div2, "style", div_style_value);
       }
       if (dirty[0] & /*gridRows*/
       1048576) {
         toggle_class(
-          div,
+          div2,
           "alt",
           /*rowIdx*/
           ctx2[90] % 2 === 1
@@ -7693,7 +9353,7 @@ function create_each_block_42(ctx) {
     },
     d(detaching) {
       if (detaching) {
-        detach(div);
+        detach(div2);
       }
       if (if_block0)
         if_block0.d();
@@ -7703,15 +9363,15 @@ function create_each_block_42(ctx) {
   };
 }
 function create_each_block_32(ctx) {
-  let div;
+  let div2;
   return {
     c() {
-      div = element("div");
-      div.textContent = `${/*wd*/
+      div2 = element("div");
+      div2.textContent = `${/*wd*/
       ctx[87]}`;
-      attr(div, "class", "pos-dl-cal-weekday");
+      attr(div2, "class", "pos-dl-cal-weekday");
       toggle_class(
-        div,
+        div2,
         "weekend",
         /*i*/
         ctx[89] === 0 || /*i*/
@@ -7719,12 +9379,12 @@ function create_each_block_32(ctx) {
       );
     },
     m(target, anchor) {
-      insert(target, div, anchor);
+      insert(target, div2, anchor);
     },
     p: noop,
     d(detaching) {
       if (detaching) {
-        detach(div);
+        detach(div2);
       }
     }
   };
@@ -7830,7 +9490,6 @@ function create_each_block_12(key_1, ctx) {
   );
   let t0;
   let t1;
-  let button_class_value;
   let button_title_value;
   let mounted;
   let dispose;
@@ -7852,11 +9511,29 @@ function create_each_block_12(key_1, ctx) {
       t0 = text(t0_value);
       t1 = space();
       attr(span, "class", "pos-dl-cal-bar-title");
-      attr(button, "class", button_class_value = "pos-dl-cal-bar " + /*urgencyClass*/
-      ctx[22](
-        /*pt*/
-        ctx[81].diffMs
-      ));
+      attr(button, "class", "pos-dl-cal-bar");
+      set_style(
+        button,
+        "background",
+        /*getRuleColor*/
+        ctx[22](
+          /*pt*/
+          ctx[81].task,
+          /*pt*/
+          ctx[81].diffMs
+        )
+      );
+      set_style(
+        button,
+        "border-color",
+        /*getRuleColor*/
+        ctx[22](
+          /*pt*/
+          ctx[81].task,
+          /*pt*/
+          ctx[81].diffMs
+        )
+      );
       set_style(
         button,
         "left",
@@ -7913,12 +9590,32 @@ function create_each_block_12(key_1, ctx) {
       ctx[81].task.name + ""))
         set_data(t0, t0_value);
       if (dirty[0] & /*gridWeeks*/
-      262144 && button_class_value !== (button_class_value = "pos-dl-cal-bar " + /*urgencyClass*/
-      ctx[22](
-        /*pt*/
-        ctx[81].diffMs
-      ))) {
-        attr(button, "class", button_class_value);
+      262144) {
+        set_style(
+          button,
+          "background",
+          /*getRuleColor*/
+          ctx[22](
+            /*pt*/
+            ctx[81].task,
+            /*pt*/
+            ctx[81].diffMs
+          )
+        );
+      }
+      if (dirty[0] & /*gridWeeks*/
+      262144) {
+        set_style(
+          button,
+          "border-color",
+          /*getRuleColor*/
+          ctx[22](
+            /*pt*/
+            ctx[81].task,
+            /*pt*/
+            ctx[81].diffMs
+          )
+        );
       }
       if (dirty[0] & /*gridWeeks*/
       262144) {
@@ -7957,7 +9654,7 @@ function create_each_block_12(key_1, ctx) {
       ctx[81].task.tags.join(", ") + "]" : ""))) {
         attr(button, "title", button_title_value);
       }
-      if (dirty[0] & /*gridWeeks, gridWeeks*/
+      if (dirty[0] & /*gridWeeks*/
       262144) {
         toggle_class(
           button,
@@ -7966,7 +9663,7 @@ function create_each_block_12(key_1, ctx) {
           ctx[81].isStart
         );
       }
-      if (dirty[0] & /*gridWeeks, gridWeeks*/
+      if (dirty[0] & /*gridWeeks*/
       262144) {
         toggle_class(
           button,
@@ -8078,7 +9775,7 @@ function create_each_block3(ctx) {
         }
         each_blocks_1.length = each_value_2.length;
       }
-      if (dirty[0] & /*urgencyClass, gridWeeks, openTaskEditor*/
+      if (dirty[0] & /*getRuleColor, gridWeeks, openTaskEditor*/
       541327360) {
         each_value_1 = ensure_array_like(
           /*week*/
@@ -8380,19 +10077,32 @@ function instance3($$self, $$props, $$invalidate) {
       return 120;
     return 120 * (daysLeft / threshold);
   }
-  function urgencyClass(diffMs) {
-    const days = diffMs / 864e5;
-    const near = plugin.settings.nearDeadlineDays || 7;
-    const urgent = plugin.settings.urgentDeadlineDays || 2;
-    if (days < 0)
-      return "overdue";
-    if (days < 1)
-      return "critical";
-    if (days < urgent)
-      return "warning";
-    if (days < near)
-      return "caution";
-    return "safe";
+  function getRuleColor(task, diffMs) {
+    const rules = plugin.settings.colorRules || [];
+    const nowMs = Date.now();
+    for (const rule of rules) {
+      const targetDateStr = rule.targetDate === "deadline" ? task.deadline : task.createdAt;
+      if (!targetDateStr)
+        continue;
+      const targetMs = new Date(targetDateStr).getTime();
+      const diffDays = (targetMs - nowMs) / 864e5;
+      let matches = false;
+      if (rule.value === "overdue" && diffDays < 0)
+        matches = true;
+      else if (rule.value === "today" && diffDays >= 0 && diffDays <= 1)
+        matches = true;
+      else if (rule.value === "next 2 days" && diffDays >= 0 && diffDays <= 2)
+        matches = true;
+      else if (rule.value === "next 3 days" && diffDays >= 0 && diffDays <= 3)
+        matches = true;
+      else if (rule.value === "next week" && diffDays >= 0 && diffDays <= 7)
+        matches = true;
+      else if (rule.value === "next month" && diffDays >= 0 && diffDays <= 30)
+        matches = true;
+      if (matches)
+        return rule.color;
+    }
+    return "var(--background-modifier-border)";
   }
   let currentDate = /* @__PURE__ */ new Date();
   function prevMonth() {
@@ -8771,7 +10481,7 @@ function instance3($$self, $$props, $$invalidate) {
     if ($$self.$$.dirty[0] & /*tasksByRow*/
     16) {
       $:
-        $$invalidate(45, maxRow = Object.keys(tasksByRow).reduce((max, rStr) => Math.max(max, parseInt(rStr, 10)), 0));
+        $$invalidate(45, maxRow = Object.keys(tasksByRow).reduce((max2, rStr) => Math.max(max2, parseInt(rStr, 10)), 0));
     }
     if ($$self.$$.dirty[1] & /*maxRow*/
     16384) {
@@ -9020,7 +10730,7 @@ function instance3($$self, $$props, $$invalidate) {
     monthName,
     gridRows,
     getHueForRemaining,
-    urgencyClass,
+    getRuleColor,
     prevMonth,
     nextMonth,
     goToToday,
@@ -9082,7 +10792,7 @@ var ProjectDeadlines_default = ProjectDeadlines;
 
 // src/ui/views/DeadlinesView.svelte
 function create_fragment4(ctx) {
-  let div;
+  let div2;
   let projectdeadlines;
   let current;
   projectdeadlines = new ProjectDeadlines_default({
@@ -9107,16 +10817,16 @@ function create_fragment4(ctx) {
   });
   return {
     c() {
-      div = element("div");
+      div2 = element("div");
       create_component(projectdeadlines.$$.fragment);
-      set_style(div, "height", "100%");
-      set_style(div, "display", "flex");
-      set_style(div, "flex-direction", "column");
-      set_style(div, "overflow", "hidden");
+      set_style(div2, "height", "100%");
+      set_style(div2, "display", "flex");
+      set_style(div2, "flex-direction", "column");
+      set_style(div2, "overflow", "hidden");
     },
     m(target, anchor) {
-      insert(target, div, anchor);
-      mount_component(projectdeadlines, div, null);
+      insert(target, div2, anchor);
+      mount_component(projectdeadlines, div2, null);
       current = true;
     },
     p(ctx2, [dirty]) {
@@ -9151,7 +10861,7 @@ function create_fragment4(ctx) {
     },
     d(detaching) {
       if (detaching) {
-        detach(div);
+        detach(div2);
       }
       destroy_component(projectdeadlines);
     }
@@ -9186,7 +10896,7 @@ function get_each_context4(ctx, list, i) {
   return child_ctx;
 }
 function create_if_block_34(ctx) {
-  let div;
+  let div2;
   let label;
   let t0;
   let select;
@@ -9211,7 +10921,7 @@ function create_if_block_34(ctx) {
   }
   return {
     c() {
-      div = element("div");
+      div2 = element("div");
       label = element("label");
       t0 = text("Project:\n        ");
       select = element("select");
@@ -9235,11 +10945,11 @@ function create_if_block_34(ctx) {
           /*select_change_handler*/
           ctx[10].call(select)
         ));
-      attr(div, "class", "pos-project-selector-row");
+      attr(div2, "class", "pos-project-selector-row");
     },
     m(target, anchor) {
-      insert(target, div, anchor);
-      append(div, label);
+      insert(target, div2, anchor);
+      append(div2, label);
       append(label, t0);
       append(label, select);
       append(select, option0);
@@ -9285,7 +10995,7 @@ function create_if_block_34(ctx) {
     },
     d(detaching) {
       if (detaching) {
-        detach(div);
+        detach(div2);
       }
       for (let i = 0; i < each_blocks.length; i += 1) {
         each_blocks[i].d();
@@ -9858,26 +11568,26 @@ function get_each_context_23(ctx, list, i) {
   return child_ctx;
 }
 function create_if_block_35(ctx) {
-  let div;
+  let div2;
   return {
     c() {
-      div = element("div");
-      attr(div, "class", "pos-drag-placeholder");
+      div2 = element("div");
+      attr(div2, "class", "pos-drag-placeholder");
       set_style(
-        div,
+        div2,
         "height",
         /*dragHeight*/
         ctx[3] + "px"
       );
     },
     m(target, anchor) {
-      insert(target, div, anchor);
+      insert(target, div2, anchor);
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*dragHeight*/
       8) {
         set_style(
-          div,
+          div2,
           "height",
           /*dragHeight*/
           ctx2[3] + "px"
@@ -9886,13 +11596,13 @@ function create_if_block_35(ctx) {
     },
     d(detaching) {
       if (detaching) {
-        detach(div);
+        detach(div2);
       }
     }
   };
 }
 function create_if_block_25(ctx) {
-  let div;
+  let div2;
   let t_value = (
     /*task*/
     ctx[29].description + ""
@@ -9900,13 +11610,13 @@ function create_if_block_25(ctx) {
   let t;
   return {
     c() {
-      div = element("div");
+      div2 = element("div");
       t = text(t_value);
-      attr(div, "class", "pos-card-desc");
+      attr(div2, "class", "pos-card-desc");
     },
     m(target, anchor) {
-      insert(target, div, anchor);
-      append(div, t);
+      insert(target, div2, anchor);
+      append(div2, t);
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*columns*/
@@ -9916,7 +11626,7 @@ function create_if_block_25(ctx) {
     },
     d(detaching) {
       if (detaching) {
-        detach(div);
+        detach(div2);
       }
     }
   };
@@ -10344,26 +12054,26 @@ function create_each_block_13(key_1, ctx) {
   };
 }
 function create_if_block5(ctx) {
-  let div;
+  let div2;
   return {
     c() {
-      div = element("div");
-      attr(div, "class", "pos-drag-placeholder");
+      div2 = element("div");
+      attr(div2, "class", "pos-drag-placeholder");
       set_style(
-        div,
+        div2,
         "height",
         /*dragHeight*/
         ctx[3] + "px"
       );
     },
     m(target, anchor) {
-      insert(target, div, anchor);
+      insert(target, div2, anchor);
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*dragHeight*/
       8) {
         set_style(
-          div,
+          div2,
           "height",
           /*dragHeight*/
           ctx2[3] + "px"
@@ -10372,7 +12082,7 @@ function create_if_block5(ctx) {
     },
     d(detaching) {
       if (detaching) {
-        detach(div);
+        detach(div2);
       }
     }
   };
@@ -10586,7 +12296,7 @@ function create_each_block5(key_1, ctx) {
   };
 }
 function create_fragment6(ctx) {
-  let div;
+  let div2;
   let each_blocks = [];
   let each_1_lookup = /* @__PURE__ */ new Map();
   let each_value = ensure_array_like(
@@ -10604,17 +12314,17 @@ function create_fragment6(ctx) {
   }
   return {
     c() {
-      div = element("div");
+      div2 = element("div");
       for (let i = 0; i < each_blocks.length; i += 1) {
         each_blocks[i].c();
       }
-      attr(div, "class", "pos-board-workspace");
+      attr(div2, "class", "pos-board-workspace");
     },
     m(target, anchor) {
-      insert(target, div, anchor);
+      insert(target, div2, anchor);
       for (let i = 0; i < each_blocks.length; i += 1) {
         if (each_blocks[i]) {
-          each_blocks[i].m(div, null);
+          each_blocks[i].m(div2, null);
         }
       }
     },
@@ -10625,14 +12335,14 @@ function create_fragment6(ctx) {
           /*columns*/
           ctx2[4]
         );
-        each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx2, each_value, each_1_lookup, div, destroy_block, create_each_block5, null, get_each_context5);
+        each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx2, each_value, each_1_lookup, div2, destroy_block, create_each_block5, null, get_each_context5);
       }
     },
     i: noop,
     o: noop,
     d(detaching) {
       if (detaching) {
-        detach(div);
+        detach(div2);
       }
       for (let i = 0; i < each_blocks.length; i += 1) {
         each_blocks[i].d();
@@ -10896,7 +12606,7 @@ function get_each_context_24(ctx, list, i) {
   return child_ctx;
 }
 function create_if_block_64(ctx) {
-  let div;
+  let div2;
   let button;
   let t1;
   let mounted;
@@ -10911,7 +12621,7 @@ function create_if_block_64(ctx) {
   }
   return {
     c() {
-      div = element("div");
+      div2 = element("div");
       button = element("button");
       button.textContent = "All Tags";
       t1 = space();
@@ -10925,15 +12635,15 @@ function create_if_block_64(ctx) {
         /*tagFilter*/
         ctx[4] === null
       );
-      attr(div, "class", "pos-tag-filter-bar");
+      attr(div2, "class", "pos-tag-filter-bar");
     },
     m(target, anchor) {
-      insert(target, div, anchor);
-      append(div, button);
-      append(div, t1);
+      insert(target, div2, anchor);
+      append(div2, button);
+      append(div2, t1);
       for (let i = 0; i < each_blocks.length; i += 1) {
         if (each_blocks[i]) {
-          each_blocks[i].m(div, null);
+          each_blocks[i].m(div2, null);
         }
       }
       if (!mounted) {
@@ -10970,7 +12680,7 @@ function create_if_block_64(ctx) {
           } else {
             each_blocks[i] = create_each_block_24(child_ctx);
             each_blocks[i].c();
-            each_blocks[i].m(div, null);
+            each_blocks[i].m(div2, null);
           }
         }
         for (; i < each_blocks.length; i += 1) {
@@ -10981,7 +12691,7 @@ function create_if_block_64(ctx) {
     },
     d(detaching) {
       if (detaching) {
-        detach(div);
+        detach(div2);
       }
       destroy_each(each_blocks, detaching);
       mounted = false;
@@ -12920,7 +14630,7 @@ function create_else_block_22(ctx) {
   };
 }
 function create_if_block_45(ctx) {
-  let div;
+  let div2;
   let projectdeadlines;
   let current;
   projectdeadlines = new ProjectDeadlines_default({
@@ -12945,14 +14655,14 @@ function create_if_block_45(ctx) {
   });
   return {
     c() {
-      div = element("div");
+      div2 = element("div");
       create_component(projectdeadlines.$$.fragment);
-      set_style(div, "height", "100%");
-      set_style(div, "overflow", "hidden");
+      set_style(div2, "height", "100%");
+      set_style(div2, "overflow", "hidden");
     },
     m(target, anchor) {
-      insert(target, div, anchor);
-      mount_component(projectdeadlines, div, null);
+      insert(target, div2, anchor);
+      mount_component(projectdeadlines, div2, null);
       current = true;
     },
     p(ctx2, dirty) {
@@ -12987,7 +14697,7 @@ function create_if_block_45(ctx) {
     },
     d(detaching) {
       if (detaching) {
-        detach(div);
+        detach(div2);
       }
       destroy_component(projectdeadlines);
     }
@@ -13288,7 +14998,7 @@ function create_if_block_55(ctx) {
   };
 }
 function create_if_block_37(ctx) {
-  let div;
+  let div2;
   let button0;
   let t1;
   let button1;
@@ -13298,7 +15008,7 @@ function create_if_block_37(ctx) {
   let dispose;
   return {
     c() {
-      div = element("div");
+      div2 = element("div");
       button0 = element("button");
       button0.textContent = "\u{1F4C4} Markdown Note";
       t1 = space();
@@ -13307,15 +15017,15 @@ function create_if_block_37(ctx) {
       t3 = space();
       button2 = element("button");
       button2.textContent = "\u{1F3A8} Excalidraw";
-      attr(div, "class", "pos-fb-dropdown");
+      attr(div2, "class", "pos-fb-dropdown");
     },
     m(target, anchor) {
-      insert(target, div, anchor);
-      append(div, button0);
-      append(div, t1);
-      append(div, button1);
-      append(div, t3);
-      append(div, button2);
+      insert(target, div2, anchor);
+      append(div2, button0);
+      append(div2, t1);
+      append(div2, button1);
+      append(div2, t3);
+      append(div2, button2);
       if (!mounted) {
         dispose = [
           listen(
@@ -13343,7 +15053,7 @@ function create_if_block_37(ctx) {
     p: noop,
     d(detaching) {
       if (detaching) {
-        detach(div);
+        detach(div2);
       }
       mounted = false;
       run_all(dispose);
@@ -13408,20 +15118,20 @@ function create_else_block_13(ctx) {
   };
 }
 function create_if_block_27(ctx) {
-  let div;
+  let div2;
   return {
     c() {
-      div = element("div");
-      div.textContent = 'No files yet. Click "+ New" to create one.';
-      attr(div, "class", "pos-fb-empty");
+      div2 = element("div");
+      div2.textContent = 'No files yet. Click "+ New" to create one.';
+      attr(div2, "class", "pos-fb-empty");
     },
     m(target, anchor) {
-      insert(target, div, anchor);
+      insert(target, div2, anchor);
     },
     p: noop,
     d(detaching) {
       if (detaching) {
-        detach(div);
+        detach(div2);
       }
     }
   };
@@ -13435,7 +15145,7 @@ function create_each_block7(ctx) {
   ) + "";
   let t0;
   let t1;
-  let div;
+  let div2;
   let span1;
   let t2_value = (
     /*f*/
@@ -13474,7 +15184,7 @@ function create_each_block7(ctx) {
       span0 = element("span");
       t0 = text(t0_value);
       t1 = space();
-      div = element("div");
+      div2 = element("div");
       span1 = element("span");
       t2 = text(t2_value);
       t3 = space();
@@ -13486,7 +15196,7 @@ function create_each_block7(ctx) {
       attr(span0, "class", "pos-fb-icon");
       attr(span1, "class", "pos-fb-name");
       attr(span2, "class", "pos-fb-meta");
-      attr(div, "class", "pos-fb-info");
+      attr(div2, "class", "pos-fb-info");
       attr(button, "class", "pos-fb-item");
       attr(button, "title", button_title_value = /*f*/
       ctx[31].path);
@@ -13496,11 +15206,11 @@ function create_each_block7(ctx) {
       append(button, span0);
       append(span0, t0);
       append(button, t1);
-      append(button, div);
-      append(div, span1);
+      append(button, div2);
+      append(div2, span1);
       append(span1, t2);
-      append(div, t3);
-      append(div, span2);
+      append(div2, t3);
+      append(div2, span2);
       append(span2, t4);
       append(span2, t5);
       append(span2, t6);
@@ -13873,6 +15583,12 @@ var DEFAULT_SETTINGS = {
     { id: "running", name: "Running", color: "#00b894" },
     { id: "review", name: "Review", color: "#fdcb6e" },
     { id: "done", name: "Done", color: "#00cec9" }
+  ],
+  colorRules: [
+    { id: "1", targetDate: "deadline", condition: "is relative to today", value: "overdue", color: "#E5484D" },
+    { id: "2", targetDate: "deadline", condition: "is relative to today", value: "today", color: "#FFB224" },
+    { id: "3", targetDate: "deadline", condition: "is relative to today", value: "next 3 days", color: "#FFD60A" },
+    { id: "4", targetDate: "deadline", condition: "is relative to today", value: "next week", color: "#A7C957" }
   ],
   taskSchema: [
     {
@@ -14326,3 +16042,17 @@ var ProximaPlugin = class extends import_obsidian8.Plugin {
     this.app.workspace.detachLeavesOfType(WORKSPACE_VIEW_TYPE);
   }
 };
+/*! Bundled license information:
+
+expr-eval/dist/index.mjs:
+  (*!
+   Based on ndef.parser, by Raphael Graf(r@undefined.ch)
+   http://www.undefined.ch/mparser/index.html
+  
+   Ported to JavaScript and modified by Matthew Crumley (email@matthewcrumley.com, http://silentmatt.com/)
+  
+   You are free to use and modify this code in anyway you find useful. Please leave this comment in the code
+   to acknowledge its original source. If you feel like it, I enjoy hearing about projects that use my code,
+   but don't feel like you have to let me know or ask permission.
+  *)
+*/

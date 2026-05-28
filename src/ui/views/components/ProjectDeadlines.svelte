@@ -675,10 +675,10 @@
                 <div class="pos-dl-cal-week-events" style="height: {week.tasks.length > 0 ? Math.max(...week.tasks.map(t => t.row + 1)) * 28 + 10 : 10}px">
                   {#each week.tasks as pt (pt.task.id)}
                     <button
-                      class="pos-dl-cal-bar" style="background: {getRuleColor(pt.task, pt.diffMs)}; border-color: {getRuleColor(pt.task, pt.diffMs)};"
+                      class="pos-dl-cal-bar" 
                       class:is-start={pt.isStart}
                       class:is-end={pt.isEnd}
-                      style="left: {pt.leftPct}%; width: {pt.widthPct}%; top: {pt.row * 28 + 4}px;"
+                      style="background: {getRuleColor(pt.task, pt.diffMs)}; border-color: {getRuleColor(pt.task, pt.diffMs)}; left: {pt.leftPct}%; width: {pt.widthPct}%; top: {pt.row * 28 + 4}px;"
                       on:click={() => openTaskEditor(pt.task)}
                       title="{pt.task.priority ? 'P' + pt.task.priority + ' - ' : ''}{pt.task.name} {(pt.task.tags && pt.task.tags.length > 0) ? '[' + pt.task.tags.join(', ') + ']' : ''}"
                     >
