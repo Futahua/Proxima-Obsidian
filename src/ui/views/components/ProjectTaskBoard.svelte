@@ -236,7 +236,11 @@
   }
 
   function createPlannedTask(statusId: string) {
-    new NewTaskModal(app, fileManager, projectId, statusId).open();
+    new NewTaskModal(app, async (name) => {
+      let pid = projectId;
+      if (pid === '-- All Projects --') pid = '';
+      await fileManager.createTask(name, pid, { status: statusId });
+    }).open();
   }
 
   function editTask(task: TaskData) {

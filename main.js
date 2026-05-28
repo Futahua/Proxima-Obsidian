@@ -12686,7 +12686,15 @@ function instance6($$self, $$props, $$invalidate) {
     await Promise.all(promises);
   }
   function createPlannedTask(statusId) {
-    new NewTaskModal(app, fileManager, projectId, statusId).open();
+    new NewTaskModal(
+      app,
+      async (name) => {
+        let pid = projectId;
+        if (pid === "-- All Projects --")
+          pid = "";
+        await fileManager.createTask(name, pid, { status: statusId });
+      }
+    ).open();
   }
   function editTask(task) {
     new QuickEditTaskModal(

@@ -2607,3 +2607,14 @@ body.pos-is-moving * {
   gap: 4px;
   margin-top: 6px;
 }
+
+.pos-board-col.pos-drag-over {
+  opacity: 0.8;
+  border-left: 4px solid var(--interactive-accent) !important;
+  transform: scale(0.98);
+  transition: all 0.1s ease;
+}
+.pos-board-col.pos-dragging-source {
+  opacity: 0.4;
+  outline: 2px dashed var(--interactive-accent);
+}
