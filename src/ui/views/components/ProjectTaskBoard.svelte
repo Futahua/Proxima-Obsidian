@@ -83,26 +83,7 @@
   }
 
   function handleColDragOver(e: DragEvent, id: string) {
-    e.preventDefault();
-    if (dragColId && dragColId !== id) {
-      if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
-      
-      const cols = Array.from((e.currentTarget as HTMLElement).parentNode?.children || []).filter(c => c.classList.contains('pos-board-col') && !c.classList.contains('pos-dragging-source'));
-      const mouseX = e.clientX;
-      let targetIndex = cols.length;
-      
-      for (let i = 0; i < cols.length; i++) {
-        const rect = cols[i].getBoundingClientRect();
-        const middle = rect.left + rect.width / 2;
-        if (mouseX < middle) {
-          targetIndex = i;
-          break;
-        }
-      }
-      
-      dragOverColId = id;
-      dragOverColIndex = targetIndex;
-    }
+    // handled by workspace dragover event now
   }
 
   async function handleColDrop(e: DragEvent, id: string) {
