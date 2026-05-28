@@ -28,7 +28,7 @@ __export(main_exports, {
   default: () => ProximaPlugin
 });
 module.exports = __toCommonJS(main_exports);
-var import_obsidian8 = require("obsidian");
+var import_obsidian9 = require("obsidian");
 
 // node_modules/svelte/src/runtime/internal/utils.js
 function noop() {
@@ -2732,9 +2732,11 @@ var FileManager = class {
         deadline,
         ganttRow: fm.ganttRow || 0,
         properties: await (async () => {
+          var _a, _b;
           const props = {};
-          if (this.plugin && this.plugin.settings && this.plugin.settings.taskSchema) {
-            for (const schema of this.plugin.settings.taskSchema) {
+          const activeSchema = fm.project && ((_b = (_a = this.plugin) == null ? void 0 : _a.settings) == null ? void 0 : _b.projectSchemas) ? this.plugin.settings.projectSchemas[fm.project] || [] : [];
+          if (activeSchema.length > 0) {
+            for (const schema of activeSchema) {
               if (schema.type === "rollup" && schema.relationProperty && schema.targetProperty && schema.aggregation) {
                 let relationVal = fm[schema.relationProperty];
                 if (!relationVal) {
@@ -2753,7 +2755,7 @@ var FileManager = class {
                       const tfm = parseFrontmatter(tc);
                       let tVal = tfm[schema.targetProperty];
                       if (tVal === void 0) {
-                        const ts = this.plugin.settings.taskSchema.find((x) => x.name === schema.targetProperty);
+                        const ts = activeSchema.find((x) => x.name === schema.targetProperty);
                         if (ts && tfm[ts.id] !== void 0)
                           tVal = tfm[ts.id];
                       }
@@ -2782,16 +2784,16 @@ var FileManager = class {
                 props[schema.id] = [];
               }
             }
-            for (const schema of this.plugin.settings.taskSchema) {
+            for (const schema of activeSchema) {
               if (schema.type === "formula" && schema.expression) {
                 try {
                   const scope = {
                     prop: (name) => {
-                      const s = this.plugin.settings.taskSchema.find((x) => x.name === name || x.id === name);
+                      const s = activeSchema.find((x) => x.name === name || x.id === name);
                       return s ? props[s.id] : void 0;
                     }
                   };
-                  for (const s of this.plugin.settings.taskSchema) {
+                  for (const s of activeSchema) {
                     if (s.name && props[s.id] !== void 0) {
                       scope[s.name] = props[s.id];
                     }
@@ -3033,10 +3035,11 @@ if (typeof window !== "undefined")
   (window.__svelte || (window.__svelte = { v: /* @__PURE__ */ new Set() })).v.add(PUBLIC_VERSION);
 
 // src/ui/views/ProjectsView.svelte
-var import_obsidian5 = require("obsidian");
+var import_obsidian6 = require("obsidian");
 
 // src/modals/Modals.ts
 var import_obsidian2 = require("obsidian");
+var import_obsidian3 = require("obsidian");
 var ConfirmModal = class extends import_obsidian2.Modal {
   constructor(app, title, message, onConfirm) {
     super(app);
@@ -3191,8 +3194,9 @@ var QuickEditTaskModal = class extends import_obsidian2.Modal {
     });
     desc.value = task.description || "";
     const customPropValues = {};
-    if (this.plugin && this.plugin.settings && this.plugin.settings.taskSchema) {
-      this.plugin.settings.taskSchema.forEach((schema) => {
+    const activeSchema = task.project && this.plugin.settings.projectSchemas ? this.plugin.settings.projectSchemas[task.project] || [] : [];
+    if (activeSchema.length > 0) {
+      activeSchema.forEach((schema) => {
         const row = contentEl.createEl("div", { cls: "pos-modal-row", attr: { style: "margin-top: 10px;" } });
         row.createEl("label", { text: schema.name + ":" });
         let initialValue = task.properties ? task.properties[schema.id] : void 0;
@@ -3352,6 +3356,172 @@ var QuickEditTaskModal = class extends import_obsidian2.Modal {
   }
   onClose() {
     this.contentEl.empty();
+  }
+};
+var ProjectSchemaModal = class extends import_obsidian2.Modal {
+  constructor(app, plugin, projectId) {
+    super(app);
+    __publicField(this, "projectId");
+    __publicField(this, "plugin");
+    this.plugin = plugin;
+    this.projectId = projectId;
+  }
+  onOpen() {
+    const { contentEl } = this;
+    contentEl.empty();
+    if (!this.plugin.settings.projectSchemas)
+      this.plugin.settings.projectSchemas = {};
+    if (!this.plugin.settings.projectVisibleProps)
+      this.plugin.settings.projectVisibleProps = {};
+    if (!this.plugin.settings.projectSchemas[this.projectId])
+      this.plugin.settings.projectSchemas[this.projectId] = [];
+    if (!this.plugin.settings.projectVisibleProps[this.projectId])
+      this.plugin.settings.projectVisibleProps[this.projectId] = [];
+    contentEl.createEl("h2", { text: "Project Properties" });
+    contentEl.createEl("p", { text: "Define the properties exclusively for this project.", cls: "pos-modal-desc" });
+    const schemaContainer = contentEl.createDiv("pos-schema-container");
+    schemaContainer.style.display = "flex";
+    schemaContainer.style.flexDirection = "column";
+    schemaContainer.style.gap = "10px";
+    schemaContainer.style.marginTop = "10px";
+    schemaContainer.style.maxHeight = "400px";
+    schemaContainer.style.overflowY = "auto";
+    schemaContainer.style.paddingRight = "10px";
+    const renderSchema = () => {
+      schemaContainer.empty();
+      const schemaList = this.plugin.settings.projectSchemas[this.projectId];
+      const visibleList = this.plugin.settings.projectVisibleProps[this.projectId];
+      schemaList.forEach((prop, index) => {
+        const propDiv = schemaContainer.createDiv("pos-schema-prop");
+        propDiv.style.border = "1px solid var(--background-modifier-border)";
+        propDiv.style.padding = "10px";
+        propDiv.style.borderRadius = "5px";
+        propDiv.style.display = "flex";
+        propDiv.style.flexDirection = "column";
+        propDiv.style.gap = "10px";
+        const row1 = propDiv.createDiv();
+        row1.style.display = "flex";
+        row1.style.gap = "10px";
+        row1.style.alignItems = "center";
+        const visBtn = new ButtonComponent(row1).setIcon(visibleList.includes(prop.id) ? "eye" : "eye-off").setTooltip("Toggle Visibility").onClick(async () => {
+          if (visibleList.includes(prop.id)) {
+            this.plugin.settings.projectVisibleProps[this.projectId] = visibleList.filter((id) => id !== prop.id);
+          } else {
+            this.plugin.settings.projectVisibleProps[this.projectId].push(prop.id);
+          }
+          await this.plugin.saveSettings();
+          renderSchema();
+        });
+        const nameInput = new TextComponent(row1).setValue(prop.name).setPlaceholder("Property Name").onChange(async (val) => {
+          prop.name = val;
+          const oldId = prop.id;
+          prop.id = val.toLowerCase().replace(/\s+/g, "-");
+          if (oldId !== prop.id) {
+            const vIdx = visibleList.indexOf(oldId);
+            if (vIdx > -1)
+              visibleList[vIdx] = prop.id;
+          }
+          await this.plugin.saveSettings();
+        });
+        nameInput.inputEl.style.flex = "1";
+        const typeDropdown = new import_obsidian3.DropdownComponent(row1).addOption("text", "Text").addOption("number", "Number").addOption("select", "Select").addOption("multi-select", "Multi-Select").addOption("date", "Date").addOption("checkbox", "Checkbox").addOption("relation", "Relation").addOption("rollup", "Rollup").addOption("formula", "Formula").setValue(prop.type).onChange(async (val) => {
+          prop.type = val;
+          if ((val === "select" || val === "multi-select") && !prop.options)
+            prop.options = [];
+          if (val === "relation")
+            prop.targetFolder = "";
+          if (val === "rollup") {
+            prop.relationProperty = "";
+            prop.targetProperty = "";
+            prop.aggregation = "sum";
+          }
+          if (val === "formula")
+            prop.expression = "";
+          await this.plugin.saveSettings();
+          renderSchema();
+        });
+        new ButtonComponent(row1).setIcon("trash").setWarning().onClick(async () => {
+          schemaList.splice(index, 1);
+          this.plugin.settings.projectVisibleProps[this.projectId] = visibleList.filter((id) => id !== prop.id);
+          await this.plugin.saveSettings();
+          renderSchema();
+        });
+        if (prop.type === "select" || prop.type === "multi-select") {
+          const optsDiv = propDiv.createDiv("pos-schema-options");
+          optsDiv.style.marginLeft = "30px";
+          if (!prop.options)
+            prop.options = [];
+          prop.options.forEach((opt, optIdx) => {
+            const optRow = optsDiv.createDiv();
+            optRow.style.display = "flex";
+            optRow.style.gap = "5px";
+            optRow.style.marginBottom = "5px";
+            new TextComponent(optRow).setValue(opt.name).setPlaceholder("Option Name").onChange(async (val) => {
+              opt.name = val;
+              opt.id = val.toLowerCase().replace(/\s+/g, "-");
+              await this.plugin.saveSettings();
+            });
+            const colorInp = optRow.createEl("input", { type: "color" });
+            colorInp.value = opt.color || "#cccccc";
+            colorInp.addEventListener("change", async (e) => {
+              opt.color = e.target.value;
+              await this.plugin.saveSettings();
+            });
+            new ButtonComponent(optRow).setIcon("trash").onClick(async () => {
+              prop.options.splice(optIdx, 1);
+              await this.plugin.saveSettings();
+              renderSchema();
+            });
+          });
+          new ButtonComponent(optsDiv).setButtonText("+ Option").onClick(async () => {
+            prop.options.push({ id: "new", name: "New Option", color: "#cccccc" });
+            await this.plugin.saveSettings();
+            renderSchema();
+          });
+        }
+        if (prop.type === "rollup") {
+          const rDiv = propDiv.createDiv();
+          rDiv.style.marginLeft = "30px";
+          rDiv.style.display = "flex";
+          rDiv.style.gap = "5px";
+          new TextComponent(rDiv).setPlaceholder("Relation Property").setValue(prop.relationProperty || "").onChange(async (v) => {
+            prop.relationProperty = v;
+            await this.plugin.saveSettings();
+          });
+          new TextComponent(rDiv).setPlaceholder("Target Property").setValue(prop.targetProperty || "").onChange(async (v) => {
+            prop.targetProperty = v;
+            await this.plugin.saveSettings();
+          });
+          new import_obsidian3.DropdownComponent(rDiv).addOption("sum", "Sum").addOption("average", "Average").addOption("count", "Count").addOption("unique", "Unique").addOption("min", "Min").addOption("max", "Max").setValue(prop.aggregation || "sum").onChange(async (v) => {
+            prop.aggregation = v;
+            await this.plugin.saveSettings();
+          });
+        }
+        if (prop.type === "formula") {
+          const fDiv = propDiv.createDiv();
+          fDiv.style.marginLeft = "30px";
+          const expInput = new TextComponent(fDiv).setPlaceholder("Formula Expression").setValue(prop.expression || "").onChange(async (v) => {
+            prop.expression = v;
+            await this.plugin.saveSettings();
+          });
+          expInput.inputEl.style.width = "100%";
+        }
+      });
+      const btnRow = schemaContainer.createDiv();
+      btnRow.style.marginTop = "10px";
+      new ButtonComponent(btnRow).setButtonText("+ Add Property").setCta().onClick(async () => {
+        const newId = "prop-" + Date.now();
+        schemaList.push({
+          id: newId,
+          name: "New Property",
+          type: "text"
+        });
+        this.plugin.settings.projectVisibleProps[this.projectId].push(newId);
+        await this.plugin.saveSettings();
+        renderSchema();
+      });
+    };
+    renderSchema();
   }
 };
 
@@ -4419,10 +4589,13 @@ function instance($$self, $$props, $$invalidate) {
     return pA - pB || a.orderIndex - b.orderIndex;
   });
   function getCustomProps(task) {
-    if (!task.properties || !fileManager.plugin.settings.taskSchema)
+    if (!task.properties || !(fileManager.plugin.settings.projectSchemas[selectedProjectId] || []))
       return [];
     const res = [];
-    fileManager.plugin.settings.taskSchema.forEach((schema) => {
+    const visibleIds = fileManager.plugin.settings.projectVisibleProps[selectedProjectId] || [];
+    (fileManager.plugin.settings.projectSchemas[selectedProjectId] || []).forEach((schema) => {
+      if (!visibleIds.includes(schema.id))
+        return;
       const val = task.properties[schema.id];
       if (val) {
         if (schema.type === "select" || schema.type === "multi-select") {
@@ -4845,42 +5018,42 @@ var ProjectTaskBoard = class extends SvelteComponent {
 var ProjectTaskBoard_default = ProjectTaskBoard;
 
 // src/ui/views/components/ProjectTaskGrid.svelte
-var import_obsidian3 = require("obsidian");
+var import_obsidian4 = require("obsidian");
 function get_each_context2(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[50] = list[i];
+  child_ctx[52] = list[i];
   return child_ctx;
 }
 function get_each_context_12(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[53] = list[i];
+  child_ctx[55] = list[i];
   return child_ctx;
 }
 function get_each_context_22(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[56] = list[i];
-  child_ctx[57] = list;
-  child_ctx[58] = i;
+  child_ctx[58] = list[i];
+  child_ctx[59] = list;
+  child_ctx[60] = i;
   return child_ctx;
 }
 function get_each_context_4(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[62] = list[i];
+  child_ctx[64] = list[i];
   return child_ctx;
 }
 function get_each_context_3(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[59] = list[i];
+  child_ctx[61] = list[i];
   return child_ctx;
 }
 function get_each_context_5(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[65] = list[i];
+  child_ctx[67] = list[i];
   return child_ctx;
 }
 function get_each_context_6(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[53] = list[i];
+  child_ctx[55] = list[i];
   return child_ctx;
 }
 function create_if_block_11(ctx) {
@@ -4891,7 +5064,7 @@ function create_if_block_11(ctx) {
   let dispose;
   let each_value_6 = ensure_array_like(
     /*uniqueTags*/
-    ctx[9]
+    ctx[10]
   );
   let each_blocks = [];
   for (let i = 0; i < each_value_6.length; i += 1) {
@@ -4945,10 +5118,10 @@ function create_if_block_11(ctx) {
         );
       }
       if (dirty[0] & /*tagFilter, uniqueTags*/
-      516) {
+      1028) {
         each_value_6 = ensure_array_like(
           /*uniqueTags*/
-          ctx2[9]
+          ctx2[10]
         );
         let i;
         for (i = 0; i < each_value_6.length; i += 1) {
@@ -4981,7 +5154,7 @@ function create_each_block_6(ctx) {
   let button;
   let t_value = (
     /*tag*/
-    ctx[53] + ""
+    ctx[55] + ""
   );
   let t;
   let mounted;
@@ -4991,7 +5164,7 @@ function create_each_block_6(ctx) {
       /*click_handler_1*/
       ctx[29](
         /*tag*/
-        ctx[53]
+        ctx[55]
       )
     );
   }
@@ -5005,7 +5178,7 @@ function create_each_block_6(ctx) {
         "active",
         /*tagFilter*/
         ctx[2] === /*tag*/
-        ctx[53]
+        ctx[55]
       );
     },
     m(target, anchor) {
@@ -5019,17 +5192,17 @@ function create_each_block_6(ctx) {
     p(new_ctx, dirty) {
       ctx = new_ctx;
       if (dirty[0] & /*uniqueTags*/
-      512 && t_value !== (t_value = /*tag*/
-      ctx[53] + ""))
+      1024 && t_value !== (t_value = /*tag*/
+      ctx[55] + ""))
         set_data(t, t_value);
       if (dirty[0] & /*tagFilter, uniqueTags*/
-      516) {
+      1028) {
         toggle_class(
           button,
           "active",
           /*tagFilter*/
           ctx[2] === /*tag*/
-          ctx[53]
+          ctx[55]
         );
       }
     },
@@ -5046,7 +5219,7 @@ function create_each_block_5(ctx) {
   let option;
   let t_value = (
     /*prop*/
-    ctx[65].name + ""
+    ctx[67].name + ""
   );
   let t;
   let option_value_value;
@@ -5055,7 +5228,7 @@ function create_each_block_5(ctx) {
       option = element("option");
       t = text(t_value);
       option.__value = option_value_value = /*prop*/
-      ctx[65].id;
+      ctx[67].id;
       set_input_value(option, option.__value);
     },
     m(target, anchor) {
@@ -5064,12 +5237,12 @@ function create_each_block_5(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*schema*/
-      1024 && t_value !== (t_value = /*prop*/
-      ctx2[65].name + ""))
+      256 && t_value !== (t_value = /*prop*/
+      ctx2[67].name + ""))
         set_data(t, t_value);
       if (dirty[0] & /*schema*/
-      1024 && option_value_value !== (option_value_value = /*prop*/
-      ctx2[65].id)) {
+      256 && option_value_value !== (option_value_value = /*prop*/
+      ctx2[67].id)) {
         option.__value = option_value_value;
         set_input_value(option, option.__value);
       }
@@ -5089,7 +5262,7 @@ function create_if_block_6(ctx) {
       /*func*/
       ctx[26](
         /*filter*/
-        ctx[56],
+        ctx[58],
         ...args
       )
     );
@@ -5099,7 +5272,7 @@ function create_if_block_6(ctx) {
       /*func_1*/
       ctx[27](
         /*filter*/
-        ctx[56],
+        ctx[58],
         ...args
       )
     );
@@ -5107,22 +5280,22 @@ function create_if_block_6(ctx) {
   function select_block_type(ctx2, dirty) {
     var _a, _b;
     if (dirty[0] & /*schema, projectFilters*/
-    1152)
+    384)
       show_if = null;
     if (
       /*filter*/
-      ctx2[56].property === "status"
+      ctx2[58].property === "status"
     )
       return create_if_block_7;
     if (
       /*filter*/
-      ctx2[56].property === "isCompleted"
+      ctx2[58].property === "isCompleted"
     )
       return create_if_block_9;
     if (show_if == null)
       show_if = !!/*schema*/
-      (((_a = ctx2[10].find(func2)) == null ? void 0 : _a.type) === "select" || /*schema*/
-      ((_b = ctx2[10].find(func_1)) == null ? void 0 : _b.type) === "multi-select");
+      (((_a = ctx2[8].find(func2)) == null ? void 0 : _a.type) === "select" || /*schema*/
+      ((_b = ctx2[8].find(func_1)) == null ? void 0 : _b.type) === "multi-select");
     if (show_if)
       return create_if_block_10;
     return create_else_block_2;
@@ -5167,9 +5340,9 @@ function create_else_block_2(ctx) {
     ctx[37].call(
       input,
       /*each_value_2*/
-      ctx[57],
+      ctx[59],
       /*filter_index*/
-      ctx[58]
+      ctx[60]
     );
   }
   return {
@@ -5186,7 +5359,7 @@ function create_else_block_2(ctx) {
       set_input_value(
         input,
         /*filter*/
-        ctx[56].value
+        ctx[58].value
       );
       if (!mounted) {
         dispose = [
@@ -5204,12 +5377,12 @@ function create_else_block_2(ctx) {
     p(new_ctx, dirty) {
       ctx = new_ctx;
       if (dirty[0] & /*projectFilters, schema*/
-      1152 && input.value !== /*filter*/
-      ctx[56].value) {
+      384 && input.value !== /*filter*/
+      ctx[58].value) {
         set_input_value(
           input,
           /*filter*/
-          ctx[56].value
+          ctx[58].value
         );
       }
     },
@@ -5233,14 +5406,14 @@ function create_if_block_10(ctx) {
       /*func_2*/
       ctx[35](
         /*filter*/
-        ctx[56],
+        ctx[58],
         ...args
       )
     );
   }
   let each_value_4 = ensure_array_like(
     /*schema*/
-    ((_a = ctx[10].find(func_2)) == null ? void 0 : _a.options) || []
+    ((_a = ctx[8].find(func_2)) == null ? void 0 : _a.options) || []
   );
   let each_blocks = [];
   for (let i = 0; i < each_value_4.length; i += 1) {
@@ -5250,9 +5423,9 @@ function create_if_block_10(ctx) {
     ctx[36].call(
       select,
       /*each_value_2*/
-      ctx[57],
+      ctx[59],
       /*filter_index*/
-      ctx[58]
+      ctx[60]
     );
   }
   return {
@@ -5268,7 +5441,7 @@ function create_if_block_10(ctx) {
       attr(select, "class", "pos-grid-select-filter");
       if (
         /*filter*/
-        ctx[56].value === void 0
+        ctx[58].value === void 0
       )
         add_render_callback(select_change_handler_2);
     },
@@ -5283,7 +5456,7 @@ function create_if_block_10(ctx) {
       select_option(
         select,
         /*filter*/
-        ctx[56].value,
+        ctx[58].value,
         true
       );
       if (!mounted) {
@@ -5303,10 +5476,10 @@ function create_if_block_10(ctx) {
       var _a2;
       ctx = new_ctx;
       if (dirty[0] & /*schema, projectFilters*/
-      1152) {
+      384) {
         each_value_4 = ensure_array_like(
           /*schema*/
-          ((_a2 = ctx[10].find(func_2)) == null ? void 0 : _a2.options) || []
+          ((_a2 = ctx[8].find(func_2)) == null ? void 0 : _a2.options) || []
         );
         let i;
         for (i = 0; i < each_value_4.length; i += 1) {
@@ -5325,11 +5498,11 @@ function create_if_block_10(ctx) {
         each_blocks.length = each_value_4.length;
       }
       if (dirty[0] & /*projectFilters, schema*/
-      1152) {
+      384) {
         select_option(
           select,
           /*filter*/
-          ctx[56].value
+          ctx[58].value
         );
       }
     },
@@ -5353,9 +5526,9 @@ function create_if_block_9(ctx) {
     ctx[34].call(
       select,
       /*each_value_2*/
-      ctx[57],
+      ctx[59],
       /*filter_index*/
-      ctx[58]
+      ctx[60]
     );
   }
   return {
@@ -5372,7 +5545,7 @@ function create_if_block_9(ctx) {
       attr(select, "class", "pos-grid-select-filter");
       if (
         /*filter*/
-        ctx[56].value === void 0
+        ctx[58].value === void 0
       )
         add_render_callback(select_change_handler_1);
     },
@@ -5383,7 +5556,7 @@ function create_if_block_9(ctx) {
       select_option(
         select,
         /*filter*/
-        ctx[56].value,
+        ctx[58].value,
         true
       );
       if (!mounted) {
@@ -5402,11 +5575,11 @@ function create_if_block_9(ctx) {
     p(new_ctx, dirty) {
       ctx = new_ctx;
       if (dirty[0] & /*projectFilters, schema*/
-      1152) {
+      384) {
         select_option(
           select,
           /*filter*/
-          ctx[56].value
+          ctx[58].value
         );
       }
     },
@@ -5439,9 +5612,9 @@ function create_if_block_7(ctx) {
     ctx[33].call(
       select,
       /*each_value_2*/
-      ctx[57],
+      ctx[59],
       /*filter_index*/
-      ctx[58]
+      ctx[60]
     );
   }
   return {
@@ -5469,7 +5642,7 @@ function create_if_block_7(ctx) {
       attr(select, "class", "pos-grid-select-filter");
       if (
         /*filter*/
-        ctx[56].value === void 0
+        ctx[58].value === void 0
       )
         add_render_callback(select_change_handler);
     },
@@ -5487,7 +5660,7 @@ function create_if_block_7(ctx) {
       select_option(
         select,
         /*filter*/
-        ctx[56].value,
+        ctx[58].value,
         true
       );
       if (!mounted) {
@@ -5528,11 +5701,11 @@ function create_if_block_7(ctx) {
         each_blocks.length = each_value_3.length;
       }
       if (dirty[0] & /*projectFilters, schema*/
-      1152) {
+      384) {
         select_option(
           select,
           /*filter*/
-          ctx[56].value
+          ctx[58].value
         );
       }
     },
@@ -5550,7 +5723,7 @@ function create_each_block_4(ctx) {
   let option;
   let t_value = (
     /*opt*/
-    ctx[62].name + ""
+    ctx[64].name + ""
   );
   let t;
   let option_value_value;
@@ -5559,7 +5732,7 @@ function create_each_block_4(ctx) {
       option = element("option");
       t = text(t_value);
       option.__value = option_value_value = /*opt*/
-      ctx[62].id;
+      ctx[64].id;
       set_input_value(option, option.__value);
     },
     m(target, anchor) {
@@ -5568,12 +5741,12 @@ function create_each_block_4(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*schema, projectFilters*/
-      1152 && t_value !== (t_value = /*opt*/
-      ctx2[62].name + ""))
+      384 && t_value !== (t_value = /*opt*/
+      ctx2[64].name + ""))
         set_data(t, t_value);
       if (dirty[0] & /*schema, projectFilters*/
-      1152 && option_value_value !== (option_value_value = /*opt*/
-      ctx2[62].id)) {
+      384 && option_value_value !== (option_value_value = /*opt*/
+      ctx2[64].id)) {
         option.__value = option_value_value;
         set_input_value(option, option.__value);
       }
@@ -5589,7 +5762,7 @@ function create_if_block_8(ctx) {
   let option;
   let t_value = (
     /*st*/
-    ctx[59].name + ""
+    ctx[61].name + ""
   );
   let t;
   let option_value_value;
@@ -5598,7 +5771,7 @@ function create_if_block_8(ctx) {
       option = element("option");
       t = text(t_value);
       option.__value = option_value_value = /*st*/
-      ctx[59].id;
+      ctx[61].id;
       set_input_value(option, option.__value);
     },
     m(target, anchor) {
@@ -5608,11 +5781,11 @@ function create_if_block_8(ctx) {
     p(ctx2, dirty) {
       if (dirty[0] & /*fileManager*/
       1 && t_value !== (t_value = /*st*/
-      ctx2[59].name + ""))
+      ctx2[61].name + ""))
         set_data(t, t_value);
       if (dirty[0] & /*fileManager*/
       1 && option_value_value !== (option_value_value = /*st*/
-      ctx2[59].id)) {
+      ctx2[61].id)) {
         option.__value = option_value_value;
         set_input_value(option, option.__value);
       }
@@ -5627,7 +5800,7 @@ function create_if_block_8(ctx) {
 function create_each_block_3(ctx) {
   let show_if = !["backlog", "planned", "running", "review"].includes(
     /*st*/
-    ctx[59].id
+    ctx[61].id
   );
   let if_block_anchor;
   let if_block = show_if && create_if_block_8(ctx);
@@ -5647,7 +5820,7 @@ function create_each_block_3(ctx) {
       1)
         show_if = !["backlog", "planned", "running", "review"].includes(
           /*st*/
-          ctx2[59].id
+          ctx2[61].id
         );
       if (show_if) {
         if (if_block) {
@@ -5695,7 +5868,7 @@ function create_each_block_22(key_1, ctx) {
   let dispose;
   let each_value_5 = ensure_array_like(
     /*schema*/
-    ctx[10]
+    ctx[8]
   );
   let each_blocks = [];
   for (let i = 0; i < each_value_5.length; i += 1) {
@@ -5705,31 +5878,31 @@ function create_each_block_22(key_1, ctx) {
     ctx[31].call(
       select0,
       /*each_value_2*/
-      ctx[57],
+      ctx[59],
       /*filter_index*/
-      ctx[58]
+      ctx[60]
     );
   }
   function select1_change_handler() {
     ctx[32].call(
       select1,
       /*each_value_2*/
-      ctx[57],
+      ctx[59],
       /*filter_index*/
-      ctx[58]
+      ctx[60]
     );
   }
   let if_block = (
     /*filter*/
-    ctx[56].operator !== "is-empty" && /*filter*/
-    ctx[56].operator !== "not-empty" && create_if_block_6(ctx)
+    ctx[58].operator !== "is-empty" && /*filter*/
+    ctx[58].operator !== "not-empty" && create_if_block_6(ctx)
   );
   function click_handler_2() {
     return (
       /*click_handler_2*/
       ctx[38](
         /*filter*/
-        ctx[56]
+        ctx[58]
       )
     );
   }
@@ -5783,7 +5956,7 @@ function create_each_block_22(key_1, ctx) {
       attr(select0, "class", "pos-grid-select-filter");
       if (
         /*filter*/
-        ctx[56].property === void 0
+        ctx[58].property === void 0
       )
         add_render_callback(select0_change_handler);
       option3.__value = "is";
@@ -5805,7 +5978,7 @@ function create_each_block_22(key_1, ctx) {
       attr(select1, "class", "pos-grid-select-filter");
       if (
         /*filter*/
-        ctx[56].operator === void 0
+        ctx[58].operator === void 0
       )
         add_render_callback(select1_change_handler);
       attr(button, "class", "pos-del");
@@ -5832,7 +6005,7 @@ function create_each_block_22(key_1, ctx) {
       select_option(
         select0,
         /*filter*/
-        ctx[56].property,
+        ctx[58].property,
         true
       );
       append(div2, t3);
@@ -5848,7 +6021,7 @@ function create_each_block_22(key_1, ctx) {
       select_option(
         select1,
         /*filter*/
-        ctx[56].operator,
+        ctx[58].operator,
         true
       );
       append(div2, t12);
@@ -5880,10 +6053,10 @@ function create_each_block_22(key_1, ctx) {
     p(new_ctx, dirty) {
       ctx = new_ctx;
       if (dirty[0] & /*schema*/
-      1024) {
+      256) {
         each_value_5 = ensure_array_like(
           /*schema*/
-          ctx[10]
+          ctx[8]
         );
         let i;
         for (i = 0; i < each_value_5.length; i += 1) {
@@ -5902,25 +6075,25 @@ function create_each_block_22(key_1, ctx) {
         each_blocks.length = each_value_5.length;
       }
       if (dirty[0] & /*projectFilters, schema*/
-      1152) {
+      384) {
         select_option(
           select0,
           /*filter*/
-          ctx[56].property
+          ctx[58].property
         );
       }
       if (dirty[0] & /*projectFilters, schema*/
-      1152) {
+      384) {
         select_option(
           select1,
           /*filter*/
-          ctx[56].operator
+          ctx[58].operator
         );
       }
       if (
         /*filter*/
-        ctx[56].operator !== "is-empty" && /*filter*/
-        ctx[56].operator !== "not-empty"
+        ctx[58].operator !== "is-empty" && /*filter*/
+        ctx[58].operator !== "not-empty"
       ) {
         if (if_block) {
           if_block.p(ctx, dirty);
@@ -6062,7 +6235,7 @@ function create_else_block2(ctx) {
   );
   const get_key = (ctx2) => (
     /*task*/
-    ctx2[50].id
+    ctx2[52].id
   );
   for (let i = 0; i < each_value.length; i += 1) {
     let child_ctx = get_each_context2(ctx, each_value, i);
@@ -6126,7 +6299,7 @@ function create_if_block_42(ctx) {
   let span;
   let t_value = (
     /*task*/
-    ctx[50].description + ""
+    ctx[52].description + ""
   );
   let t;
   return {
@@ -6142,7 +6315,7 @@ function create_if_block_42(ctx) {
     p(ctx2, dirty) {
       if (dirty[0] & /*sortedTasks*/
       64 && t_value !== (t_value = /*task*/
-      ctx2[50].description + ""))
+      ctx2[52].description + ""))
         set_data(t, t_value);
     },
     d(detaching) {
@@ -6210,7 +6383,7 @@ function create_if_block_12(ctx) {
   let each_1_anchor;
   let each_value_1 = ensure_array_like(
     /*task*/
-    ctx[50].tags
+    ctx[52].tags
   );
   let each_blocks = [];
   for (let i = 0; i < each_value_1.length; i += 1) {
@@ -6236,7 +6409,7 @@ function create_if_block_12(ctx) {
       68) {
         each_value_1 = ensure_array_like(
           /*task*/
-          ctx2[50].tags
+          ctx2[52].tags
         );
         let i;
         for (i = 0; i < each_value_1.length; i += 1) {
@@ -6267,7 +6440,7 @@ function create_each_block_12(ctx) {
   let span;
   let t_value = (
     /*tag*/
-    ctx[53] + ""
+    ctx[55] + ""
   );
   let t;
   let mounted;
@@ -6277,7 +6450,7 @@ function create_each_block_12(ctx) {
       /*click_handler_10*/
       ctx[47](
         /*tag*/
-        ctx[53]
+        ctx[55]
       )
     );
   }
@@ -6300,7 +6473,7 @@ function create_each_block_12(ctx) {
       ctx = new_ctx;
       if (dirty[0] & /*sortedTasks*/
       64 && t_value !== (t_value = /*tag*/
-      ctx[53] + ""))
+      ctx[55] + ""))
         set_data(t, t_value);
     },
     d(detaching) {
@@ -6323,7 +6496,7 @@ function create_each_block2(key_1, ctx) {
   let span0;
   let t1_value = (
     /*task*/
-    ctx[50].name + ""
+    ctx[52].name + ""
   );
   let t1;
   let t2;
@@ -6332,7 +6505,7 @@ function create_each_block2(key_1, ctx) {
   let span1;
   let t4_value = (
     /*task*/
-    ctx[50].status.toUpperCase() + ""
+    ctx[52].status.toUpperCase() + ""
   );
   let t4;
   let span1_class_value;
@@ -6345,14 +6518,14 @@ function create_each_block2(key_1, ctx) {
   let td5;
   let t8_value = (
     /*task*/
-    ctx[50].weight + ""
+    ctx[52].weight + ""
   );
   let t8;
   let t9;
   let td6;
   let t10_value = new Date(
     /*task*/
-    ctx[50].createdAt
+    ctx[52].createdAt
   ).toLocaleDateString() + "";
   let t10;
   let t11;
@@ -6367,7 +6540,7 @@ function create_each_block2(key_1, ctx) {
       /*change_handler*/
       ctx[45](
         /*task*/
-        ctx[50]
+        ctx[52]
       )
     );
   }
@@ -6376,23 +6549,23 @@ function create_each_block2(key_1, ctx) {
       /*click_handler_9*/
       ctx[46](
         /*task*/
-        ctx[50]
+        ctx[52]
       )
     );
   }
   let if_block0 = (
     /*task*/
-    ctx[50].description && create_if_block_42(ctx)
+    ctx[52].description && create_if_block_42(ctx)
   );
   function select_block_type_2(ctx2, dirty) {
     if (
       /*task*/
-      ctx2[50].priority === 1
+      ctx2[52].priority === 1
     )
       return create_if_block_22;
     if (
       /*task*/
-      ctx2[50].priority === 2
+      ctx2[52].priority === 2
     )
       return create_if_block_32;
     return create_else_block_1;
@@ -6401,14 +6574,14 @@ function create_each_block2(key_1, ctx) {
   let if_block1 = current_block_type(ctx);
   let if_block2 = (
     /*task*/
-    ctx[50].tags && create_if_block_12(ctx)
+    ctx[52].tags && create_if_block_12(ctx)
   );
   function click_handler_11() {
     return (
       /*click_handler_11*/
       ctx[48](
         /*task*/
-        ctx[50]
+        ctx[52]
       )
     );
   }
@@ -6455,14 +6628,14 @@ function create_each_block2(key_1, ctx) {
       input.checked = input_checked_value = /*selectedTaskIds*/
       ctx[5].has(
         /*task*/
-        ctx[50].id
+        ctx[52].id
       );
       attr(td0, "class", "pos-td-check");
       attr(span0, "class", "pos-td-task-title");
       attr(div0, "class", "pos-td-name-cell");
       attr(td1, "class", "pos-td-name");
       attr(span1, "class", span1_class_value = "pos-ptc-status-badge " + /*task*/
-      ctx[50].status);
+      ctx[52].status);
       attr(td2, "class", "pos-td-status");
       attr(td3, "class", "pos-td-priority");
       attr(div1, "class", "pos-card-meta");
@@ -6478,14 +6651,14 @@ function create_each_block2(key_1, ctx) {
         /*selectedTaskIds*/
         ctx[5].has(
           /*task*/
-          ctx[50].id
+          ctx[52].id
         )
       );
       toggle_class(
         tr,
         "completed",
         /*task*/
-        ctx[50].isCompleted
+        ctx[52].isCompleted
       );
       this.first = tr;
     },
@@ -6539,17 +6712,17 @@ function create_each_block2(key_1, ctx) {
       96 && input_checked_value !== (input_checked_value = /*selectedTaskIds*/
       ctx[5].has(
         /*task*/
-        ctx[50].id
+        ctx[52].id
       ))) {
         input.checked = input_checked_value;
       }
       if (dirty[0] & /*sortedTasks*/
       64 && t1_value !== (t1_value = /*task*/
-      ctx[50].name + ""))
+      ctx[52].name + ""))
         set_data(t1, t1_value);
       if (
         /*task*/
-        ctx[50].description
+        ctx[52].description
       ) {
         if (if_block0) {
           if_block0.p(ctx, dirty);
@@ -6564,11 +6737,11 @@ function create_each_block2(key_1, ctx) {
       }
       if (dirty[0] & /*sortedTasks*/
       64 && t4_value !== (t4_value = /*task*/
-      ctx[50].status.toUpperCase() + ""))
+      ctx[52].status.toUpperCase() + ""))
         set_data(t4, t4_value);
       if (dirty[0] & /*sortedTasks*/
       64 && span1_class_value !== (span1_class_value = "pos-ptc-status-badge " + /*task*/
-      ctx[50].status)) {
+      ctx[52].status)) {
         attr(span1, "class", span1_class_value);
       }
       if (current_block_type !== (current_block_type = select_block_type_2(ctx, dirty))) {
@@ -6581,7 +6754,7 @@ function create_each_block2(key_1, ctx) {
       }
       if (
         /*task*/
-        ctx[50].tags
+        ctx[52].tags
       ) {
         if (if_block2) {
           if_block2.p(ctx, dirty);
@@ -6596,12 +6769,12 @@ function create_each_block2(key_1, ctx) {
       }
       if (dirty[0] & /*sortedTasks*/
       64 && t8_value !== (t8_value = /*task*/
-      ctx[50].weight + ""))
+      ctx[52].weight + ""))
         set_data(t8, t8_value);
       if (dirty[0] & /*sortedTasks*/
       64 && t10_value !== (t10_value = new Date(
         /*task*/
-        ctx[50].createdAt
+        ctx[52].createdAt
       ).toLocaleDateString() + ""))
         set_data(t10, t10_value);
       if (dirty[0] & /*selectedTaskIds, sortedTasks*/
@@ -6612,7 +6785,7 @@ function create_each_block2(key_1, ctx) {
           /*selectedTaskIds*/
           ctx[5].has(
             /*task*/
-            ctx[50].id
+            ctx[52].id
           )
         );
       }
@@ -6622,7 +6795,7 @@ function create_each_block2(key_1, ctx) {
           tr,
           "completed",
           /*task*/
-          ctx[50].isCompleted
+          ctx[52].isCompleted
         );
       }
     },
@@ -6733,7 +6906,7 @@ function create_fragment2(ctx) {
   let dispose;
   let if_block0 = (
     /*uniqueTags*/
-    ctx[9].length > 0 && create_if_block_11(ctx)
+    ctx[10].length > 0 && create_if_block_11(ctx)
   );
   let each_value_2 = ensure_array_like(
     /*projectFilters*/
@@ -6741,7 +6914,7 @@ function create_fragment2(ctx) {
   );
   const get_key = (ctx2) => (
     /*filter*/
-    ctx2[56].id
+    ctx2[58].id
   );
   for (let i = 0; i < each_value_2.length; i += 1) {
     let child_ctx = get_each_context_22(ctx, each_value_2, i);
@@ -6828,7 +7001,7 @@ function create_fragment2(ctx) {
       attr(div1, "class", "pos-dynamic-filters");
       attr(input1, "type", "checkbox");
       input1.checked = /*allSelected*/
-      ctx[8];
+      ctx[9];
       attr(th0, "class", "pos-th-check");
       attr(th1, "class", "pos-th-name");
       attr(th2, "class", "pos-th-status");
@@ -6964,7 +7137,7 @@ function create_fragment2(ctx) {
     p(ctx2, dirty) {
       if (
         /*uniqueTags*/
-        ctx2[9].length > 0
+        ctx2[10].length > 0
       ) {
         if (if_block0) {
           if_block0.p(ctx2, dirty);
@@ -6987,7 +7160,7 @@ function create_fragment2(ctx) {
         );
       }
       if (dirty[0] & /*removeFilter, projectFilters, saveFilters, fileManager, schema*/
-      11393) {
+      10625) {
         each_value_2 = ensure_array_like(
           /*projectFilters*/
           ctx2[7]
@@ -7010,9 +7183,9 @@ function create_fragment2(ctx) {
         if_block1 = null;
       }
       if (dirty[0] & /*allSelected*/
-      256) {
+      512) {
         input1.checked = /*allSelected*/
-        ctx2[8];
+        ctx2[9];
       }
       if (dirty[0] & /*sortBy, sortOrder*/
       24 && t8_value !== (t8_value = /*sortBy*/
@@ -7197,9 +7370,45 @@ function instance2($$self, $$props, $$invalidate) {
       }
     ).open();
   }
+  function getTaskCustomProp(task, propId) {
+    const val = task.properties ? task.properties[propId] : void 0;
+    if (val === void 0 || val === null || val === "")
+      return null;
+    const propSchema = schema.find((s) => s.id === propId);
+    if (!propSchema)
+      return { value: String(val) };
+    if (propSchema.type === "select") {
+      const opt = (propSchema.options || []).find((o) => o.id === val);
+      if (opt)
+        return { value: opt.name, color: opt.color };
+    }
+    return { value: String(val) };
+  }
+  function getTaskCustomPropList(task, propId) {
+    const val = task.properties ? task.properties[propId] : void 0;
+    if (val === void 0 || val === null || val === "")
+      return [];
+    const propSchema = schema.find((s) => s.id === propId);
+    if (!propSchema)
+      return [{ value: String(val) }];
+    const vals = Array.isArray(val) ? val : [val];
+    const res = [];
+    vals.forEach((v) => {
+      if (propSchema.type === "multi-select" || propSchema.type === "select") {
+        const opt = (propSchema.options || []).find((o) => o.id === v);
+        if (opt)
+          res.push({ value: opt.name, color: opt.color });
+        else
+          res.push({ value: String(v) });
+      } else {
+        res.push({ value: String(v) });
+      }
+    });
+    return res;
+  }
   function openTaskFile(taskId) {
     const file = app.vault.getAbstractFileByPath(`tasks/${taskId}.md`);
-    if (file instanceof import_obsidian3.TFile) {
+    if (file instanceof import_obsidian4.TFile) {
       app.workspace.getLeaf().openFile(file);
     }
   }
@@ -7214,33 +7423,33 @@ function instance2($$self, $$props, $$invalidate) {
   function select0_change_handler(each_value_2, filter_index) {
     each_value_2[filter_index].property = select_value(this);
     $$invalidate(7, projectFilters), $$invalidate(0, fileManager), $$invalidate(24, projectId);
-    $$invalidate(10, schema), $$invalidate(0, fileManager);
+    $$invalidate(8, schema), $$invalidate(0, fileManager);
   }
   function select1_change_handler(each_value_2, filter_index) {
     each_value_2[filter_index].operator = select_value(this);
     $$invalidate(7, projectFilters), $$invalidate(0, fileManager), $$invalidate(24, projectId);
-    $$invalidate(10, schema), $$invalidate(0, fileManager);
+    $$invalidate(8, schema), $$invalidate(0, fileManager);
   }
   function select_change_handler(each_value_2, filter_index) {
     each_value_2[filter_index].value = select_value(this);
     $$invalidate(7, projectFilters), $$invalidate(0, fileManager), $$invalidate(24, projectId);
-    $$invalidate(10, schema), $$invalidate(0, fileManager);
+    $$invalidate(8, schema), $$invalidate(0, fileManager);
   }
   function select_change_handler_1(each_value_2, filter_index) {
     each_value_2[filter_index].value = select_value(this);
     $$invalidate(7, projectFilters), $$invalidate(0, fileManager), $$invalidate(24, projectId);
-    $$invalidate(10, schema), $$invalidate(0, fileManager);
+    $$invalidate(8, schema), $$invalidate(0, fileManager);
   }
   const func_2 = (filter, s) => s.id === filter.property;
   function select_change_handler_2(each_value_2, filter_index) {
     each_value_2[filter_index].value = select_value(this);
     $$invalidate(7, projectFilters), $$invalidate(0, fileManager), $$invalidate(24, projectId);
-    $$invalidate(10, schema), $$invalidate(0, fileManager);
+    $$invalidate(8, schema), $$invalidate(0, fileManager);
   }
   function input_input_handler(each_value_2, filter_index) {
     each_value_2[filter_index].value = this.value;
     $$invalidate(7, projectFilters), $$invalidate(0, fileManager), $$invalidate(24, projectId);
-    $$invalidate(10, schema), $$invalidate(0, fileManager);
+    $$invalidate(8, schema), $$invalidate(0, fileManager);
   }
   const click_handler_2 = (filter) => removeFilter(filter.id);
   const click_handler_3 = () => toggleSort("name");
@@ -7267,7 +7476,7 @@ function instance2($$self, $$props, $$invalidate) {
     if ($$self.$$.dirty[0] & /*fileManager*/
     1) {
       $:
-        $$invalidate(10, schema = fileManager.plugin.settings.taskSchema || []);
+        $$invalidate(8, schema = fileManager.plugin.settings.projectSchemas[selectedProjectId] || []);
     }
     if ($$self.$$.dirty[0] & /*fileManager, projectId*/
     16777217) {
@@ -7277,7 +7486,7 @@ function instance2($$self, $$props, $$invalidate) {
     if ($$self.$$.dirty[0] & /*projectTasks*/
     8388608) {
       $:
-        $$invalidate(9, uniqueTags = Array.from(new Set(projectTasks.flatMap((t) => t.tags || []))).sort());
+        $$invalidate(10, uniqueTags = Array.from(new Set(projectTasks.flatMap((t) => t.tags || []))).sort());
     }
     if ($$self.$$.dirty[0] & /*projectTasks, searchQuery, tagFilter, projectFilters*/
     8388742) {
@@ -7367,7 +7576,7 @@ function instance2($$self, $$props, $$invalidate) {
     if ($$self.$$.dirty[0] & /*sortedTasks, selectedTaskIds*/
     96) {
       $:
-        $$invalidate(8, allSelected = sortedTasks.length > 0 && sortedTasks.every((t) => selectedTaskIds.has(t.id)));
+        $$invalidate(9, allSelected = sortedTasks.length > 0 && sortedTasks.every((t) => selectedTaskIds.has(t.id)));
     }
   };
   return [
@@ -7379,9 +7588,9 @@ function instance2($$self, $$props, $$invalidate) {
     selectedTaskIds,
     sortedTasks,
     projectFilters,
+    schema,
     allSelected,
     uniqueTags,
-    schema,
     saveFilters,
     addFilter,
     removeFilter,
@@ -10750,7 +10959,7 @@ var ProjectDeadlines = class extends SvelteComponent {
 var ProjectDeadlines_default = ProjectDeadlines;
 
 // src/ui/views/AgingView.svelte
-var import_obsidian4 = require("obsidian");
+var import_obsidian5 = require("obsidian");
 function get_each_context4(ctx, list, i) {
   const child_ctx = ctx.slice();
   child_ctx[29] = list[i];
@@ -11775,7 +11984,7 @@ function instance4($$self, $$props, $$invalidate) {
         } else {
           plugin.activateWorkspaceView(id);
         }
-        new import_obsidian4.Notice("Project created successfully!");
+        new import_obsidian5.Notice("Project created successfully!");
       }
     ).open();
   }
@@ -11789,20 +11998,20 @@ function instance4($$self, $$props, $$invalidate) {
           await fileManager.deleteTask(t.id);
         }
         await fileManager.loadAll();
-        new import_obsidian4.Notice("Project deleted.");
+        new import_obsidian5.Notice("Project deleted.");
       }
     }
   }
   async function handleArchiveProject(id) {
     if (confirm("Archive this project?")) {
       await fileManager.archiveProject(id);
-      new import_obsidian4.Notice("Project archived.");
+      new import_obsidian5.Notice("Project archived.");
     }
   }
   async function handleUnarchiveProject(id) {
     if (confirm("Restore this project to active status?")) {
       await fileManager.unarchiveProject(id);
-      new import_obsidian4.Notice("Project restored.");
+      new import_obsidian5.Notice("Project restored.");
     }
   }
   function handleSelectProject(id) {
@@ -11919,7 +12128,7 @@ var AgingView_default = AgingView;
 // src/ui/views/ProjectsView.svelte
 function get_each_context5(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[32] = list[i];
+  child_ctx[33] = list[i];
   return child_ctx;
 }
 function get_else_ctx(ctx) {
@@ -11930,7 +12139,7 @@ function get_else_ctx(ctx) {
     child_ctx[5].id && /*selectedProject*/
     child_ctx[5].status !== "archived").sort((a, b) => a.orderIndex - b.orderIndex)
   );
-  child_ctx[35] = constants_0;
+  child_ctx[36] = constants_0;
   return child_ctx;
 }
 function create_else_block5(ctx) {
@@ -11956,7 +12165,8 @@ function create_else_block5(ctx) {
   let button3;
   let t10;
   let div3;
-  let t11;
+  let button4;
+  let t12;
   let div4;
   let current_block_type_index;
   let if_block1;
@@ -12013,7 +12223,9 @@ function create_else_block5(ctx) {
       button3.textContent = "\u{1F4C5} Deadlines";
       t10 = space();
       div3 = element("div");
-      t11 = space();
+      button4 = element("button");
+      button4.textContent = "? Properties";
+      t12 = space();
       div4 = element("div");
       if_block1.c();
       attr(div0, "class", "pos-editor-project-title");
@@ -12047,7 +12259,9 @@ function create_else_block5(ctx) {
         ctx[9] === "deadlines"
       );
       attr(div2, "class", "pos-editor-header-tabs");
-      set_style(div3, "width", "40px");
+      attr(button4, "class", "pos-ptc-start-btn");
+      attr(div3, "class", "pos-editor-header-right");
+      set_style(div3, "padding-right", "20px");
       attr(header, "class", "pos-editor-header");
       attr(div4, "class", "pos-project-workspace-body");
       attr(div5, "class", "pos-project-full-workspace");
@@ -12073,7 +12287,8 @@ function create_else_block5(ctx) {
       append(div2, button3);
       append(header, t10);
       append(header, div3);
-      append(div5, t11);
+      append(div3, button4);
+      append(div5, t12);
       append(div5, div4);
       if_blocks[current_block_type_index].m(div4, null);
       current = true;
@@ -12102,6 +12317,12 @@ function create_else_block5(ctx) {
             "click",
             /*click_handler_4*/
             ctx[22]
+          ),
+          listen(
+            button4,
+            "click",
+            /*click_handler_5*/
+            ctx[23]
           )
         ];
         mounted = true;
@@ -12532,7 +12753,7 @@ function create_if_block_15(ctx) {
       append(div3, t3);
       append(div3, div2);
       append(div2, div1);
-      ctx[23](div1);
+      ctx[24](div1);
       append(div8, t4);
       append(div8, div7);
       append(div7, div5);
@@ -12557,8 +12778,8 @@ function create_if_block_15(ctx) {
           listen(
             button1,
             "click",
-            /*click_handler_5*/
-            ctx[24]
+            /*click_handler_6*/
+            ctx[25]
           )
         ];
         mounted = true;
@@ -12597,7 +12818,7 @@ function create_if_block_15(ctx) {
       if (detaching) {
         detach(div8);
       }
-      ctx[23](null);
+      ctx[24](null);
       if (if_block0)
         if_block0.d();
       if_block1.d();
@@ -12625,7 +12846,7 @@ function create_else_block_3(ctx) {
       ),
       projectTasks: (
         /*projectTasks*/
-        ctx[35]
+        ctx[36]
       )
     }
   });
@@ -12654,7 +12875,7 @@ function create_else_block_3(ctx) {
       if (dirty[0] & /*$tasksStore, selectedProject*/
       1056)
         projecttaskgrid_changes.projectTasks = /*projectTasks*/
-        ctx2[35];
+        ctx2[36];
       projecttaskgrid.$set(projecttaskgrid_changes);
     },
     i(local) {
@@ -12691,7 +12912,7 @@ function create_if_block_55(ctx) {
       ),
       projectTasks: (
         /*projectTasks*/
-        ctx[35]
+        ctx[36]
       )
     }
   });
@@ -12720,7 +12941,7 @@ function create_if_block_55(ctx) {
       if (dirty[0] & /*$tasksStore, selectedProject*/
       1056)
         projecttaskboard_changes.projectTasks = /*projectTasks*/
-        ctx2[35];
+        ctx2[36];
       projecttaskboard.$set(projecttaskboard_changes);
     },
     i(local) {
@@ -12772,20 +12993,20 @@ function create_if_block_35(ctx) {
           listen(
             button0,
             "click",
-            /*click_handler_6*/
-            ctx[25]
-          ),
-          listen(
-            button1,
-            "click",
             /*click_handler_7*/
             ctx[26]
           ),
           listen(
-            button2,
+            button1,
             "click",
             /*click_handler_8*/
             ctx[27]
+          ),
+          listen(
+            button2,
+            "click",
+            /*click_handler_9*/
+            ctx[28]
           )
         ];
         mounted = true;
@@ -12882,7 +13103,7 @@ function create_each_block5(ctx) {
   let span0;
   let t0_value = fileIcon(
     /*f*/
-    ctx[32].extension
+    ctx[33].extension
   ) + "";
   let t0;
   let t1;
@@ -12890,32 +13111,32 @@ function create_each_block5(ctx) {
   let span1;
   let t2_value = (
     /*f*/
-    ctx[32].name + ""
+    ctx[33].name + ""
   );
   let t2;
   let t3;
   let span2;
   let t4_value = formatFileSize(
     /*f*/
-    ctx[32].size
+    ctx[33].size
   ) + "";
   let t4;
   let t5;
   let t6_value = formatFileDate(
     /*f*/
-    ctx[32].mtime
+    ctx[33].mtime
   ) + "";
   let t6;
   let t7;
   let button_title_value;
   let mounted;
   let dispose;
-  function click_handler_9() {
+  function click_handler_10() {
     return (
-      /*click_handler_9*/
-      ctx[28](
+      /*click_handler_10*/
+      ctx[29](
         /*f*/
-        ctx[32]
+        ctx[33]
       )
     );
   }
@@ -12940,7 +13161,7 @@ function create_each_block5(ctx) {
       attr(div2, "class", "pos-fb-info");
       attr(button, "class", "pos-fb-item");
       attr(button, "title", button_title_value = /*f*/
-      ctx[32].path);
+      ctx[33].path);
     },
     m(target, anchor) {
       insert(target, button, anchor);
@@ -12957,7 +13178,7 @@ function create_each_block5(ctx) {
       append(span2, t6);
       append(button, t7);
       if (!mounted) {
-        dispose = listen(button, "click", click_handler_9);
+        dispose = listen(button, "click", click_handler_10);
         mounted = true;
       }
     },
@@ -12966,28 +13187,28 @@ function create_each_block5(ctx) {
       if (dirty[0] & /*projectFiles*/
       128 && t0_value !== (t0_value = fileIcon(
         /*f*/
-        ctx[32].extension
+        ctx[33].extension
       ) + ""))
         set_data(t0, t0_value);
       if (dirty[0] & /*projectFiles*/
       128 && t2_value !== (t2_value = /*f*/
-      ctx[32].name + ""))
+      ctx[33].name + ""))
         set_data(t2, t2_value);
       if (dirty[0] & /*projectFiles*/
       128 && t4_value !== (t4_value = formatFileSize(
         /*f*/
-        ctx[32].size
+        ctx[33].size
       ) + ""))
         set_data(t4, t4_value);
       if (dirty[0] & /*projectFiles*/
       128 && t6_value !== (t6_value = formatFileDate(
         /*f*/
-        ctx[32].mtime
+        ctx[33].mtime
       ) + ""))
         set_data(t6, t6_value);
       if (dirty[0] & /*projectFiles*/
       128 && button_title_value !== (button_title_value = /*f*/
-      ctx[32].path)) {
+      ctx[33].path)) {
         attr(button, "title", button_title_value);
       }
     },
@@ -13110,7 +13331,7 @@ function instance5($$self, $$props, $$invalidate) {
   let { app } = $$props;
   let { fileManager } = $$props;
   let { plugin } = $$props;
-  let { selectedProjectId = null } = $$props;
+  let { selectedProjectId: selectedProjectId2 = null } = $$props;
   let { isFullPage = false } = $$props;
   let selectedProject = null;
   let projectContent = "";
@@ -13134,7 +13355,7 @@ function instance5($$self, $$props, $$invalidate) {
   }
   function openFile(filePath) {
     const file = app.vault.getAbstractFileByPath(filePath);
-    if (file instanceof import_obsidian5.TFile) {
+    if (file instanceof import_obsidian6.TFile) {
       app.workspace.getLeaf("tab").openFile(file);
     }
   }
@@ -13187,30 +13408,33 @@ tags: [excalidraw]
       const file = await fileManager.createProjectFile(selectedProject.id, filename, content);
       refreshProjectFiles(selectedProject.id);
       app.workspace.getLeaf("tab").openFile(file);
-      new import_obsidian5.Notice(`Created ${filename}`);
+      new import_obsidian6.Notice(`Created ${filename}`);
     } catch (e) {
-      new import_obsidian5.Notice("Failed to create file: " + e.message);
+      new import_obsidian6.Notice("Failed to create file: " + e.message);
     }
   }
   const func2 = (id, m) => {
-    $$invalidate(0, selectedProjectId = id);
+    $$invalidate(0, selectedProjectId2 = id);
   };
-  const click_handler = () => $$invalidate(0, selectedProjectId = null);
+  const click_handler = () => $$invalidate(0, selectedProjectId2 = null);
   const click_handler_1 = () => $$invalidate(9, projectTab = "notes");
   const click_handler_2 = () => $$invalidate(9, projectTab = "board");
   const click_handler_3 = () => $$invalidate(9, projectTab = "grid");
   const click_handler_4 = () => $$invalidate(9, projectTab = "deadlines");
+  const click_handler_5 = () => {
+    new ProjectSchemaModal(app, plugin, selectedProjectId2).open();
+  };
   function div1_binding($$value) {
     binding_callbacks[$$value ? "unshift" : "push"](() => {
       previewEl = $$value;
       $$invalidate(6, previewEl);
     });
   }
-  const click_handler_5 = () => $$invalidate(8, showNewFileMenu = !showNewFileMenu);
-  const click_handler_6 = () => createNewFile("md");
-  const click_handler_7 = () => createNewFile("canvas");
-  const click_handler_8 = () => createNewFile("excalidraw");
-  const click_handler_9 = (f) => openFile(f.path);
+  const click_handler_6 = () => $$invalidate(8, showNewFileMenu = !showNewFileMenu);
+  const click_handler_7 = () => createNewFile("md");
+  const click_handler_8 = () => createNewFile("canvas");
+  const click_handler_9 = () => createNewFile("excalidraw");
+  const click_handler_10 = (f) => openFile(f.path);
   $$self.$$set = ($$props2) => {
     if ("app" in $$props2)
       $$invalidate(1, app = $$props2.app);
@@ -13219,7 +13443,7 @@ tags: [excalidraw]
     if ("plugin" in $$props2)
       $$invalidate(3, plugin = $$props2.plugin);
     if ("selectedProjectId" in $$props2)
-      $$invalidate(0, selectedProjectId = $$props2.selectedProjectId);
+      $$invalidate(0, selectedProjectId2 = $$props2.selectedProjectId);
     if ("isFullPage" in $$props2)
       $$invalidate(4, isFullPage = $$props2.isFullPage);
   };
@@ -13232,12 +13456,12 @@ tags: [excalidraw]
     if ($$self.$$.dirty[0] & /*selectedProjectId, activeProjects*/
     32769) {
       $: {
-        if (selectedProjectId) {
-          const proj = activeProjects.find((p) => p.id === selectedProjectId);
+        if (selectedProjectId2) {
+          const proj = activeProjects.find((p) => p.id === selectedProjectId2);
           if (proj) {
             $$invalidate(5, selectedProject = proj);
-            loadProjectContent(selectedProjectId);
-            refreshProjectFiles(selectedProjectId);
+            loadProjectContent(selectedProjectId2);
+            refreshProjectFiles(selectedProjectId2);
           } else {
             $$invalidate(5, selectedProject = null);
             $$invalidate(14, projectContent = "");
@@ -13256,13 +13480,13 @@ tags: [excalidraw]
       $: {
         if (previewEl && projectContent !== void 0 && selectedProject) {
           previewEl.empty();
-          import_obsidian5.MarkdownRenderer.renderMarkdown(projectContent, previewEl, fileManager.resolveProjectNotePath(selectedProject.id) || `projects/${selectedProject.id}.md`, plugin);
+          import_obsidian6.MarkdownRenderer.renderMarkdown(projectContent, previewEl, fileManager.resolveProjectNotePath(selectedProject.id) || `projects/${selectedProject.id}.md`, plugin);
         }
       }
     }
   };
   return [
-    selectedProjectId,
+    selectedProjectId2,
     app,
     fileManager,
     plugin,
@@ -13285,12 +13509,13 @@ tags: [excalidraw]
     click_handler_2,
     click_handler_3,
     click_handler_4,
-    div1_binding,
     click_handler_5,
+    div1_binding,
     click_handler_6,
     click_handler_7,
     click_handler_8,
-    click_handler_9
+    click_handler_9,
+    click_handler_10
   ];
 }
 var ProjectsView = class extends SvelteComponent {
@@ -13317,7 +13542,7 @@ var ProjectsView = class extends SvelteComponent {
 var ProjectsView_default = ProjectsView;
 
 // src/ui/views/ElasticView.svelte
-var import_obsidian6 = require("obsidian");
+var import_obsidian7 = require("obsidian");
 function get_each_context6(ctx, list, i) {
   const child_ctx = ctx.slice();
   child_ctx[77] = list[i];
@@ -15876,7 +16101,7 @@ function instance6($$self, $$props, $$invalidate) {
   }
   function openTaskFile(taskId) {
     const file = app.vault.getAbstractFileByPath(`tasks/${taskId}.md`);
-    if (file instanceof import_obsidian6.TFile) {
+    if (file instanceof import_obsidian7.TFile) {
       app.workspace.getLeaf().openFile(file);
     }
   }
@@ -17000,12 +17225,12 @@ function instance8($$self, $$props, $$invalidate) {
   let { fileManager } = $$props;
   let { plugin } = $$props;
   let mode = "elastic";
-  let selectedProjectId = "all";
+  let selectedProjectId2 = "all";
   const click_handler = () => $$invalidate(3, mode = "elastic");
   const click_handler_1 = () => $$invalidate(3, mode = "deadlines");
   function select_change_handler() {
-    selectedProjectId = select_value(this);
-    $$invalidate(4, selectedProjectId);
+    selectedProjectId2 = select_value(this);
+    $$invalidate(4, selectedProjectId2);
     $$invalidate(5, activeProjects), $$invalidate(6, $projectsStore);
   }
   const click_handler_2 = () => $$invalidate(3, mode = "projects");
@@ -17016,8 +17241,8 @@ function instance8($$self, $$props, $$invalidate) {
     }
   };
   function projectsview_selectedProjectId_binding(value) {
-    selectedProjectId = value;
-    $$invalidate(4, selectedProjectId);
+    selectedProjectId2 = value;
+    $$invalidate(4, selectedProjectId2);
   }
   $$self.$$set = ($$props2) => {
     if ("app" in $$props2)
@@ -17039,7 +17264,7 @@ function instance8($$self, $$props, $$invalidate) {
     fileManager,
     plugin,
     mode,
-    selectedProjectId,
+    selectedProjectId2,
     activeProjects,
     $projectsStore,
     click_handler,
@@ -17059,7 +17284,7 @@ var App3 = class extends SvelteComponent {
 var App_default = App3;
 
 // src/settings.ts
-var import_obsidian7 = require("obsidian");
+var import_obsidian8 = require("obsidian");
 var DEFAULT_SETTINGS = {
   nearDeadlineDays: 7,
   urgentDeadlineDays: 2,
@@ -17079,6 +17304,8 @@ var DEFAULT_SETTINGS = {
     { id: "4", targetDate: "deadline", condition: "is relative to today", value: "next week", color: "#A7C957" }
   ],
   projectFilters: {},
+  projectSchemas: {},
+  projectVisibleProps: {},
   taskSchema: [
     {
       id: "priority",
@@ -17122,7 +17349,7 @@ var DEFAULT_SETTINGS = {
     }
   ]
 };
-var ProximaSettingTab = class extends import_obsidian7.PluginSettingTab {
+var ProximaSettingTab = class extends import_obsidian8.PluginSettingTab {
   constructor(app, plugin) {
     super(app, plugin);
     __publicField(this, "plugin");
@@ -17132,22 +17359,22 @@ var ProximaSettingTab = class extends import_obsidian7.PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
     containerEl.createEl("h2", { text: "General Configuration" });
-    new import_obsidian7.Setting(containerEl).setName("Projects folder").setDesc("Vault folder where project overview files will be saved.").addText((text2) => text2.setPlaceholder("projects").setValue(this.plugin.settings.projectsFolder).onChange(async (value) => {
+    new import_obsidian8.Setting(containerEl).setName("Projects folder").setDesc("Vault folder where project overview files will be saved.").addText((text2) => text2.setPlaceholder("projects").setValue(this.plugin.settings.projectsFolder).onChange(async (value) => {
       this.plugin.settings.projectsFolder = value;
       await this.plugin.saveSettings();
     }));
-    new import_obsidian7.Setting(containerEl).setName("Tasks folder").setDesc("Vault folder where individual task markdown files will be saved.").addText((text2) => text2.setPlaceholder("tasks").setValue(this.plugin.settings.tasksFolder).onChange(async (value) => {
+    new import_obsidian8.Setting(containerEl).setName("Tasks folder").setDesc("Vault folder where individual task markdown files will be saved.").addText((text2) => text2.setPlaceholder("tasks").setValue(this.plugin.settings.tasksFolder).onChange(async (value) => {
       this.plugin.settings.tasksFolder = value;
       await this.plugin.saveSettings();
     }));
-    new import_obsidian7.Setting(containerEl).setName("Near deadline threshold (days)").setDesc("Tasks due within this many days will be highlighted as near their deadline.").addText((text2) => text2.setPlaceholder("7").setValue(this.plugin.settings.nearDeadlineDays.toString()).onChange(async (value) => {
+    new import_obsidian8.Setting(containerEl).setName("Near deadline threshold (days)").setDesc("Tasks due within this many days will be highlighted as near their deadline.").addText((text2) => text2.setPlaceholder("7").setValue(this.plugin.settings.nearDeadlineDays.toString()).onChange(async (value) => {
       const parsed = parseInt(value, 10);
       if (!isNaN(parsed)) {
         this.plugin.settings.nearDeadlineDays = parsed;
         await this.plugin.saveSettings();
       }
     }));
-    new import_obsidian7.Setting(containerEl).setName("Urgent deadline threshold (days)").setDesc("Tasks due within this many days will be highlighted as urgent.").addText((text2) => text2.setPlaceholder("2").setValue(this.plugin.settings.urgentDeadlineDays.toString()).onChange(async (value) => {
+    new import_obsidian8.Setting(containerEl).setName("Urgent deadline threshold (days)").setDesc("Tasks due within this many days will be highlighted as urgent.").addText((text2) => text2.setPlaceholder("2").setValue(this.plugin.settings.urgentDeadlineDays.toString()).onChange(async (value) => {
       const parsed = parseInt(value, 10);
       if (!isNaN(parsed)) {
         this.plugin.settings.urgentDeadlineDays = parsed;
@@ -17171,7 +17398,7 @@ var ProximaSettingTab = class extends import_obsidian7.PluginSettingTab {
         row.style.display = "flex";
         row.style.gap = "5px";
         row.style.marginBottom = "5px";
-        new import_obsidian7.TextComponent(row).setValue(status.name).setPlaceholder("Status Name").onChange(async (val) => {
+        new import_obsidian8.TextComponent(row).setValue(status.name).setPlaceholder("Status Name").onChange(async (val) => {
           status.name = val;
           status.id = val.toLowerCase().replace(/\s+/g, "-");
           await this.plugin.saveSettings();
@@ -17182,13 +17409,13 @@ var ProximaSettingTab = class extends import_obsidian7.PluginSettingTab {
           status.color = e.target.value;
           await this.plugin.saveSettings();
         });
-        new import_obsidian7.ButtonComponent(row).setIcon("trash").onClick(async () => {
+        new import_obsidian8.ButtonComponent(row).setIcon("trash").onClick(async () => {
           this.plugin.settings.statuses.splice(idx, 1);
           await this.plugin.saveSettings();
           renderStatuses();
         });
       });
-      new import_obsidian7.ButtonComponent(statusesContainer).setButtonText("+ Add Status").onClick(async () => {
+      new import_obsidian8.ButtonComponent(statusesContainer).setButtonText("+ Add Status").onClick(async () => {
         this.plugin.settings.statuses.push({ id: "new-status", name: "New Status", color: "#cccccc" });
         await this.plugin.saveSettings();
         renderStatuses();
@@ -17214,13 +17441,13 @@ var ProximaSettingTab = class extends import_obsidian7.PluginSettingTab {
         propDiv.style.display = "flex";
         propDiv.style.gap = "10px";
         propDiv.style.alignItems = "center";
-        const nameInput = new import_obsidian7.TextComponent(propDiv).setValue(prop.name).setPlaceholder("Property Name").onChange(async (val) => {
+        const nameInput = new import_obsidian8.TextComponent(propDiv).setValue(prop.name).setPlaceholder("Property Name").onChange(async (val) => {
           prop.name = val;
           prop.id = val.toLowerCase().replace(/\s+/g, "-");
           await this.plugin.saveSettings();
         });
         nameInput.inputEl.style.flex = "1";
-        const typeDropdown = new import_obsidian7.DropdownComponent(propDiv).addOption("text", "Text").addOption("number", "Number").addOption("select", "Select").addOption("multi-select", "Multi-Select").addOption("date", "Date").addOption("checkbox", "Checkbox").addOption("relation", "Relation").addOption("rollup", "Rollup").addOption("formula", "Formula").setValue(prop.type).onChange(async (val) => {
+        const typeDropdown = new import_obsidian8.DropdownComponent(propDiv).addOption("text", "Text").addOption("number", "Number").addOption("select", "Select").addOption("multi-select", "Multi-Select").addOption("date", "Date").addOption("checkbox", "Checkbox").addOption("relation", "Relation").addOption("rollup", "Rollup").addOption("formula", "Formula").setValue(prop.type).onChange(async (val) => {
           prop.type = val;
           if ((val === "select" || val === "multi-select") && !prop.options) {
             prop.options = [];
@@ -17237,7 +17464,7 @@ var ProximaSettingTab = class extends import_obsidian7.PluginSettingTab {
           await this.plugin.saveSettings();
           renderSchema();
         });
-        new import_obsidian7.ButtonComponent(propDiv).setIcon("trash").setWarning().onClick(async () => {
+        new import_obsidian8.ButtonComponent(propDiv).setIcon("trash").setWarning().onClick(async () => {
           this.plugin.settings.taskSchema.splice(index, 1);
           await this.plugin.saveSettings();
           renderSchema();
@@ -17255,7 +17482,7 @@ var ProximaSettingTab = class extends import_obsidian7.PluginSettingTab {
             optRow.style.display = "flex";
             optRow.style.gap = "5px";
             optRow.style.marginBottom = "5px";
-            new import_obsidian7.TextComponent(optRow).setValue(opt.name).setPlaceholder("Option Name").onChange(async (val) => {
+            new import_obsidian8.TextComponent(optRow).setValue(opt.name).setPlaceholder("Option Name").onChange(async (val) => {
               opt.name = val;
               opt.id = val.toLowerCase().replace(/\s+/g, "-");
               await this.plugin.saveSettings();
@@ -17266,13 +17493,13 @@ var ProximaSettingTab = class extends import_obsidian7.PluginSettingTab {
               opt.color = e.target.value;
               await this.plugin.saveSettings();
             });
-            new import_obsidian7.ButtonComponent(optRow).setIcon("trash").onClick(async () => {
+            new import_obsidian8.ButtonComponent(optRow).setIcon("trash").onClick(async () => {
               prop.options.splice(optIdx, 1);
               await this.plugin.saveSettings();
               renderSchema();
             });
           });
-          new import_obsidian7.ButtonComponent(optsDiv).setButtonText("+ Add Option").onClick(async () => {
+          new import_obsidian8.ButtonComponent(optsDiv).setButtonText("+ Add Option").onClick(async () => {
             prop.options.push({ id: "new", name: "New Option", color: "#cccccc" });
             await this.plugin.saveSettings();
             renderSchema();
@@ -17284,7 +17511,7 @@ var ProximaSettingTab = class extends import_obsidian7.PluginSettingTab {
           configDiv.style.padding = "10px";
           configDiv.style.borderLeft = "2px solid var(--background-modifier-border)";
           configDiv.createEl("span", { text: "Target Folder: ", cls: "pos-text-muted" });
-          new import_obsidian7.TextComponent(configDiv).setValue(prop.targetFolder || "").setPlaceholder("e.g. databases/clients").onChange(async (val) => {
+          new import_obsidian8.TextComponent(configDiv).setValue(prop.targetFolder || "").setPlaceholder("e.g. databases/clients").onChange(async (val) => {
             prop.targetFolder = val;
             await this.plugin.saveSettings();
           });
@@ -17296,15 +17523,15 @@ var ProximaSettingTab = class extends import_obsidian7.PluginSettingTab {
           configDiv.style.borderLeft = "2px solid var(--background-modifier-border)";
           configDiv.style.display = "flex";
           configDiv.style.gap = "10px";
-          new import_obsidian7.TextComponent(configDiv).setValue(prop.relationProperty || "").setPlaceholder("Relation Property").onChange(async (val) => {
+          new import_obsidian8.TextComponent(configDiv).setValue(prop.relationProperty || "").setPlaceholder("Relation Property").onChange(async (val) => {
             prop.relationProperty = val;
             await this.plugin.saveSettings();
           });
-          new import_obsidian7.TextComponent(configDiv).setValue(prop.targetProperty || "").setPlaceholder("Target Property").onChange(async (val) => {
+          new import_obsidian8.TextComponent(configDiv).setValue(prop.targetProperty || "").setPlaceholder("Target Property").onChange(async (val) => {
             prop.targetProperty = val;
             await this.plugin.saveSettings();
           });
-          new import_obsidian7.DropdownComponent(configDiv).addOption("sum", "Sum").addOption("average", "Average").addOption("count", "Count").addOption("unique", "Unique Values").addOption("min", "Min").addOption("max", "Max").setValue(prop.aggregation || "sum").onChange(async (val) => {
+          new import_obsidian8.DropdownComponent(configDiv).addOption("sum", "Sum").addOption("average", "Average").addOption("count", "Count").addOption("unique", "Unique Values").addOption("min", "Min").addOption("max", "Max").setValue(prop.aggregation || "sum").onChange(async (val) => {
             prop.aggregation = val;
             await this.plugin.saveSettings();
           });
@@ -17315,14 +17542,14 @@ var ProximaSettingTab = class extends import_obsidian7.PluginSettingTab {
           configDiv.style.padding = "10px";
           configDiv.style.borderLeft = "2px solid var(--background-modifier-border)";
           configDiv.createEl("span", { text: "Expression: ", cls: "pos-text-muted" });
-          const exprInput = new import_obsidian7.TextComponent(configDiv).setValue(prop.expression || "").setPlaceholder("e.g. prop('Cost') * 1.2").onChange(async (val) => {
+          const exprInput = new import_obsidian8.TextComponent(configDiv).setValue(prop.expression || "").setPlaceholder("e.g. prop('Cost') * 1.2").onChange(async (val) => {
             prop.expression = val;
             await this.plugin.saveSettings();
           });
           exprInput.inputEl.style.width = "300px";
         }
       });
-      new import_obsidian7.ButtonComponent(schemaContainer).setButtonText("+ Add Property").onClick(async () => {
+      new import_obsidian8.ButtonComponent(schemaContainer).setButtonText("+ Add Property").onClick(async () => {
         this.plugin.settings.taskSchema.push({
           id: "new-property",
           name: "New Property",
@@ -17339,7 +17566,7 @@ var ProximaSettingTab = class extends import_obsidian7.PluginSettingTab {
 // src/main.ts
 var VIEW_TYPE = "proxima-view";
 var WORKSPACE_VIEW_TYPE = "proxima-workspace-view";
-var ProximaView = class extends import_obsidian8.ItemView {
+var ProximaView = class extends import_obsidian9.ItemView {
   constructor(leaf, fileManager, plugin) {
     super(leaf);
     __publicField(this, "component", null);
@@ -17373,7 +17600,7 @@ var ProximaView = class extends import_obsidian8.ItemView {
     }
   }
 };
-var ProjectWorkspaceView = class extends import_obsidian8.ItemView {
+var ProjectWorkspaceView = class extends import_obsidian9.ItemView {
   constructor(leaf, fileManager, plugin) {
     super(leaf);
     __publicField(this, "component", null);
@@ -17422,7 +17649,7 @@ var ProjectWorkspaceView = class extends import_obsidian8.ItemView {
     }
   }
 };
-var ProximaPlugin = class extends import_obsidian8.Plugin {
+var ProximaPlugin = class extends import_obsidian9.Plugin {
   constructor() {
     super(...arguments);
     __publicField(this, "fileManager");
@@ -17431,7 +17658,7 @@ var ProximaPlugin = class extends import_obsidian8.Plugin {
   async onload() {
     try {
       console.log("Initializing Proxima...");
-      new import_obsidian8.Notice("Initializing Proxima...");
+      new import_obsidian9.Notice("Initializing Proxima...");
       await this.loadSettings();
       this.fileManager = new FileManager(this.app, this);
       this.addSettingTab(new ProximaSettingTab(this.app, this));
@@ -17439,9 +17666,28 @@ var ProximaPlugin = class extends import_obsidian8.Plugin {
         try {
           await this.fileManager.initialize();
           console.log("Proxima: data initialized successfully!");
+          let didMigrate = false;
+          if (this.settings.taskSchema && this.settings.taskSchema.length > 0) {
+            const projects = get_store_value(projectsStore);
+            if (!this.settings.projectSchemas)
+              this.settings.projectSchemas = {};
+            if (!this.settings.projectVisibleProps)
+              this.settings.projectVisibleProps = {};
+            for (const p of projects) {
+              if (!this.settings.projectSchemas[p.id]) {
+                this.settings.projectSchemas[p.id] = JSON.parse(JSON.stringify(this.settings.taskSchema));
+                this.settings.projectVisibleProps[p.id] = this.settings.taskSchema.map((s) => s.id);
+                didMigrate = true;
+              }
+            }
+            if (didMigrate) {
+              delete this.settings.taskSchema;
+              await this.saveSettings();
+            }
+          }
         } catch (e) {
           console.error("Proxima: failed to initialize data", e);
-          new import_obsidian8.Notice("Proxima failed to initialize: " + e.message);
+          new import_obsidian9.Notice("Proxima failed to initialize: " + e.message);
         }
       });
       try {
@@ -17490,7 +17736,7 @@ var ProximaPlugin = class extends import_obsidian8.Plugin {
         })
       );
     } catch (e) {
-      new import_obsidian8.Notice("ONLOAD CRASH: " + (e.message || e), 1e4);
+      new import_obsidian9.Notice("ONLOAD CRASH: " + (e.message || e), 1e4);
       throw e;
     }
   }

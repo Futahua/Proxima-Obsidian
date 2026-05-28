@@ -11,7 +11,7 @@
   import type { FilterRule } from '../../../types';
   
   // Dynamic Filters
-  $: schema = fileManager.plugin.settings.taskSchema || [];
+  $: schema = (fileManager.plugin.settings.projectSchemas[selectedProjectId] || []) || [];
   $: projectFilters = (fileManager.plugin.settings.projectFilters || {})[projectId] || [];
   
   async function saveFilters() {
@@ -194,6 +194,40 @@
     new QuickEditTaskModal(app, fileManager.plugin, task, async (updates) => {
       await fileManager.updateTask(task.id, updates);
     }).open();
+  }
+
+
+  function getTaskCustomProp(task, propId) {
+    const val = task.properties ? task.properties[propId] : undefined;
+    if (val === undefined || val === null || val === '') return null;
+    const propSchema = schema.find(s => s.id === propId);
+    if (!propSchema) return { value: String(val) };
+    
+    if (propSchema.type === 'select') {
+       const opt = (propSchema.options || []).find(o => o.id === val);
+       if (opt) return { value: opt.name, color: opt.color };
+    }
+    return { value: String(val) };
+  }
+
+  function getTaskCustomPropList(task, propId) {
+    const val = task.properties ? task.properties[propId] : undefined;
+    if (val === undefined || val === null || val === '') return [];
+    const propSchema = schema.find(s => s.id === propId);
+    if (!propSchema) return [{ value: String(val) }];
+    
+    const vals = Array.isArray(val) ? val : [val];
+    const res = [];
+    vals.forEach(v => {
+       if (propSchema.type === 'multi-select' || propSchema.type === 'select') {
+         const opt = (propSchema.options || []).find(o => o.id === v);
+         if (opt) res.push({ value: opt.name, color: opt.color });
+         else res.push({ value: String(v) });
+       } else {
+         res.push({ value: String(v) });
+       }
+    });
+    return res;
   }
 
   function openTaskFile(taskId: string) {

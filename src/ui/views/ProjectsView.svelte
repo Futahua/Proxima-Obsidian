@@ -3,6 +3,7 @@
   import type { FileManager } from '../../data/FileManager';
   import type { ProjectFileInfo } from '../../data/FileManager';
   import { projectsStore, tasksStore } from '../../stores/data';
+  import { ProjectSchemaModal } from '../../modals/Modals';
   import type { ProjectData } from '../../types';
   
   import ProjectTaskBoard from './components/ProjectTaskBoard.svelte';
@@ -205,7 +206,11 @@
         </button>
       </div>
 
-      <div style="width: 40px;"></div>
+      <div class="pos-editor-header-right" style="padding-right: 20px;">
+        <button class="pos-ptc-start-btn" on:click={() => {
+          new ProjectSchemaModal(app, plugin, selectedProjectId).open();
+        }}>? Properties</button>
+      </div>
     </header>
 
     <!-- CONTENT DISPATCHER -->

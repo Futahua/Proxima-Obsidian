@@ -9,7 +9,9 @@ export interface ProximaSettings {
   tasksFolder: string;
   statuses: SelectOption[];
   colorRules: ColorRule[];
-  taskSchema: PropertySchema[];
+  taskSchema?: PropertySchema[]; // DEPRECATED
+  projectSchemas: Record<string, PropertySchema[]>;
+  projectVisibleProps: Record<string, string[]>;
   projectFilters: Record<string, FilterRule[]>;
 }
 
@@ -32,6 +34,8 @@ export const DEFAULT_SETTINGS: ProximaSettings = {
     { id: '4', targetDate: 'deadline', condition: 'is relative to today', value: 'next week', color: '#A7C957' }
   ],
   projectFilters: {},
+  projectSchemas: {},
+  projectVisibleProps: {},
   taskSchema: [
     {
       id: 'priority',

@@ -37,9 +37,11 @@
   }));
 
   function getCustomProps(task: TaskData) {
-    if (!task.properties || !fileManager.plugin.settings.taskSchema) return [];
+    if (!task.properties || !(fileManager.plugin.settings.projectSchemas[selectedProjectId] || [])) return [];
     const res: { name: string, value: string, color?: string }[] = [];
-    fileManager.plugin.settings.taskSchema.forEach(schema => {
+    const visibleIds = fileManager.plugin.settings.projectVisibleProps[selectedProjectId] || [];
+      (fileManager.plugin.settings.projectSchemas[selectedProjectId] || []).forEach(schema => {
+        if (!visibleIds.includes(schema.id)) return;
       const val = task.properties[schema.id];
       if (val) {
         if (schema.type === 'select' || schema.type === 'multi-select') {

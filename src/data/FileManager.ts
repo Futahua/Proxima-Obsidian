@@ -179,9 +179,10 @@ export class FileManager {
         ganttRow: fm.ganttRow || 0,
         properties: await (async () => {
           const props: Record<string, any> = {};
-          if (this.plugin && this.plugin.settings && this.plugin.settings.taskSchema) {
+          const activeSchema = (fm.project && this.plugin?.settings?.projectSchemas) ? (this.plugin.settings.projectSchemas[fm.project] || []) : [];
+          if (activeSchema.length > 0) {
             // First pass: basic properties and rollups
-            for (const schema of this.plugin.settings.taskSchema) {
+            for (const schema of activeSchema) {
               if (schema.type === 'rollup' && schema.relationProperty && schema.targetProperty && schema.aggregation) {
                 let relationVal = fm[schema.relationProperty];
                 if (!relationVal) {
@@ -202,7 +203,7 @@ export class FileManager {
                       // But wait, the user specifies the ID in `targetProperty`? Let's check both ID and Name to be safe.
                       let tVal = tfm[schema.targetProperty];
                       if (tVal === undefined) {
-                        const ts = this.plugin.settings.taskSchema.find(x => x.name === schema.targetProperty);
+                        const ts = activeSchema.find(x => x.name === schema.targetProperty);
                         if (ts && tfm[ts.id] !== undefined) tVal = tfm[ts.id];
                       }
                       if (tVal !== undefined) vals.push(tVal);
@@ -227,17 +228,17 @@ export class FileManager {
             }
             
             // Second pass: formulas (can reference rollups and basic props)
-            for (const schema of this.plugin.settings.taskSchema) {
+            for (const schema of activeSchema) {
                if (schema.type === 'formula' && schema.expression) {
                   try {
                     const scope: Record<string, any> = {
                       prop: (name: string) => {
-                        const s = this.plugin.settings.taskSchema.find(x => x.name === name || x.id === name);
+                        const s = activeSchema.find(x => x.name === name || x.id === name);
                         return s ? props[s.id] : undefined;
                       }
                     };
                     // Also spread properties directly for backwards compatibility
-                    for (const s of this.plugin.settings.taskSchema) {
+                    for (const s of activeSchema) {
                       if (s.name && props[s.id] !== undefined) {
                         scope[s.name] = props[s.id];
                       }
