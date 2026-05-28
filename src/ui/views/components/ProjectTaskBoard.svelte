@@ -109,12 +109,12 @@
   
   async function handleColumnFinalize(e) {
     boardColumns = e.detail.items;
-    isDraggingColumns = false;
     const settings = await ensureProjectStatuses();
     settings.projectStatuses[projectId] = boardColumns.map(c => ({ id: c.id, name: c.name, color: c.color }));
     await fileManager.plugin.saveSettings();
     fileManager.plugin.settings = settings;
     fileManager = fileManager; // Force Svelte Reactivity
+    setTimeout(() => { isDraggingColumns = false; }, 100);
   }
 
   // Task Reordering (Cross-Column)
@@ -125,18 +125,26 @@
     boardColumns = [...boardColumns];
   }
   
+  let dragTaskTimeout;
   async function handleTaskFinalize(colId, e) {
     const colIndex = boardColumns.findIndex(c => c.id === colId);
     boardColumns[colIndex].items = e.detail.items;
     boardColumns = [...boardColumns];
-    isDraggingTasks = false;
     
     const promises = [];
     boardColumns[colIndex].items.forEach((t, idx) => {
       if (t.status !== colId || t.orderIndex !== idx) {
+        t.status = colId;
+        t.orderIndex = idx;
         promises.push(fileManager.updateTask(t.id, { status: colId, orderIndex: idx }));
       }
     });
+    
+    clearTimeout(dragTaskTimeout);
+    dragTaskTimeout = setTimeout(() => {
+      isDraggingTasks = false;
+    }, 500);
+    
     await Promise.all(promises);
   }
 
