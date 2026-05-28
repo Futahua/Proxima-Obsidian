@@ -14,6 +14,7 @@
   export let fileManager: FileManager;
   export let plugin;
   export let selectedProjectId: string | null = null;
+  export let isFullPage: boolean = false;
 
   $: activeProjects = $projectsStore.filter(p => p.status === 'active');
 
@@ -162,9 +163,11 @@
     <!-- SUB-TABS NAVIGATION HEADER -->
     <header class="pos-editor-header">
       <div class="pos-editor-header-left">
-        {#if !isFullPage}<button class="pos-back-btn" on:click={() => selectedProjectId = null}>
+        {#if !isFullPage}
+        <button class="pos-back-btn" on:click={() => selectedProjectId = null}>
           ← Back
         </button>
+        {/if}
         <div class="pos-editor-project-title">
           <h3>{selectedProject.name}</h3>
         </div>

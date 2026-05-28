@@ -11806,12 +11806,7 @@ function instance4($$self, $$props, $$invalidate) {
     }
   }
   function handleSelectProject(id) {
-    const pFile = fileManager.getProjectNoteFile(id);
-    if (pFile) {
-      app.workspace.getLeaf("tab").openFile(pFile);
-    } else {
-      new import_obsidian4.Notice("Project note not found");
-    }
+    plugin.activateWorkspaceView(id);
   }
   function input_change_handler() {
     showArchived = this.checked;
@@ -11924,62 +11919,63 @@ var AgingView_default = AgingView;
 // src/ui/views/ProjectsView.svelte
 function get_each_context5(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[31] = list[i];
+  child_ctx[32] = list[i];
   return child_ctx;
 }
 function get_else_ctx(ctx) {
   const child_ctx = ctx.slice();
   const constants_0 = (
     /*$tasksStore*/
-    child_ctx[9].filter((t) => t.project === /*selectedProject*/
-    child_ctx[4].id && /*selectedProject*/
-    child_ctx[4].status !== "archived").sort((a, b) => a.orderIndex - b.orderIndex)
+    child_ctx[10].filter((t) => t.project === /*selectedProject*/
+    child_ctx[5].id && /*selectedProject*/
+    child_ctx[5].status !== "archived").sort((a, b) => a.orderIndex - b.orderIndex)
   );
-  child_ctx[34] = constants_0;
+  child_ctx[35] = constants_0;
   return child_ctx;
 }
 function create_else_block5(ctx) {
   let div5;
   let header;
   let div1;
-  let button0;
-  let t1;
+  let t0;
   let div0;
   let h3;
-  let t2_value = (
+  let t1_value = (
     /*selectedProject*/
-    ctx[4].name + ""
+    ctx[5].name + ""
   );
+  let t1;
   let t2;
-  let t3;
   let div2;
+  let button0;
+  let t4;
   let button1;
-  let t5;
+  let t6;
   let button2;
-  let t7;
+  let t8;
   let button3;
-  let t9;
-  let button4;
-  let t11;
+  let t10;
   let div3;
-  let t12;
+  let t11;
   let div4;
   let current_block_type_index;
-  let if_block;
+  let if_block1;
   let current;
   let mounted;
   let dispose;
+  let if_block0 = !/*isFullPage*/
+  ctx[4] && create_if_block_64(ctx);
   const if_block_creators = [create_if_block_15, create_if_block_45, create_else_block_23];
   const if_blocks = [];
   function select_block_type_1(ctx2, dirty) {
     if (
       /*projectTab*/
-      ctx2[8] === "notes"
+      ctx2[9] === "notes"
     )
       return 0;
     if (
       /*projectTab*/
-      ctx2[8] === "deadlines"
+      ctx2[9] === "deadlines"
     )
       return 1;
     return 2;
@@ -11990,66 +11986,65 @@ function create_else_block5(ctx) {
     return ctx2;
   }
   current_block_type_index = select_block_type_1(ctx, [-1, -1]);
-  if_block = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](select_block_ctx(ctx, current_block_type_index));
+  if_block1 = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](select_block_ctx(ctx, current_block_type_index));
   return {
     c() {
       div5 = element("div");
       header = element("header");
       div1 = element("div");
-      button0 = element("button");
-      button0.textContent = "\u2190 Back";
-      t1 = space();
+      if (if_block0)
+        if_block0.c();
+      t0 = space();
       div0 = element("div");
       h3 = element("h3");
-      t2 = text(t2_value);
-      t3 = space();
+      t1 = text(t1_value);
+      t2 = space();
       div2 = element("div");
+      button0 = element("button");
+      button0.textContent = "\u{1F4C4} Notes";
+      t4 = space();
       button1 = element("button");
-      button1.textContent = "\u{1F4C4} Notes";
-      t5 = space();
+      button1.textContent = "\u{1F4CB} Task Board";
+      t6 = space();
       button2 = element("button");
-      button2.textContent = "\u{1F4CB} Task Board";
-      t7 = space();
+      button2.textContent = "\u{1F4CA} Backlog";
+      t8 = space();
       button3 = element("button");
-      button3.textContent = "\u{1F4CA} Backlog";
-      t9 = space();
-      button4 = element("button");
-      button4.textContent = "\u{1F4C5} Deadlines";
-      t11 = space();
+      button3.textContent = "\u{1F4C5} Deadlines";
+      t10 = space();
       div3 = element("div");
-      t12 = space();
+      t11 = space();
       div4 = element("div");
-      if_block.c();
-      attr(button0, "class", "pos-back-btn");
+      if_block1.c();
       attr(div0, "class", "pos-editor-project-title");
       attr(div1, "class", "pos-editor-header-left");
+      attr(button0, "class", "pos-tab-btn");
+      toggle_class(
+        button0,
+        "active",
+        /*projectTab*/
+        ctx[9] === "notes"
+      );
       attr(button1, "class", "pos-tab-btn");
       toggle_class(
         button1,
         "active",
         /*projectTab*/
-        ctx[8] === "notes"
+        ctx[9] === "board"
       );
       attr(button2, "class", "pos-tab-btn");
       toggle_class(
         button2,
         "active",
         /*projectTab*/
-        ctx[8] === "board"
+        ctx[9] === "grid"
       );
       attr(button3, "class", "pos-tab-btn");
       toggle_class(
         button3,
         "active",
         /*projectTab*/
-        ctx[8] === "grid"
-      );
-      attr(button4, "class", "pos-tab-btn");
-      toggle_class(
-        button4,
-        "active",
-        /*projectTab*/
-        ctx[8] === "deadlines"
+        ctx[9] === "deadlines"
       );
       attr(div2, "class", "pos-editor-header-tabs");
       set_style(div3, "width", "40px");
@@ -12061,23 +12056,24 @@ function create_else_block5(ctx) {
       insert(target, div5, anchor);
       append(div5, header);
       append(header, div1);
-      append(div1, button0);
-      append(div1, t1);
+      if (if_block0)
+        if_block0.m(div1, null);
+      append(div1, t0);
       append(div1, div0);
       append(div0, h3);
-      append(h3, t2);
-      append(header, t3);
+      append(h3, t1);
+      append(header, t2);
       append(header, div2);
+      append(div2, button0);
+      append(div2, t4);
       append(div2, button1);
-      append(div2, t5);
+      append(div2, t6);
       append(div2, button2);
-      append(div2, t7);
+      append(div2, t8);
       append(div2, button3);
-      append(div2, t9);
-      append(div2, button4);
-      append(header, t11);
+      append(header, t10);
       append(header, div3);
-      append(div5, t12);
+      append(div5, t11);
       append(div5, div4);
       if_blocks[current_block_type_index].m(div4, null);
       current = true;
@@ -12086,76 +12082,83 @@ function create_else_block5(ctx) {
           listen(
             button0,
             "click",
-            /*click_handler*/
-            ctx[17]
+            /*click_handler_1*/
+            ctx[19]
           ),
           listen(
             button1,
             "click",
-            /*click_handler_1*/
-            ctx[18]
+            /*click_handler_2*/
+            ctx[20]
           ),
           listen(
             button2,
             "click",
-            /*click_handler_2*/
-            ctx[19]
+            /*click_handler_3*/
+            ctx[21]
           ),
           listen(
             button3,
             "click",
-            /*click_handler_3*/
-            ctx[20]
-          ),
-          listen(
-            button4,
-            "click",
             /*click_handler_4*/
-            ctx[21]
+            ctx[22]
           )
         ];
         mounted = true;
       }
     },
     p(ctx2, dirty) {
+      if (!/*isFullPage*/
+      ctx2[4]) {
+        if (if_block0) {
+          if_block0.p(ctx2, dirty);
+        } else {
+          if_block0 = create_if_block_64(ctx2);
+          if_block0.c();
+          if_block0.m(div1, t0);
+        }
+      } else if (if_block0) {
+        if_block0.d(1);
+        if_block0 = null;
+      }
       if ((!current || dirty[0] & /*selectedProject*/
-      16) && t2_value !== (t2_value = /*selectedProject*/
-      ctx2[4].name + ""))
-        set_data(t2, t2_value);
+      32) && t1_value !== (t1_value = /*selectedProject*/
+      ctx2[5].name + ""))
+        set_data(t1, t1_value);
       if (!current || dirty[0] & /*projectTab*/
-      256) {
+      512) {
+        toggle_class(
+          button0,
+          "active",
+          /*projectTab*/
+          ctx2[9] === "notes"
+        );
+      }
+      if (!current || dirty[0] & /*projectTab*/
+      512) {
         toggle_class(
           button1,
           "active",
           /*projectTab*/
-          ctx2[8] === "notes"
+          ctx2[9] === "board"
         );
       }
       if (!current || dirty[0] & /*projectTab*/
-      256) {
+      512) {
         toggle_class(
           button2,
           "active",
           /*projectTab*/
-          ctx2[8] === "board"
+          ctx2[9] === "grid"
         );
       }
       if (!current || dirty[0] & /*projectTab*/
-      256) {
+      512) {
         toggle_class(
           button3,
           "active",
           /*projectTab*/
-          ctx2[8] === "grid"
-        );
-      }
-      if (!current || dirty[0] & /*projectTab*/
-      256) {
-        toggle_class(
-          button4,
-          "active",
-          /*projectTab*/
-          ctx2[8] === "deadlines"
+          ctx2[9] === "deadlines"
         );
       }
       let previous_block_index = current_block_type_index;
@@ -12168,31 +12171,33 @@ function create_else_block5(ctx) {
           if_blocks[previous_block_index] = null;
         });
         check_outros();
-        if_block = if_blocks[current_block_type_index];
-        if (!if_block) {
-          if_block = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](select_block_ctx(ctx2, current_block_type_index));
-          if_block.c();
+        if_block1 = if_blocks[current_block_type_index];
+        if (!if_block1) {
+          if_block1 = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](select_block_ctx(ctx2, current_block_type_index));
+          if_block1.c();
         } else {
-          if_block.p(select_block_ctx(ctx2, current_block_type_index), dirty);
+          if_block1.p(select_block_ctx(ctx2, current_block_type_index), dirty);
         }
-        transition_in(if_block, 1);
-        if_block.m(div4, null);
+        transition_in(if_block1, 1);
+        if_block1.m(div4, null);
       }
     },
     i(local) {
       if (current)
         return;
-      transition_in(if_block);
+      transition_in(if_block1);
       current = true;
     },
     o(local) {
-      transition_out(if_block);
+      transition_out(if_block1);
       current = false;
     },
     d(detaching) {
       if (detaching) {
         detach(div5);
       }
+      if (if_block0)
+        if_block0.d();
       if_blocks[current_block_type_index].d();
       mounted = false;
       run_all(dispose);
@@ -12219,7 +12224,7 @@ function create_if_block5(ctx) {
       isFullPage: true,
       onSelect: (
         /*func*/
-        ctx[16]
+        ctx[17]
       )
     }
   });
@@ -12248,7 +12253,7 @@ function create_if_block5(ctx) {
       if (dirty[0] & /*selectedProjectId*/
       1)
         projectshub_changes.onSelect = /*func*/
-        ctx2[16];
+        ctx2[17];
       projectshub.$set(projectshub_changes);
     },
     i(local) {
@@ -12266,6 +12271,38 @@ function create_if_block5(ctx) {
     }
   };
 }
+function create_if_block_64(ctx) {
+  let button;
+  let mounted;
+  let dispose;
+  return {
+    c() {
+      button = element("button");
+      button.textContent = "\u2190 Back";
+      attr(button, "class", "pos-back-btn");
+    },
+    m(target, anchor) {
+      insert(target, button, anchor);
+      if (!mounted) {
+        dispose = listen(
+          button,
+          "click",
+          /*click_handler*/
+          ctx[18]
+        );
+        mounted = true;
+      }
+    },
+    p: noop,
+    d(detaching) {
+      if (detaching) {
+        detach(button);
+      }
+      mounted = false;
+      dispose();
+    }
+  };
+}
 function create_else_block_23(ctx) {
   let current_block_type_index;
   let if_block;
@@ -12276,7 +12313,7 @@ function create_else_block_23(ctx) {
   function select_block_type_3(ctx2, dirty) {
     if (
       /*projectTab*/
-      ctx2[8] === "board"
+      ctx2[9] === "board"
     )
       return 0;
     return 1;
@@ -12353,7 +12390,7 @@ function create_if_block_45(ctx) {
       ),
       projectId: (
         /*selectedProject*/
-        ctx[4].id
+        ctx[5].id
       )
     }
   });
@@ -12384,9 +12421,9 @@ function create_if_block_45(ctx) {
         projectdeadlines_changes.plugin = /*plugin*/
         ctx2[3];
       if (dirty[0] & /*selectedProject*/
-      16)
+      32)
         projectdeadlines_changes.projectId = /*selectedProject*/
-        ctx2[4].id;
+        ctx2[5].id;
       projectdeadlines.$set(projectdeadlines_changes);
     },
     i(local) {
@@ -12431,12 +12468,12 @@ function create_if_block_15(ctx) {
   let dispose;
   let if_block0 = (
     /*showNewFileMenu*/
-    ctx[7] && create_if_block_35(ctx)
+    ctx[8] && create_if_block_35(ctx)
   );
   function select_block_type_2(ctx2, dirty) {
     if (
       /*projectFiles*/
-      ctx2[6].length === 0
+      ctx2[7].length === 0
     )
       return create_if_block_25;
     return create_else_block_13;
@@ -12495,7 +12532,7 @@ function create_if_block_15(ctx) {
       append(div3, t3);
       append(div3, div2);
       append(div2, div1);
-      ctx[22](div1);
+      ctx[23](div1);
       append(div8, t4);
       append(div8, div7);
       append(div7, div5);
@@ -12515,13 +12552,13 @@ function create_if_block_15(ctx) {
             button0,
             "click",
             /*handleOpenNoteNatively*/
-            ctx[10]
+            ctx[11]
           ),
           listen(
             button1,
             "click",
             /*click_handler_5*/
-            ctx[23]
+            ctx[24]
           )
         ];
         mounted = true;
@@ -12530,7 +12567,7 @@ function create_if_block_15(ctx) {
     p(ctx2, dirty) {
       if (
         /*showNewFileMenu*/
-        ctx2[7]
+        ctx2[8]
       ) {
         if (if_block0) {
           if_block0.p(ctx2, dirty);
@@ -12560,7 +12597,7 @@ function create_if_block_15(ctx) {
       if (detaching) {
         detach(div8);
       }
-      ctx[22](null);
+      ctx[23](null);
       if (if_block0)
         if_block0.d();
       if_block1.d();
@@ -12584,11 +12621,11 @@ function create_else_block_3(ctx) {
       ),
       projectId: (
         /*selectedProject*/
-        ctx[4].id
+        ctx[5].id
       ),
       projectTasks: (
         /*projectTasks*/
-        ctx[34]
+        ctx[35]
       )
     }
   });
@@ -12611,13 +12648,13 @@ function create_else_block_3(ctx) {
         projecttaskgrid_changes.fileManager = /*fileManager*/
         ctx2[2];
       if (dirty[0] & /*selectedProject*/
-      16)
+      32)
         projecttaskgrid_changes.projectId = /*selectedProject*/
-        ctx2[4].id;
+        ctx2[5].id;
       if (dirty[0] & /*$tasksStore, selectedProject*/
-      528)
+      1056)
         projecttaskgrid_changes.projectTasks = /*projectTasks*/
-        ctx2[34];
+        ctx2[35];
       projecttaskgrid.$set(projecttaskgrid_changes);
     },
     i(local) {
@@ -12650,11 +12687,11 @@ function create_if_block_55(ctx) {
       ),
       projectId: (
         /*selectedProject*/
-        ctx[4].id
+        ctx[5].id
       ),
       projectTasks: (
         /*projectTasks*/
-        ctx[34]
+        ctx[35]
       )
     }
   });
@@ -12677,13 +12714,13 @@ function create_if_block_55(ctx) {
         projecttaskboard_changes.fileManager = /*fileManager*/
         ctx2[2];
       if (dirty[0] & /*selectedProject*/
-      16)
+      32)
         projecttaskboard_changes.projectId = /*selectedProject*/
-        ctx2[4].id;
+        ctx2[5].id;
       if (dirty[0] & /*$tasksStore, selectedProject*/
-      528)
+      1056)
         projecttaskboard_changes.projectTasks = /*projectTasks*/
-        ctx2[34];
+        ctx2[35];
       projecttaskboard.$set(projecttaskboard_changes);
     },
     i(local) {
@@ -12736,19 +12773,19 @@ function create_if_block_35(ctx) {
             button0,
             "click",
             /*click_handler_6*/
-            ctx[24]
+            ctx[25]
           ),
           listen(
             button1,
             "click",
             /*click_handler_7*/
-            ctx[25]
+            ctx[26]
           ),
           listen(
             button2,
             "click",
             /*click_handler_8*/
-            ctx[26]
+            ctx[27]
           )
         ];
         mounted = true;
@@ -12768,7 +12805,7 @@ function create_else_block_13(ctx) {
   let each_1_anchor;
   let each_value = ensure_array_like(
     /*projectFiles*/
-    ctx[6]
+    ctx[7]
   );
   let each_blocks = [];
   for (let i = 0; i < each_value.length; i += 1) {
@@ -12791,10 +12828,10 @@ function create_else_block_13(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*projectFiles, openFile*/
-      2112) {
+      4224) {
         each_value = ensure_array_like(
           /*projectFiles*/
-          ctx2[6]
+          ctx2[7]
         );
         let i;
         for (i = 0; i < each_value.length; i += 1) {
@@ -12845,7 +12882,7 @@ function create_each_block5(ctx) {
   let span0;
   let t0_value = fileIcon(
     /*f*/
-    ctx[31].extension
+    ctx[32].extension
   ) + "";
   let t0;
   let t1;
@@ -12853,20 +12890,20 @@ function create_each_block5(ctx) {
   let span1;
   let t2_value = (
     /*f*/
-    ctx[31].name + ""
+    ctx[32].name + ""
   );
   let t2;
   let t3;
   let span2;
   let t4_value = formatFileSize(
     /*f*/
-    ctx[31].size
+    ctx[32].size
   ) + "";
   let t4;
   let t5;
   let t6_value = formatFileDate(
     /*f*/
-    ctx[31].mtime
+    ctx[32].mtime
   ) + "";
   let t6;
   let t7;
@@ -12876,9 +12913,9 @@ function create_each_block5(ctx) {
   function click_handler_9() {
     return (
       /*click_handler_9*/
-      ctx[27](
+      ctx[28](
         /*f*/
-        ctx[31]
+        ctx[32]
       )
     );
   }
@@ -12903,7 +12940,7 @@ function create_each_block5(ctx) {
       attr(div2, "class", "pos-fb-info");
       attr(button, "class", "pos-fb-item");
       attr(button, "title", button_title_value = /*f*/
-      ctx[31].path);
+      ctx[32].path);
     },
     m(target, anchor) {
       insert(target, button, anchor);
@@ -12927,30 +12964,30 @@ function create_each_block5(ctx) {
     p(new_ctx, dirty) {
       ctx = new_ctx;
       if (dirty[0] & /*projectFiles*/
-      64 && t0_value !== (t0_value = fileIcon(
+      128 && t0_value !== (t0_value = fileIcon(
         /*f*/
-        ctx[31].extension
+        ctx[32].extension
       ) + ""))
         set_data(t0, t0_value);
       if (dirty[0] & /*projectFiles*/
-      64 && t2_value !== (t2_value = /*f*/
-      ctx[31].name + ""))
+      128 && t2_value !== (t2_value = /*f*/
+      ctx[32].name + ""))
         set_data(t2, t2_value);
       if (dirty[0] & /*projectFiles*/
-      64 && t4_value !== (t4_value = formatFileSize(
+      128 && t4_value !== (t4_value = formatFileSize(
         /*f*/
-        ctx[31].size
+        ctx[32].size
       ) + ""))
         set_data(t4, t4_value);
       if (dirty[0] & /*projectFiles*/
-      64 && t6_value !== (t6_value = formatFileDate(
+      128 && t6_value !== (t6_value = formatFileDate(
         /*f*/
-        ctx[31].mtime
+        ctx[32].mtime
       ) + ""))
         set_data(t6, t6_value);
       if (dirty[0] & /*projectFiles*/
-      64 && button_title_value !== (button_title_value = /*f*/
-      ctx[31].path)) {
+      128 && button_title_value !== (button_title_value = /*f*/
+      ctx[32].path)) {
         attr(button, "title", button_title_value);
       }
     },
@@ -12972,7 +13009,7 @@ function create_fragment5(ctx) {
   const if_blocks = [];
   function select_block_type(ctx2, dirty) {
     if (!/*selectedProject*/
-    ctx2[4])
+    ctx2[5])
       return 0;
     return 1;
   }
@@ -13068,12 +13105,13 @@ function instance5($$self, $$props, $$invalidate) {
   let activeProjects;
   let $projectsStore;
   let $tasksStore;
-  component_subscribe($$self, projectsStore, ($$value) => $$invalidate(15, $projectsStore = $$value));
-  component_subscribe($$self, tasksStore, ($$value) => $$invalidate(9, $tasksStore = $$value));
+  component_subscribe($$self, projectsStore, ($$value) => $$invalidate(16, $projectsStore = $$value));
+  component_subscribe($$self, tasksStore, ($$value) => $$invalidate(10, $tasksStore = $$value));
   let { app } = $$props;
   let { fileManager } = $$props;
   let { plugin } = $$props;
   let { selectedProjectId = null } = $$props;
+  let { isFullPage = false } = $$props;
   let selectedProject = null;
   let projectContent = "";
   let previewEl;
@@ -13081,10 +13119,10 @@ function instance5($$self, $$props, $$invalidate) {
   let showNewFileMenu = false;
   let projectTab = "notes";
   async function loadProjectContent(id) {
-    $$invalidate(13, projectContent = await fileManager.getProjectContent(id));
+    $$invalidate(14, projectContent = await fileManager.getProjectContent(id));
   }
   function refreshProjectFiles(id) {
-    $$invalidate(6, projectFiles = fileManager.getProjectFiles(id));
+    $$invalidate(7, projectFiles = fileManager.getProjectFiles(id));
   }
   function handleOpenNoteNatively() {
     if (!selectedProject)
@@ -13113,7 +13151,7 @@ function instance5($$self, $$props, $$invalidate) {
   async function createNewFile(type) {
     if (!selectedProject)
       return;
-    $$invalidate(7, showNewFileMenu = false);
+    $$invalidate(8, showNewFileMenu = false);
     let filename;
     let content;
     switch (type) {
@@ -13158,17 +13196,17 @@ tags: [excalidraw]
     $$invalidate(0, selectedProjectId = id);
   };
   const click_handler = () => $$invalidate(0, selectedProjectId = null);
-  const click_handler_1 = () => $$invalidate(8, projectTab = "notes");
-  const click_handler_2 = () => $$invalidate(8, projectTab = "board");
-  const click_handler_3 = () => $$invalidate(8, projectTab = "grid");
-  const click_handler_4 = () => $$invalidate(8, projectTab = "deadlines");
+  const click_handler_1 = () => $$invalidate(9, projectTab = "notes");
+  const click_handler_2 = () => $$invalidate(9, projectTab = "board");
+  const click_handler_3 = () => $$invalidate(9, projectTab = "grid");
+  const click_handler_4 = () => $$invalidate(9, projectTab = "deadlines");
   function div1_binding($$value) {
     binding_callbacks[$$value ? "unshift" : "push"](() => {
       previewEl = $$value;
-      $$invalidate(5, previewEl);
+      $$invalidate(6, previewEl);
     });
   }
-  const click_handler_5 = () => $$invalidate(7, showNewFileMenu = !showNewFileMenu);
+  const click_handler_5 = () => $$invalidate(8, showNewFileMenu = !showNewFileMenu);
   const click_handler_6 = () => createNewFile("md");
   const click_handler_7 = () => createNewFile("canvas");
   const click_handler_8 = () => createNewFile("excalidraw");
@@ -13182,37 +13220,39 @@ tags: [excalidraw]
       $$invalidate(3, plugin = $$props2.plugin);
     if ("selectedProjectId" in $$props2)
       $$invalidate(0, selectedProjectId = $$props2.selectedProjectId);
+    if ("isFullPage" in $$props2)
+      $$invalidate(4, isFullPage = $$props2.isFullPage);
   };
   $$self.$$.update = () => {
     if ($$self.$$.dirty[0] & /*$projectsStore*/
-    32768) {
+    65536) {
       $:
-        $$invalidate(14, activeProjects = $projectsStore.filter((p) => p.status === "active"));
+        $$invalidate(15, activeProjects = $projectsStore.filter((p) => p.status === "active"));
     }
     if ($$self.$$.dirty[0] & /*selectedProjectId, activeProjects*/
-    16385) {
+    32769) {
       $: {
         if (selectedProjectId) {
           const proj = activeProjects.find((p) => p.id === selectedProjectId);
           if (proj) {
-            $$invalidate(4, selectedProject = proj);
+            $$invalidate(5, selectedProject = proj);
             loadProjectContent(selectedProjectId);
             refreshProjectFiles(selectedProjectId);
           } else {
-            $$invalidate(4, selectedProject = null);
-            $$invalidate(13, projectContent = "");
-            $$invalidate(6, projectFiles = []);
+            $$invalidate(5, selectedProject = null);
+            $$invalidate(14, projectContent = "");
+            $$invalidate(7, projectFiles = []);
           }
         } else {
-          $$invalidate(4, selectedProject = null);
-          $$invalidate(13, projectContent = "");
-          $$invalidate(8, projectTab = "notes");
-          $$invalidate(6, projectFiles = []);
+          $$invalidate(5, selectedProject = null);
+          $$invalidate(14, projectContent = "");
+          $$invalidate(9, projectTab = "notes");
+          $$invalidate(7, projectFiles = []);
         }
       }
     }
     if ($$self.$$.dirty[0] & /*previewEl, projectContent, selectedProject, fileManager, plugin*/
-    8252) {
+    16492) {
       $: {
         if (previewEl && projectContent !== void 0 && selectedProject) {
           previewEl.empty();
@@ -13226,6 +13266,7 @@ tags: [excalidraw]
     app,
     fileManager,
     plugin,
+    isFullPage,
     selectedProject,
     previewEl,
     projectFiles,
@@ -13265,7 +13306,8 @@ var ProjectsView = class extends SvelteComponent {
         app: 1,
         fileManager: 2,
         plugin: 3,
-        selectedProjectId: 0
+        selectedProjectId: 0,
+        isFullPage: 4
       },
       null,
       [-1, -1]
@@ -14018,7 +14060,7 @@ function create_if_block_73(ctx) {
     }
   };
 }
-function create_if_block_64(ctx) {
+function create_if_block_65(ctx) {
   let input;
   let input_value_value;
   let mounted;
@@ -14191,7 +14233,7 @@ function create_each_block_24(key_1, ctx) {
   }
   let if_block5 = (
     /*task*/
-    ctx[77].isFixedDuration && create_if_block_64(ctx)
+    ctx[77].isFixedDuration && create_if_block_65(ctx)
   );
   function click_handler_8() {
     return (
@@ -14464,7 +14506,7 @@ function create_each_block_24(key_1, ctx) {
         if (if_block5) {
           if_block5.p(ctx, dirty);
         } else {
-          if_block5 = create_if_block_64(ctx);
+          if_block5 = create_if_block_65(ctx);
           if_block5.c();
           if_block5.m(div3, t16);
         }
