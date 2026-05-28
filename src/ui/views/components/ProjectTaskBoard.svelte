@@ -58,6 +58,77 @@
     return res;
   }
 
+  
+  // --- COLUMN DRAG AND DROP & COLOR ---
+  let dragColId: string | null = null;
+  let dragOverColId: string | null = null;
+
+  function handleColDragStart(e: DragEvent, id: string) {
+    if (e.dataTransfer) {
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('col-id', id);
+    }
+    setTimeout(() => { dragColId = id; }, 0);
+  }
+
+  function handleColDragEnd() {
+    dragColId = null;
+    dragOverColId = null;
+  }
+
+  function handleColDragOver(e: DragEvent, id: string) {
+    e.preventDefault();
+    if (dragColId && dragColId !== id) {
+      if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+      dragOverColId = id;
+    }
+  }
+
+  async function handleColDrop(e: DragEvent, id: string) {
+    e.preventDefault();
+    if (!dragColId || dragColId === id) return;
+    
+    const settings = fileManager.plugin.settings;
+    if (!settings.statuses) settings.statuses = [];
+    
+    // Inject if missing (for generic fallback columns)
+    const sourceColObj = columns.find(c => c.id === dragColId);
+    const destColObj = columns.find(c => c.id === id);
+    if (!settings.statuses.find(s => s.id === dragColId)) {
+       settings.statuses.push({ id: dragColId, name: sourceColObj?.name || dragColId, color: sourceColObj?.color || '#a29bfe' });
+    }
+    if (!settings.statuses.find(s => s.id === id)) {
+       settings.statuses.push({ id: id, name: destColObj?.name || id, color: destColObj?.color || '#a29bfe' });
+    }
+
+    const fromIndex = settings.statuses.findIndex(s => s.id === dragColId);
+    let toIndex = settings.statuses.findIndex(s => s.id === id);
+    
+    const [movedItem] = settings.statuses.splice(fromIndex, 1);
+    toIndex = settings.statuses.findIndex(s => s.id === id); // recalculate
+    settings.statuses.splice(toIndex, 0, movedItem);
+    
+    await fileManager.plugin.saveSettings();
+    fileManager.plugin.settings = settings; // trigger reactivity
+    
+    dragColId = null;
+    dragOverColId = null;
+  }
+  
+  async function updateColumnColor(colId: string, newColor: string) {
+    const settings = fileManager.plugin.settings;
+    let col = settings.statuses.find(s => s.id === colId);
+    if (!col) {
+       const colObj = columns.find(c => c.id === colId);
+       col = { id: colId, name: colObj?.name || colId, color: newColor };
+       settings.statuses.push(col);
+    } else {
+       col.color = newColor;
+    }
+    await fileManager.plugin.saveSettings();
+    fileManager.plugin.settings = settings; // trigger reactivity
+  }
+
   // Drag and drop states
   let dragId: string | null = null;
   let dragOverStatus: string | null = null;
@@ -185,9 +256,17 @@
 
 <div class="pos-board-workspace">
   {#each columns as col (col.id)}
-  <div class="pos-board-col">
-    <h4 class="pos-board-col-title" style="color: {col.color}; border-bottom: 2px solid {col.color}40;">
-      {col.name} ({col.tasks.length})
+  <div class="pos-board-col" class:pos-dragging-source={dragColId === col.id} class:pos-drag-over={dragOverColId === col.id}>
+    <h4 class="pos-board-col-title" 
+        style="color: {col.color}; border-bottom: 2px solid {col.color}40; display: flex; align-items: center; justify-content: space-between;"
+        draggable="true"
+        on:dragstart={(e) => handleColDragStart(e, col.id)}
+        on:dragend={handleColDragEnd}
+        on:dragover={(e) => handleColDragOver(e, col.id)}
+        on:drop={(e) => handleColDrop(e, col.id)}
+    >
+      <span style="cursor: grab;">{col.name} ({col.tasks.length})</span>
+      <input type="color" value={col.color} style="width: 20px; height: 20px; padding: 0; border: none; cursor: pointer; background: none;" on:change={(e) => updateColumnColor(col.id, e.currentTarget.value)} title="Change column color" />
     </h4>
     <div class="pos-board-list-wrapper" on:dragover={(e) => handleDragOver(e, col.id)} on:drop={(e) => handleDrop(e, col.id)}>
       <div class="pos-board-list">

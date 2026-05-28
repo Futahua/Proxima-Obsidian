@@ -18,10 +18,10 @@ export const DEFAULT_SETTINGS: ProximaSettings = {
   projectsFolder: 'projects',
   tasksFolder: 'tasks',
   statuses: [
-    { id: 'backlog', name: 'Backlog', color: '#636e72' },
+    { id: 'backlog', name: 'Elastic Backlog', color: '#636e72' },
     { id: 'planned', name: 'Planned', color: '#0984e3' },
-    { id: 'running', name: 'Running', color: '#00b894' },
-    { id: 'review', name: 'Review', color: '#fdcb6e' },
+    { id: 'running', name: 'Elastic Running', color: '#00b894' },
+    { id: 'review', name: 'Finished', color: '#fdcb6e' },
     { id: 'done', name: 'Done', color: '#00cec9' }
   ], 
   colorRules: [

@@ -211,6 +211,18 @@ export default class ProximaPlugin extends Plugin {
 
   async loadSettings() {
     this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+    
+    const hasBacklog = this.settings.statuses.some(s => s.id === 'backlog');
+    const hasRunning = this.settings.statuses.some(s => s.id === 'running');
+    const hasReview = this.settings.statuses.some(s => s.id === 'review');
+    
+    if (!hasBacklog) this.settings.statuses.push({ id: 'backlog', name: 'Elastic Backlog', color: '#636e72' });
+    if (!hasRunning) this.settings.statuses.push({ id: 'running', name: 'Elastic Running', color: '#00b894' });
+    if (!hasReview) this.settings.statuses.push({ id: 'review', name: 'Finished', color: '#fdcb6e' });
+    
+    // Auto-migrate old "Review" name to "Finished" if it's identical to the old default
+    const reviewStatus = this.settings.statuses.find(s => s.id === 'review');
+    if (reviewStatus && reviewStatus.name === 'Review') reviewStatus.name = 'Finished';
   }
 
   async saveSettings() {
