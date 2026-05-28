@@ -11,10 +11,21 @@
 
   const sortTasks = (tasks: TaskData[]) => tasks.sort((a, b) => (a.priority - b.priority) || (a.orderIndex - b.orderIndex));
   $: settingsStatuses = fileManager.plugin.settings.statuses || [];
-  $: statuses = [
-    { id: 'backlog', name: 'Elastic Backlog', color: '#636e72' },
-    ...settingsStatuses.filter(s => s.id !== 'backlog')
-  ];
+  $: statuses = (() => {
+    const cols = [ { id: 'backlog', name: 'Elastic Backlog', color: '#636e72' } ];
+    settingsStatuses.forEach(s => {
+      if (!cols.find(c => c.id === s.id)) cols.push(s);
+    });
+    const activeStatuses = new Set(projectTasks.map(t => t.status));
+    activeStatuses.forEach(statusId => {
+      if (!cols.find(c => c.id === statusId)) {
+        if (statusId === 'running') cols.push({ id: 'running', name: 'Elastic Running', color: '#00b894' });
+        else if (statusId === 'review') cols.push({ id: 'review', name: 'Elastic Review', color: '#fdcb6e' });
+        else cols.push({ id: statusId, name: statusId, color: '#a29bfe' });
+      }
+    });
+    return cols;
+  })();
   $: columns = statuses.map(s => ({
     ...s,
     tasks: sortTasks(projectTasks.filter(t => t.status === s.id))

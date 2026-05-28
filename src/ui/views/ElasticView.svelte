@@ -17,10 +17,9 @@
     const pB = (b.properties && b.properties['priority']) ? parseInt(b.properties['priority'], 10) : 3;
     return (pA - pB) || (a.orderIndex - b.orderIndex);
   });
-  $: statuses = fileManager.plugin.settings.statuses || [];
-  $: sBacklog = statuses[0] || { id: 'backlog', name: 'Backlog', color: '#666' };
-  $: sRunning = statuses[1] || { id: 'running', name: 'Running', color: '#00b894' };
-  $: sReview = statuses[statuses.length - 1] || { id: 'review', name: 'Review', color: '#fdcb6e' };
+    const sBacklog = { id: 'backlog', name: 'Elastic Backlog', color: '#636e72' };
+  const sRunning = { id: 'running', name: 'Elastic Running', color: '#00b894' };
+  const sReview = { id: 'review', name: 'Elastic Review', color: '#fdcb6e' };
 
   $: backlog = sortTasks(projectTasks.filter(t => t.status === sBacklog.id));
   $: running = sortTasks(projectTasks.filter(t => t.status === sRunning.id));
