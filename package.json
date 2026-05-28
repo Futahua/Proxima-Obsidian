@@ -10,7 +10,8 @@
   "author": "futahua",
   "dependencies": {
     "expr-eval": "^2.0.2",
-    "svelte": "^4.2.12"
+    "svelte": "^4.2.12",
+    "svelte-dnd-action": "^0.9.69"
   },
   "devDependencies": {
     "@types/node": "^16.11.6",

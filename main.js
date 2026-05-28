@@ -69,6 +69,9 @@ function get_store_value(store) {
 function component_subscribe(component, store, callback) {
   component.$$.on_destroy.push(subscribe(store, callback));
 }
+function action_destroyer(action_result) {
+  return action_result && is_function(action_result.destroy) ? action_result.destroy : noop;
+}
 
 // node_modules/svelte/src/runtime/internal/globals.js
 var globals = typeof window !== "undefined" ? window : typeof globalThis !== "undefined" ? globalThis : (
@@ -438,7 +441,7 @@ function destroy_block(block, lookup) {
   block.d(1);
   lookup.delete(block.key);
 }
-function update_keyed_each(old_blocks, dirty, get_key, dynamic, ctx, list, lookup, node, destroy, create_each_block8, next, get_context) {
+function update_keyed_each(old_blocks, dirty, get_key, dynamic, ctx, list, lookup, node, destroy, create_each_block8, next2, get_context) {
   let o = old_blocks.length;
   let n = list.length;
   let i = o;
@@ -468,9 +471,9 @@ function update_keyed_each(old_blocks, dirty, get_key, dynamic, ctx, list, looku
   const did_move = /* @__PURE__ */ new Set();
   function insert2(block) {
     transition_in(block, 1);
-    block.m(node, next);
+    block.m(node, next2);
     lookup.set(block.key, block);
-    next = block.first;
+    next2 = block.first;
     n--;
   }
   while (o && n) {
@@ -479,7 +482,7 @@ function update_keyed_each(old_blocks, dirty, get_key, dynamic, ctx, list, looku
     const new_key = new_block.key;
     const old_key = old_block.key;
     if (new_block === old_block) {
-      next = new_block.first;
+      next2 = new_block.first;
       o--;
       n--;
     } else if (!new_lookup.has(old_key)) {
@@ -3532,52 +3535,2232 @@ var ProjectSchemaModal = class extends import_obsidian2.Modal {
   }
 };
 
+// node_modules/svelte-dnd-action/dist/index.mjs
+function ownKeys(object, enumerableOnly) {
+  var keys = Object.keys(object);
+  if (Object.getOwnPropertySymbols) {
+    var symbols = Object.getOwnPropertySymbols(object);
+    enumerableOnly && (symbols = symbols.filter(function(sym) {
+      return Object.getOwnPropertyDescriptor(object, sym).enumerable;
+    })), keys.push.apply(keys, symbols);
+  }
+  return keys;
+}
+function _objectSpread2(target) {
+  for (var i = 1; i < arguments.length; i++) {
+    var source = null != arguments[i] ? arguments[i] : {};
+    i % 2 ? ownKeys(Object(source), true).forEach(function(key) {
+      _defineProperty(target, key, source[key]);
+    }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys(Object(source)).forEach(function(key) {
+      Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
+    });
+  }
+  return target;
+}
+function _typeof(obj) {
+  "@babel/helpers - typeof";
+  return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function(obj2) {
+    return typeof obj2;
+  } : function(obj2) {
+    return obj2 && "function" == typeof Symbol && obj2.constructor === Symbol && obj2 !== Symbol.prototype ? "symbol" : typeof obj2;
+  }, _typeof(obj);
+}
+function _defineProperty(obj, key, value) {
+  if (key in obj) {
+    Object.defineProperty(obj, key, {
+      value,
+      enumerable: true,
+      configurable: true,
+      writable: true
+    });
+  } else {
+    obj[key] = value;
+  }
+  return obj;
+}
+function _objectWithoutPropertiesLoose(source, excluded) {
+  if (source == null)
+    return {};
+  var target = {};
+  var sourceKeys = Object.keys(source);
+  var key, i;
+  for (i = 0; i < sourceKeys.length; i++) {
+    key = sourceKeys[i];
+    if (excluded.indexOf(key) >= 0)
+      continue;
+    target[key] = source[key];
+  }
+  return target;
+}
+function _objectWithoutProperties(source, excluded) {
+  if (source == null)
+    return {};
+  var target = _objectWithoutPropertiesLoose(source, excluded);
+  var key, i;
+  if (Object.getOwnPropertySymbols) {
+    var sourceSymbolKeys = Object.getOwnPropertySymbols(source);
+    for (i = 0; i < sourceSymbolKeys.length; i++) {
+      key = sourceSymbolKeys[i];
+      if (excluded.indexOf(key) >= 0)
+        continue;
+      if (!Object.prototype.propertyIsEnumerable.call(source, key))
+        continue;
+      target[key] = source[key];
+    }
+  }
+  return target;
+}
+function _slicedToArray(arr, i) {
+  return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest();
+}
+function _toConsumableArray(arr) {
+  return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread();
+}
+function _arrayWithoutHoles(arr) {
+  if (Array.isArray(arr))
+    return _arrayLikeToArray(arr);
+}
+function _arrayWithHoles(arr) {
+  if (Array.isArray(arr))
+    return arr;
+}
+function _iterableToArray(iter) {
+  if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null)
+    return Array.from(iter);
+}
+function _iterableToArrayLimit(arr, i) {
+  var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"];
+  if (_i == null)
+    return;
+  var _arr = [];
+  var _n = true;
+  var _d = false;
+  var _s, _e;
+  try {
+    for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) {
+      _arr.push(_s.value);
+      if (i && _arr.length === i)
+        break;
+    }
+  } catch (err) {
+    _d = true;
+    _e = err;
+  } finally {
+    try {
+      if (!_n && _i["return"] != null)
+        _i["return"]();
+    } finally {
+      if (_d)
+        throw _e;
+    }
+  }
+  return _arr;
+}
+function _unsupportedIterableToArray(o, minLen) {
+  if (!o)
+    return;
+  if (typeof o === "string")
+    return _arrayLikeToArray(o, minLen);
+  var n = Object.prototype.toString.call(o).slice(8, -1);
+  if (n === "Object" && o.constructor)
+    n = o.constructor.name;
+  if (n === "Map" || n === "Set")
+    return Array.from(o);
+  if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n))
+    return _arrayLikeToArray(o, minLen);
+}
+function _arrayLikeToArray(arr, len) {
+  if (len == null || len > arr.length)
+    len = arr.length;
+  for (var i = 0, arr2 = new Array(len); i < len; i++)
+    arr2[i] = arr[i];
+  return arr2;
+}
+function _nonIterableSpread() {
+  throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+}
+function _nonIterableRest() {
+  throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+}
+function _createForOfIteratorHelper(o, allowArrayLike) {
+  var it = typeof Symbol !== "undefined" && o[Symbol.iterator] || o["@@iterator"];
+  if (!it) {
+    if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") {
+      if (it)
+        o = it;
+      var i = 0;
+      var F = function() {
+      };
+      return {
+        s: F,
+        n: function() {
+          if (i >= o.length)
+            return {
+              done: true
+            };
+          return {
+            done: false,
+            value: o[i++]
+          };
+        },
+        e: function(e) {
+          throw e;
+        },
+        f: F
+      };
+    }
+    throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+  }
+  var normalCompletion = true, didErr = false, err;
+  return {
+    s: function() {
+      it = it.call(o);
+    },
+    n: function() {
+      var step = it.next();
+      normalCompletion = step.done;
+      return step;
+    },
+    e: function(e) {
+      didErr = true;
+      err = e;
+    },
+    f: function() {
+      try {
+        if (!normalCompletion && it.return != null)
+          it.return();
+      } finally {
+        if (didErr)
+          throw err;
+      }
+    }
+  };
+}
+var FINALIZE_EVENT_NAME = "finalize";
+var CONSIDER_EVENT_NAME = "consider";
+function dispatchFinalizeEvent(el, items, info) {
+  el.dispatchEvent(new CustomEvent(FINALIZE_EVENT_NAME, {
+    detail: {
+      items,
+      info
+    }
+  }));
+}
+function dispatchConsiderEvent(el, items, info) {
+  el.dispatchEvent(new CustomEvent(CONSIDER_EVENT_NAME, {
+    detail: {
+      items,
+      info
+    }
+  }));
+}
+var DRAGGED_ENTERED_EVENT_NAME = "draggedEntered";
+var DRAGGED_LEFT_EVENT_NAME = "draggedLeft";
+var DRAGGED_OVER_INDEX_EVENT_NAME = "draggedOverIndex";
+var DRAGGED_LEFT_DOCUMENT_EVENT_NAME = "draggedLeftDocument";
+var DRAGGED_LEFT_TYPES = {
+  LEFT_FOR_ANOTHER: "leftForAnother",
+  OUTSIDE_OF_ANY: "outsideOfAny"
+};
+function dispatchDraggedElementEnteredContainer(containerEl, indexObj, draggedEl2) {
+  containerEl.dispatchEvent(new CustomEvent(DRAGGED_ENTERED_EVENT_NAME, {
+    detail: {
+      indexObj,
+      draggedEl: draggedEl2
+    }
+  }));
+}
+function dispatchDraggedElementLeftContainerForAnother(containerEl, draggedEl2, theOtherDz) {
+  containerEl.dispatchEvent(new CustomEvent(DRAGGED_LEFT_EVENT_NAME, {
+    detail: {
+      draggedEl: draggedEl2,
+      type: DRAGGED_LEFT_TYPES.LEFT_FOR_ANOTHER,
+      theOtherDz
+    }
+  }));
+}
+function dispatchDraggedElementLeftContainerForNone(containerEl, draggedEl2) {
+  containerEl.dispatchEvent(new CustomEvent(DRAGGED_LEFT_EVENT_NAME, {
+    detail: {
+      draggedEl: draggedEl2,
+      type: DRAGGED_LEFT_TYPES.OUTSIDE_OF_ANY
+    }
+  }));
+}
+function dispatchDraggedElementIsOverIndex(containerEl, indexObj, draggedEl2) {
+  containerEl.dispatchEvent(new CustomEvent(DRAGGED_OVER_INDEX_EVENT_NAME, {
+    detail: {
+      indexObj,
+      draggedEl: draggedEl2
+    }
+  }));
+}
+function dispatchDraggedLeftDocument(draggedEl2) {
+  window.dispatchEvent(new CustomEvent(DRAGGED_LEFT_DOCUMENT_EVENT_NAME, {
+    detail: {
+      draggedEl: draggedEl2
+    }
+  }));
+}
+var TRIGGERS = {
+  DRAG_STARTED: "dragStarted",
+  DRAGGED_ENTERED: DRAGGED_ENTERED_EVENT_NAME,
+  DRAGGED_ENTERED_ANOTHER: "dragEnteredAnother",
+  DRAGGED_OVER_INDEX: DRAGGED_OVER_INDEX_EVENT_NAME,
+  DRAGGED_LEFT: DRAGGED_LEFT_EVENT_NAME,
+  DRAGGED_LEFT_ALL: "draggedLeftAll",
+  DROPPED_INTO_ZONE: "droppedIntoZone",
+  DROPPED_INTO_ANOTHER: "droppedIntoAnother",
+  DROPPED_OUTSIDE_OF_ANY: "droppedOutsideOfAny",
+  DRAG_STOPPED: "dragStopped"
+};
+var SOURCES = {
+  POINTER: "pointer",
+  KEYBOARD: "keyboard"
+};
+var SHADOW_ITEM_MARKER_PROPERTY_NAME = "isDndShadowItem";
+var SHADOW_ELEMENT_ATTRIBUTE_NAME = "data-is-dnd-shadow-item-internal";
+var SHADOW_ELEMENT_HINT_ATTRIBUTE_NAME = "data-is-dnd-shadow-item-hint";
+var SHADOW_PLACEHOLDER_ITEM_ID = "id:dnd-shadow-placeholder-0000";
+var DRAGGED_ELEMENT_ID = "dnd-action-dragged-el";
+var ITEM_ID_KEY = "id";
+var activeDndZoneCount = 0;
+function incrementActiveDropZoneCount() {
+  activeDndZoneCount++;
+}
+function decrementActiveDropZoneCount() {
+  if (activeDndZoneCount === 0) {
+    throw new Error("Bug! trying to decrement when there are no dropzones");
+  }
+  activeDndZoneCount--;
+}
+var isOnServer = typeof window === "undefined";
+var printDebug = function printDebug2() {
+};
+function getBoundingRectNoTransforms(el) {
+  var onlyVisible = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : true;
+  var ta;
+  var rect = onlyVisible ? getVisibleRectRecursive(el) : el.getBoundingClientRect();
+  var style = getComputedStyle(el);
+  var tx = style.transform;
+  if (tx) {
+    var sx, sy, dx, dy;
+    if (tx.startsWith("matrix3d(")) {
+      ta = tx.slice(9, -1).split(/, /);
+      sx = +ta[0];
+      sy = +ta[5];
+      dx = +ta[12];
+      dy = +ta[13];
+    } else if (tx.startsWith("matrix(")) {
+      ta = tx.slice(7, -1).split(/, /);
+      sx = +ta[0];
+      sy = +ta[3];
+      dx = +ta[4];
+      dy = +ta[5];
+    } else {
+      return rect;
+    }
+    var to = style.transformOrigin;
+    var x = rect.x - dx - (1 - sx) * parseFloat(to);
+    var y = rect.y - dy - (1 - sy) * parseFloat(to.slice(to.indexOf(" ") + 1));
+    var w = sx ? rect.width / sx : el.offsetWidth;
+    var h = sy ? rect.height / sy : el.offsetHeight;
+    return {
+      x,
+      y,
+      width: w,
+      height: h,
+      top: y,
+      right: x + w,
+      bottom: y + h,
+      left: x
+    };
+  } else {
+    return rect;
+  }
+}
+function getAbsoluteRectNoTransforms(el) {
+  var rect = getBoundingRectNoTransforms(el);
+  return {
+    top: rect.top + window.scrollY,
+    bottom: rect.bottom + window.scrollY,
+    left: rect.left + window.scrollX,
+    right: rect.right + window.scrollX
+  };
+}
+function getAbsoluteRect(el) {
+  var rect = el.getBoundingClientRect();
+  return {
+    top: rect.top + window.scrollY,
+    bottom: rect.bottom + window.scrollY,
+    left: rect.left + window.scrollX,
+    right: rect.right + window.scrollX
+  };
+}
+function findCenter(rect) {
+  return {
+    x: (rect.left + rect.right) / 2,
+    y: (rect.top + rect.bottom) / 2
+  };
+}
+function calcDistance(pointA, pointB) {
+  return Math.sqrt(Math.pow(pointA.x - pointB.x, 2) + Math.pow(pointA.y - pointB.y, 2));
+}
+function isPointInsideRect(point, rect) {
+  return point.y <= rect.bottom && point.y >= rect.top && point.x >= rect.left && point.x <= rect.right;
+}
+function findCenterOfElement(el) {
+  return findCenter(getAbsoluteRect(el));
+}
+function calcDistanceFromPointToCenter(point, el) {
+  var centerOfEl = findCenterOfElement(el);
+  return calcDistance(point, centerOfEl);
+}
+function isElementOffDocument(el) {
+  var rect = getAbsoluteRect(el);
+  return rect.right < 0 || rect.left > document.documentElement.scrollWidth || rect.bottom < 0 || rect.top > document.documentElement.scrollHeight;
+}
+function getVisibleRectRecursive(element2) {
+  var rect = element2.getBoundingClientRect();
+  var visibleRect = {
+    top: rect.top,
+    bottom: rect.bottom,
+    left: rect.left,
+    right: rect.right
+  };
+  var wasClippedByScrollY = false;
+  var wasClippedByScrollX = false;
+  var parent = element2.parentElement;
+  while (parent && parent !== document.body) {
+    var style = window.getComputedStyle(parent);
+    var overflowY = style.overflowY;
+    var overflowX = style.overflowX;
+    var isScrollableY = overflowY === "scroll" || overflowY === "auto";
+    var isScrollableX = overflowX === "scroll" || overflowX === "auto";
+    if (isScrollableY || isScrollableX) {
+      var parentRect = parent.getBoundingClientRect();
+      if (isScrollableY) {
+        var newTop = Math.max(visibleRect.top, parentRect.top);
+        var newBottom = Math.min(visibleRect.bottom, parentRect.bottom);
+        if (newTop !== visibleRect.top || newBottom !== visibleRect.bottom) {
+          wasClippedByScrollY = true;
+        }
+        visibleRect.top = newTop;
+        visibleRect.bottom = newBottom;
+      }
+      if (isScrollableX) {
+        var newLeft = Math.max(visibleRect.left, parentRect.left);
+        var newRight = Math.min(visibleRect.right, parentRect.right);
+        if (newLeft !== visibleRect.left || newRight !== visibleRect.right) {
+          wasClippedByScrollX = true;
+        }
+        visibleRect.left = newLeft;
+        visibleRect.right = newRight;
+      }
+    }
+    parent = parent.parentElement;
+  }
+  if (wasClippedByScrollY || wasClippedByScrollX) {
+    return {
+      top: visibleRect.top,
+      bottom: visibleRect.bottom,
+      left: visibleRect.left,
+      right: visibleRect.right,
+      width: Math.max(0, visibleRect.right - visibleRect.left),
+      height: Math.max(0, visibleRect.bottom - visibleRect.top)
+    };
+  }
+  return {
+    top: rect.top,
+    bottom: rect.bottom,
+    left: rect.left,
+    right: rect.right,
+    width: Math.max(0, rect.right - rect.left),
+    height: Math.max(0, rect.bottom - rect.top)
+  };
+}
+var dzToShadowIndexToRect;
+function resetIndexesCache() {
+  printDebug(function() {
+    return "resetting indexes cache";
+  });
+  dzToShadowIndexToRect = /* @__PURE__ */ new Map();
+}
+resetIndexesCache();
+function cacheShadowRect(dz) {
+  var shadowElIndex = Array.from(dz.children).findIndex(function(child) {
+    return child.getAttribute(SHADOW_ELEMENT_ATTRIBUTE_NAME);
+  });
+  if (shadowElIndex >= 0) {
+    if (!dzToShadowIndexToRect.has(dz)) {
+      dzToShadowIndexToRect.set(dz, /* @__PURE__ */ new Map());
+    }
+    dzToShadowIndexToRect.get(dz).set(shadowElIndex, getAbsoluteRectNoTransforms(dz.children[shadowElIndex]));
+    return shadowElIndex;
+  }
+  return void 0;
+}
+function findWouldBeIndex(referencePoint, collectionBelowEl) {
+  var collectionRect = getAbsoluteRectNoTransforms(collectionBelowEl);
+  if (!isPointInsideRect(referencePoint, collectionRect)) {
+    return null;
+  }
+  var children2 = collectionBelowEl.children;
+  if (children2.length === 0) {
+    return {
+      index: 0,
+      isProximityBased: true
+    };
+  }
+  var shadowElIndex = cacheShadowRect(collectionBelowEl);
+  for (var i = 0; i < children2.length; i++) {
+    var childRect = getAbsoluteRectNoTransforms(children2[i]);
+    if (isPointInsideRect(referencePoint, childRect)) {
+      var cachedShadowRect = dzToShadowIndexToRect.has(collectionBelowEl) && dzToShadowIndexToRect.get(collectionBelowEl).get(i);
+      if (cachedShadowRect) {
+        if (!isPointInsideRect(referencePoint, cachedShadowRect)) {
+          return {
+            index: shadowElIndex,
+            isProximityBased: false
+          };
+        }
+      }
+      return {
+        index: i,
+        isProximityBased: false
+      };
+    }
+  }
+  var minDistanceSoFar = Number.MAX_VALUE;
+  var indexOfMin = void 0;
+  for (var _i = 0; _i < children2.length; _i++) {
+    var distance = calcDistanceFromPointToCenter(referencePoint, children2[_i]);
+    if (distance < minDistanceSoFar) {
+      minDistanceSoFar = distance;
+      indexOfMin = _i;
+    }
+  }
+  if (children2.length > 0) {
+    var originalLen = children2.length;
+    var template = children2[originalLen - 1];
+    var phantom = template.cloneNode(false);
+    phantom.style.visibility = "hidden";
+    phantom.style.pointerEvents = "none";
+    collectionBelowEl.appendChild(phantom);
+    var phantomDistance = calcDistanceFromPointToCenter(referencePoint, phantom);
+    if (phantomDistance < minDistanceSoFar) {
+      indexOfMin = originalLen;
+    }
+    collectionBelowEl.removeChild(phantom);
+  }
+  return {
+    index: indexOfMin,
+    isProximityBased: true
+  };
+}
+function toString(object) {
+  return JSON.stringify(object, null, 2);
+}
+function getDepth(node) {
+  if (!node) {
+    throw new Error("cannot get depth of a falsy node");
+  }
+  return _getDepth(node, 0);
+}
+function _getDepth(node) {
+  var countSoFar = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : 0;
+  if (!node.parentElement) {
+    return countSoFar - 1;
+  }
+  return _getDepth(node.parentElement, countSoFar + 1);
+}
+function areObjectsShallowEqual(objA, objB) {
+  if (Object.keys(objA).length !== Object.keys(objB).length) {
+    return false;
+  }
+  for (var keyA in objA) {
+    if (!{}.hasOwnProperty.call(objB, keyA) || objB[keyA] !== objA[keyA]) {
+      return false;
+    }
+  }
+  return true;
+}
+function areArraysShallowEqualSameOrder(arrA, arrB) {
+  if (arrA.length !== arrB.length) {
+    return false;
+  }
+  for (var i = 0; i < arrA.length; i++) {
+    if (arrA[i] !== arrB[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+var INTERVAL_MS = 200;
+var TOLERANCE_PX = 10;
+var next;
+function observe(draggedEl2, dropZones) {
+  var intervalMs = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : INTERVAL_MS;
+  var multiScroller2 = arguments.length > 3 ? arguments[3] : void 0;
+  var getReferencePoint = arguments.length > 4 ? arguments[4] : void 0;
+  var lastDropZoneFound;
+  var lastIndexFound;
+  var lastIsDraggedInADropZone = false;
+  var lastCentrePositionOfDragged;
+  var dropZonesFromDeepToShallow = Array.from(dropZones).sort(function(dz1, dz2) {
+    return getDepth(dz2) - getDepth(dz1);
+  });
+  function andNow() {
+    var referencePoint = getReferencePoint();
+    var scrolled = multiScroller2.multiScrollIfNeeded();
+    if (!scrolled && lastCentrePositionOfDragged && Math.abs(lastCentrePositionOfDragged.x - referencePoint.x) < TOLERANCE_PX && Math.abs(lastCentrePositionOfDragged.y - referencePoint.y) < TOLERANCE_PX) {
+      next = window.setTimeout(andNow, intervalMs);
+      return;
+    }
+    if (isElementOffDocument(draggedEl2)) {
+      printDebug(function() {
+        return "off document";
+      });
+      dispatchDraggedLeftDocument(draggedEl2);
+      return;
+    }
+    lastCentrePositionOfDragged = referencePoint;
+    var isDraggedInADropZone = false;
+    var _iterator = _createForOfIteratorHelper(dropZonesFromDeepToShallow), _step;
+    try {
+      for (_iterator.s(); !(_step = _iterator.n()).done; ) {
+        var dz = _step.value;
+        if (scrolled)
+          resetIndexesCache();
+        var indexObj = findWouldBeIndex(referencePoint, dz);
+        if (indexObj === null) {
+          continue;
+        }
+        var index = indexObj.index;
+        isDraggedInADropZone = true;
+        if (dz !== lastDropZoneFound) {
+          lastDropZoneFound && dispatchDraggedElementLeftContainerForAnother(lastDropZoneFound, draggedEl2, dz);
+          dispatchDraggedElementEnteredContainer(dz, indexObj, draggedEl2);
+          lastDropZoneFound = dz;
+        } else if (index !== lastIndexFound) {
+          dispatchDraggedElementIsOverIndex(dz, indexObj, draggedEl2);
+          lastIndexFound = index;
+        }
+        break;
+      }
+    } catch (err) {
+      _iterator.e(err);
+    } finally {
+      _iterator.f();
+    }
+    if (!isDraggedInADropZone && lastIsDraggedInADropZone && lastDropZoneFound) {
+      dispatchDraggedElementLeftContainerForNone(lastDropZoneFound, draggedEl2);
+      lastDropZoneFound = void 0;
+      lastIndexFound = void 0;
+      lastIsDraggedInADropZone = false;
+    } else {
+      lastIsDraggedInADropZone = true;
+    }
+    next = window.setTimeout(andNow, intervalMs);
+  }
+  andNow();
+}
+function unobserve() {
+  printDebug(function() {
+    return "unobserving";
+  });
+  clearTimeout(next);
+  resetIndexesCache();
+}
+var SCROLL_ZONE_PX = 30;
+function makeScroller() {
+  var scrollingInfo;
+  function resetScrolling() {
+    scrollingInfo = {
+      directionObj: void 0,
+      stepPx: 0
+    };
+  }
+  resetScrolling();
+  function scrollContainer(containerEl) {
+    var _scrollingInfo = scrollingInfo, directionObj = _scrollingInfo.directionObj, stepPx = _scrollingInfo.stepPx;
+    if (directionObj) {
+      containerEl.scrollBy(directionObj.x * stepPx, directionObj.y * stepPx);
+      window.requestAnimationFrame(function() {
+        return scrollContainer(containerEl);
+      });
+    }
+  }
+  function calcScrollStepPx(distancePx) {
+    return SCROLL_ZONE_PX - distancePx;
+  }
+  function scrollIfNeeded(pointer, elementToScroll) {
+    if (!elementToScroll) {
+      return false;
+    }
+    var distances = calcInnerDistancesBetweenPointAndSidesOfElement(pointer, elementToScroll);
+    var isAlreadyScrolling = !!scrollingInfo.directionObj;
+    if (distances === null) {
+      if (isAlreadyScrolling)
+        resetScrolling();
+      return false;
+    }
+    var scrollingVertically = false, scrollingHorizontally = false;
+    if (elementToScroll.scrollHeight > elementToScroll.clientHeight) {
+      if (distances.bottom < SCROLL_ZONE_PX) {
+        scrollingVertically = true;
+        scrollingInfo.directionObj = {
+          x: 0,
+          y: 1
+        };
+        scrollingInfo.stepPx = calcScrollStepPx(distances.bottom);
+      } else if (distances.top < SCROLL_ZONE_PX) {
+        scrollingVertically = true;
+        scrollingInfo.directionObj = {
+          x: 0,
+          y: -1
+        };
+        scrollingInfo.stepPx = calcScrollStepPx(distances.top);
+      }
+      if (!isAlreadyScrolling && scrollingVertically) {
+        scrollContainer(elementToScroll);
+        return true;
+      }
+    }
+    if (elementToScroll.scrollWidth > elementToScroll.clientWidth) {
+      if (distances.right < SCROLL_ZONE_PX) {
+        scrollingHorizontally = true;
+        scrollingInfo.directionObj = {
+          x: 1,
+          y: 0
+        };
+        scrollingInfo.stepPx = calcScrollStepPx(distances.right);
+      } else if (distances.left < SCROLL_ZONE_PX) {
+        scrollingHorizontally = true;
+        scrollingInfo.directionObj = {
+          x: -1,
+          y: 0
+        };
+        scrollingInfo.stepPx = calcScrollStepPx(distances.left);
+      }
+      if (!isAlreadyScrolling && scrollingHorizontally) {
+        scrollContainer(elementToScroll);
+        return true;
+      }
+    }
+    resetScrolling();
+    return false;
+  }
+  return {
+    scrollIfNeeded,
+    resetScrolling
+  };
+}
+function calcInnerDistancesBetweenPointAndSidesOfElement(point, el) {
+  var rect = el === document.scrollingElement ? {
+    top: 0,
+    bottom: window.innerHeight,
+    left: 0,
+    right: window.innerWidth
+  } : el.getBoundingClientRect();
+  if (!isPointInsideRect(point, rect)) {
+    return null;
+  }
+  return {
+    top: point.y - rect.top,
+    bottom: rect.bottom - point.y,
+    left: point.x - rect.left,
+    right: rect.right - point.x
+  };
+}
+function createMultiScroller() {
+  var baseElementsForScrolling = arguments.length > 0 && arguments[0] !== void 0 ? arguments[0] : [];
+  var getPointerPosition = arguments.length > 1 ? arguments[1] : void 0;
+  printDebug(function() {
+    return "creating multi-scroller";
+  });
+  var scrollingContainersSet = findRelevantScrollContainers(baseElementsForScrolling);
+  var scrollingContainersDeepToShallow = Array.from(scrollingContainersSet).sort(function(dz1, dz2) {
+    return getDepth(dz2) - getDepth(dz1);
+  });
+  var _makeScroller = makeScroller(), scrollIfNeeded = _makeScroller.scrollIfNeeded, resetScrolling = _makeScroller.resetScrolling;
+  function tick2() {
+    var mousePosition = getPointerPosition();
+    if (!mousePosition || !scrollingContainersDeepToShallow) {
+      return false;
+    }
+    var scrollContainersUnderCursor = scrollingContainersDeepToShallow.filter(function(el) {
+      return isPointInsideRect(mousePosition, el.getBoundingClientRect()) || el === document.scrollingElement;
+    });
+    for (var i = 0; i < scrollContainersUnderCursor.length; i++) {
+      var scrolled = scrollIfNeeded(mousePosition, scrollContainersUnderCursor[i]);
+      if (scrolled) {
+        return true;
+      }
+    }
+    return false;
+  }
+  return {
+    multiScrollIfNeeded: scrollingContainersSet.size > 0 ? tick2 : function() {
+      return false;
+    },
+    destroy: function destroy() {
+      return resetScrolling();
+    }
+  };
+}
+function findScrollableParents(element2) {
+  if (!element2) {
+    return [];
+  }
+  var scrollableContainers = [];
+  var parent = element2;
+  while (parent) {
+    var _window$getComputedSt = window.getComputedStyle(parent), overflow = _window$getComputedSt.overflow;
+    if (overflow.split(" ").some(function(o) {
+      return o.includes("auto") || o.includes("scroll");
+    })) {
+      scrollableContainers.push(parent);
+    }
+    parent = parent.parentElement;
+  }
+  return scrollableContainers;
+}
+function findRelevantScrollContainers(dropZones) {
+  var scrollingContainers = /* @__PURE__ */ new Set();
+  var _iterator = _createForOfIteratorHelper(dropZones), _step;
+  try {
+    for (_iterator.s(); !(_step = _iterator.n()).done; ) {
+      var dz = _step.value;
+      findScrollableParents(dz).forEach(function(container) {
+        return scrollingContainers.add(container);
+      });
+    }
+  } catch (err) {
+    _iterator.e(err);
+  } finally {
+    _iterator.f();
+  }
+  if (document.scrollingElement.scrollHeight > document.scrollingElement.clientHeight || document.scrollingElement.scrollWidth > document.scrollingElement.clientHeight) {
+    scrollingContainers.add(document.scrollingElement);
+  }
+  return scrollingContainers;
+}
+function svelteNodeClone(el) {
+  var cloned = el.cloneNode(true);
+  var values = [];
+  var elIsSelect = el.tagName === "SELECT";
+  var selects = elIsSelect ? [el] : _toConsumableArray(el.querySelectorAll("select"));
+  var _iterator = _createForOfIteratorHelper(selects), _step;
+  try {
+    for (_iterator.s(); !(_step = _iterator.n()).done; ) {
+      var _select = _step.value;
+      values.push(_select.value);
+    }
+  } catch (err) {
+    _iterator.e(err);
+  } finally {
+    _iterator.f();
+  }
+  if (selects.length > 0) {
+    var clonedSelects = elIsSelect ? [cloned] : _toConsumableArray(cloned.querySelectorAll("select"));
+    for (var i = 0; i < clonedSelects.length; i++) {
+      var select = clonedSelects[i];
+      var value = values[i];
+      var optionEl = select.querySelector('option[value="'.concat(value, '"'));
+      if (optionEl) {
+        optionEl.setAttribute("selected", true);
+      }
+    }
+  }
+  var elIsCanvas = el.tagName === "CANVAS";
+  var canvases = elIsCanvas ? [el] : _toConsumableArray(el.querySelectorAll("canvas"));
+  if (canvases.length > 0) {
+    var clonedCanvases = elIsCanvas ? [cloned] : _toConsumableArray(cloned.querySelectorAll("canvas"));
+    for (var _i = 0; _i < clonedCanvases.length; _i++) {
+      var canvas = canvases[_i];
+      var clonedCanvas = clonedCanvases[_i];
+      clonedCanvas.width = canvas.width;
+      clonedCanvas.height = canvas.height;
+      if (canvas.width > 0 && canvas.height > 0) {
+        clonedCanvas.getContext("2d").drawImage(canvas, 0, 0);
+      }
+    }
+  }
+  return cloned;
+}
+var FEATURE_FLAG_NAMES = Object.freeze({
+  // This flag exists as a workaround for issue 454 (basically a browser bug) - seems like these rect values take time to update when in grid layout. Setting it to true can cause strange behaviour in the REPL for non-grid zones, see issue 470
+  USE_COMPUTED_STYLE_INSTEAD_OF_BOUNDING_RECT: "USE_COMPUTED_STYLE_INSTEAD_OF_BOUNDING_RECT"
+});
+var featureFlagsMap = _defineProperty({}, FEATURE_FLAG_NAMES.USE_COMPUTED_STYLE_INSTEAD_OF_BOUNDING_RECT, false);
+function getFeatureFlag(flagName) {
+  if (!FEATURE_FLAG_NAMES[flagName])
+    throw new Error("Can't get non existing feature flag ".concat(flagName, "! Supported flags: ").concat(Object.keys(FEATURE_FLAG_NAMES)));
+  return featureFlagsMap[flagName];
+}
+var TRANSITION_DURATION_SECONDS = 0.2;
+function trs(property) {
+  return "".concat(property, " ").concat(TRANSITION_DURATION_SECONDS, "s ease");
+}
+function createDraggedElementFrom(originalElement, positionCenterOnXY) {
+  var rect = originalElement.getBoundingClientRect();
+  var draggedEl2 = svelteNodeClone(originalElement);
+  copyStylesFromTo(originalElement, draggedEl2);
+  draggedEl2.id = DRAGGED_ELEMENT_ID;
+  draggedEl2.style.position = "fixed";
+  var elTopPx = rect.top;
+  var elLeftPx = rect.left;
+  draggedEl2.style.top = "".concat(elTopPx, "px");
+  draggedEl2.style.left = "".concat(elLeftPx, "px");
+  if (positionCenterOnXY) {
+    var center = findCenter(rect);
+    elTopPx -= center.y - positionCenterOnXY.y;
+    elLeftPx -= center.x - positionCenterOnXY.x;
+    window.setTimeout(function() {
+      draggedEl2.style.top = "".concat(elTopPx, "px");
+      draggedEl2.style.left = "".concat(elLeftPx, "px");
+    }, 0);
+  }
+  draggedEl2.style.margin = "0";
+  draggedEl2.style.boxSizing = "border-box";
+  draggedEl2.style.height = "".concat(rect.height, "px");
+  draggedEl2.style.width = "".concat(rect.width, "px");
+  draggedEl2.style.transition = "".concat(trs("top"), ", ").concat(trs("left"), ", ").concat(trs("background-color"), ", ").concat(trs("opacity"), ", ").concat(trs("color"), " ");
+  window.setTimeout(function() {
+    return draggedEl2.style.transition += ", ".concat(trs("width"), ", ").concat(trs("height"));
+  }, 0);
+  draggedEl2.style.zIndex = "9999";
+  draggedEl2.style.cursor = "grabbing";
+  return draggedEl2;
+}
+function moveDraggedElementToWasDroppedState(draggedEl2) {
+  draggedEl2.style.cursor = "grab";
+}
+function morphDraggedElementToBeLike(draggedEl2, copyFromEl, currentMouseX, currentMouseY) {
+  copyStylesFromTo(copyFromEl, draggedEl2);
+  var newRect = copyFromEl.getBoundingClientRect();
+  var draggedElRect = draggedEl2.getBoundingClientRect();
+  var widthChange = newRect.width - draggedElRect.width;
+  var heightChange = newRect.height - draggedElRect.height;
+  if (widthChange || heightChange) {
+    var relativeDistanceOfMousePointerFromDraggedSides = {
+      left: (currentMouseX - draggedElRect.left) / draggedElRect.width,
+      top: (currentMouseY - draggedElRect.top) / draggedElRect.height
+    };
+    if (!getFeatureFlag(FEATURE_FLAG_NAMES.USE_COMPUTED_STYLE_INSTEAD_OF_BOUNDING_RECT)) {
+      draggedEl2.style.height = "".concat(newRect.height, "px");
+      draggedEl2.style.width = "".concat(newRect.width, "px");
+    }
+    draggedEl2.style.left = "".concat(parseFloat(draggedEl2.style.left) - relativeDistanceOfMousePointerFromDraggedSides.left * widthChange, "px");
+    draggedEl2.style.top = "".concat(parseFloat(draggedEl2.style.top) - relativeDistanceOfMousePointerFromDraggedSides.top * heightChange, "px");
+  }
+}
+function copyStylesFromTo(copyFromEl, copyToEl) {
+  var computedStyle = window.getComputedStyle(copyFromEl);
+  Array.from(computedStyle).filter(function(s) {
+    return s.startsWith("background") || s.startsWith("padding") || s.startsWith("font") || s.startsWith("text") || s.startsWith("align") || s.startsWith("justify") || s.startsWith("display") || s.startsWith("flex") || s.startsWith("border") || s === "opacity" || s === "color" || s === "list-style-type" || // copying with and height to make up for rect update timing issues in some browsers
+    getFeatureFlag(FEATURE_FLAG_NAMES.USE_COMPUTED_STYLE_INSTEAD_OF_BOUNDING_RECT) && (s === "width" || s === "height");
+  }).forEach(function(s) {
+    return copyToEl.style.setProperty(s, computedStyle.getPropertyValue(s), computedStyle.getPropertyPriority(s));
+  });
+}
+function styleDraggable(draggableEl, dragDisabled) {
+  draggableEl.draggable = false;
+  draggableEl.ondragstart = function() {
+    return false;
+  };
+  if (!dragDisabled) {
+    draggableEl.style.userSelect = "none";
+    draggableEl.style.WebkitUserSelect = "none";
+    draggableEl.style.cursor = "grab";
+  } else {
+    draggableEl.style.userSelect = "";
+    draggableEl.style.WebkitUserSelect = "";
+    draggableEl.style.cursor = "";
+  }
+}
+function hideElement(dragTarget) {
+  dragTarget.style.display = "none";
+  dragTarget.style.position = "fixed";
+  dragTarget.style.zIndex = "-5";
+}
+function decorateShadowEl(shadowEl) {
+  shadowEl.style.visibility = "hidden";
+  shadowEl.setAttribute(SHADOW_ELEMENT_ATTRIBUTE_NAME, "true");
+}
+function unDecorateShadowElement(shadowEl) {
+  shadowEl.style.visibility = "";
+  shadowEl.removeAttribute(SHADOW_ELEMENT_ATTRIBUTE_NAME);
+}
+function styleActiveDropZones(dropZones) {
+  var getStyles = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : function() {
+  };
+  var getClasses = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : function() {
+    return [];
+  };
+  dropZones.forEach(function(dz) {
+    var styles = getStyles(dz);
+    Object.keys(styles).forEach(function(style) {
+      dz.style[style] = styles[style];
+    });
+    getClasses(dz).forEach(function(c) {
+      return dz.classList.add(c);
+    });
+  });
+}
+function styleInactiveDropZones(dropZones) {
+  var getStyles = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : function() {
+  };
+  var getClasses = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : function() {
+    return [];
+  };
+  dropZones.forEach(function(dz) {
+    var styles = getStyles(dz);
+    Object.keys(styles).forEach(function(style) {
+      dz.style[style] = "";
+    });
+    getClasses(dz).forEach(function(c) {
+      return dz.classList.contains(c) && dz.classList.remove(c);
+    });
+  });
+}
+function preventShrinking(el) {
+  var originalMinHeight = el.style.minHeight;
+  el.style.minHeight = window.getComputedStyle(el).getPropertyValue("height");
+  var originalMinWidth = el.style.minWidth;
+  el.style.minWidth = window.getComputedStyle(el).getPropertyValue("width");
+  return function undo() {
+    el.style.minHeight = originalMinHeight;
+    el.style.minWidth = originalMinWidth;
+  };
+}
+var DEFAULT_DROP_ZONE_TYPE$1 = "--any--";
+var MIN_OBSERVATION_INTERVAL_MS = 100;
+var DISABLED_OBSERVATION_INTERVAL_MS = 20;
+var MIN_MOVEMENT_BEFORE_DRAG_START_PX = 3;
+var DEFAULT_TOUCH_DELAY_MS = 80;
+var DEFAULT_DROP_TARGET_STYLE$1 = {
+  outline: "rgba(255, 255, 102, 0.7) solid 2px"
+};
+var ORIGINAL_DRAGGED_ITEM_MARKER_ATTRIBUTE = "data-is-dnd-original-dragged-item";
+var originalDragTarget;
+var draggedEl;
+var draggedElData;
+var draggedElType;
+var originDropZone;
+var originIndex;
+var shadowElData;
+var shadowElDropZone;
+var dragStartMousePosition;
+var currentMousePosition;
+var isWorkingOnPreviousDrag = false;
+var finalizingPreviousDrag = false;
+var unlockOriginDzMinDimensions;
+var isDraggedOutsideOfAnyDz = false;
+var scheduledForRemovalAfterDrop = [];
+var multiScroller;
+var touchDragHoldTimer;
+var touchHoldElapsed = false;
+var useCursorForDetectionActive = false;
+var typeToDropZones$1 = /* @__PURE__ */ new Map();
+var dzToConfig$1 = /* @__PURE__ */ new Map();
+var elToMouseDownListener = /* @__PURE__ */ new WeakMap();
+function registerDropZone$1(dropZoneEl, type) {
+  printDebug(function() {
+    return "registering drop-zone if absent";
+  });
+  if (!typeToDropZones$1.has(type)) {
+    typeToDropZones$1.set(type, /* @__PURE__ */ new Set());
+  }
+  if (!typeToDropZones$1.get(type).has(dropZoneEl)) {
+    typeToDropZones$1.get(type).add(dropZoneEl);
+    incrementActiveDropZoneCount();
+  }
+}
+function unregisterDropZone$1(dropZoneEl, type) {
+  typeToDropZones$1.get(type)["delete"](dropZoneEl);
+  decrementActiveDropZoneCount();
+  if (typeToDropZones$1.get(type).size === 0) {
+    typeToDropZones$1["delete"](type);
+  }
+}
+function watchDraggedElement() {
+  printDebug(function() {
+    return "watching dragged element";
+  });
+  var dropZones = typeToDropZones$1.get(draggedElType);
+  var _iterator = _createForOfIteratorHelper(dropZones), _step;
+  try {
+    for (_iterator.s(); !(_step = _iterator.n()).done; ) {
+      var dz = _step.value;
+      dz.addEventListener(DRAGGED_ENTERED_EVENT_NAME, handleDraggedEntered);
+      dz.addEventListener(DRAGGED_LEFT_EVENT_NAME, handleDraggedLeft);
+      dz.addEventListener(DRAGGED_OVER_INDEX_EVENT_NAME, handleDraggedIsOverIndex);
+    }
+  } catch (err) {
+    _iterator.e(err);
+  } finally {
+    _iterator.f();
+  }
+  window.addEventListener(DRAGGED_LEFT_DOCUMENT_EVENT_NAME, handleDrop$1);
+  var setIntervalMs = Math.max.apply(Math, _toConsumableArray(Array.from(dropZones.keys()).map(function(dz2) {
+    return dzToConfig$1.get(dz2).dropAnimationDurationMs;
+  })));
+  var observationIntervalMs = setIntervalMs === 0 ? DISABLED_OBSERVATION_INTERVAL_MS : Math.max(setIntervalMs, MIN_OBSERVATION_INTERVAL_MS);
+  multiScroller = createMultiScroller(dropZones, function() {
+    return currentMousePosition;
+  });
+  var getReferencePoint = useCursorForDetectionActive ? function() {
+    return {
+      x: currentMousePosition.x + window.scrollX,
+      y: currentMousePosition.y + window.scrollY
+    };
+  } : function() {
+    return findCenterOfElement(draggedEl);
+  };
+  observe(draggedEl, dropZones, observationIntervalMs * 1.07, multiScroller, getReferencePoint);
+}
+function unWatchDraggedElement() {
+  printDebug(function() {
+    return "unwatching dragged element";
+  });
+  var dropZones = typeToDropZones$1.get(draggedElType);
+  var _iterator2 = _createForOfIteratorHelper(dropZones), _step2;
+  try {
+    for (_iterator2.s(); !(_step2 = _iterator2.n()).done; ) {
+      var dz = _step2.value;
+      dz.removeEventListener(DRAGGED_ENTERED_EVENT_NAME, handleDraggedEntered);
+      dz.removeEventListener(DRAGGED_LEFT_EVENT_NAME, handleDraggedLeft);
+      dz.removeEventListener(DRAGGED_OVER_INDEX_EVENT_NAME, handleDraggedIsOverIndex);
+    }
+  } catch (err) {
+    _iterator2.e(err);
+  } finally {
+    _iterator2.f();
+  }
+  window.removeEventListener(DRAGGED_LEFT_DOCUMENT_EVENT_NAME, handleDrop$1);
+  if (multiScroller) {
+    multiScroller.destroy();
+    multiScroller = void 0;
+  }
+  unobserve();
+}
+function findShadowElementIdx(items) {
+  return items.findIndex(function(item) {
+    return !!item[SHADOW_ITEM_MARKER_PROPERTY_NAME];
+  });
+}
+function createShadowElData(draggedElData2) {
+  var _objectSpread2$1;
+  return _objectSpread2(_objectSpread2({}, draggedElData2), {}, (_objectSpread2$1 = {}, _defineProperty(_objectSpread2$1, SHADOW_ITEM_MARKER_PROPERTY_NAME, true), _defineProperty(_objectSpread2$1, ITEM_ID_KEY, SHADOW_PLACEHOLDER_ITEM_ID), _objectSpread2$1));
+}
+function handleDraggedEntered(e) {
+  printDebug(function() {
+    return ["dragged entered", e.currentTarget, e.detail];
+  });
+  var _dzToConfig$get = dzToConfig$1.get(e.currentTarget), items = _dzToConfig$get.items, dropFromOthersDisabled = _dzToConfig$get.dropFromOthersDisabled;
+  if (dropFromOthersDisabled && e.currentTarget !== originDropZone) {
+    printDebug(function() {
+      return "ignoring dragged entered because drop is currently disabled";
+    });
+    return;
+  }
+  isDraggedOutsideOfAnyDz = false;
+  items = items.filter(function(item) {
+    return item[ITEM_ID_KEY] !== shadowElData[ITEM_ID_KEY] && item[ITEM_ID_KEY] !== SHADOW_PLACEHOLDER_ITEM_ID;
+  });
+  printDebug(function() {
+    return "dragged entered items ".concat(toString(items));
+  });
+  if (originDropZone !== e.currentTarget) {
+    var originZoneItems = dzToConfig$1.get(originDropZone).items;
+    var newOriginZoneItems = originZoneItems.filter(function(item) {
+      return !item[SHADOW_ITEM_MARKER_PROPERTY_NAME];
+    });
+    dispatchConsiderEvent(originDropZone, newOriginZoneItems, {
+      trigger: TRIGGERS.DRAGGED_ENTERED_ANOTHER,
+      id: draggedElData[ITEM_ID_KEY],
+      source: SOURCES.POINTER
+    });
+  }
+  var shadowElIdx = e.detail.indexObj.index;
+  shadowElDropZone = e.currentTarget;
+  items.splice(shadowElIdx, 0, shadowElData);
+  dispatchConsiderEvent(e.currentTarget, items, {
+    trigger: TRIGGERS.DRAGGED_ENTERED,
+    id: draggedElData[ITEM_ID_KEY],
+    source: SOURCES.POINTER
+  });
+}
+function handleDraggedLeft(e) {
+  if (!isWorkingOnPreviousDrag)
+    return;
+  printDebug(function() {
+    return ["dragged left", e.currentTarget, e.detail];
+  });
+  var _dzToConfig$get2 = dzToConfig$1.get(e.currentTarget), originalItems = _dzToConfig$get2.items, dropFromOthersDisabled = _dzToConfig$get2.dropFromOthersDisabled;
+  if (dropFromOthersDisabled && e.currentTarget !== originDropZone && e.currentTarget !== shadowElDropZone) {
+    printDebug(function() {
+      return "drop is currently disabled";
+    });
+    return;
+  }
+  var items = _toConsumableArray(originalItems);
+  var shadowElIdx = findShadowElementIdx(items);
+  if (shadowElIdx !== -1) {
+    items.splice(shadowElIdx, 1);
+  }
+  var origShadowDz = shadowElDropZone;
+  shadowElDropZone = void 0;
+  var _e$detail = e.detail, type = _e$detail.type, theOtherDz = _e$detail.theOtherDz;
+  if (type === DRAGGED_LEFT_TYPES.OUTSIDE_OF_ANY || type === DRAGGED_LEFT_TYPES.LEFT_FOR_ANOTHER && theOtherDz !== originDropZone && dzToConfig$1.get(theOtherDz).dropFromOthersDisabled) {
+    printDebug(function() {
+      return "dragged left all, putting shadow element back in the origin dz";
+    });
+    isDraggedOutsideOfAnyDz = true;
+    shadowElDropZone = originDropZone;
+    var originZoneItems = origShadowDz === originDropZone ? items : _toConsumableArray(dzToConfig$1.get(originDropZone).items);
+    originZoneItems.splice(originIndex, 0, shadowElData);
+    dispatchConsiderEvent(originDropZone, originZoneItems, {
+      trigger: TRIGGERS.DRAGGED_LEFT_ALL,
+      id: draggedElData[ITEM_ID_KEY],
+      source: SOURCES.POINTER
+    });
+  }
+  dispatchConsiderEvent(e.currentTarget, items, {
+    trigger: TRIGGERS.DRAGGED_LEFT,
+    id: draggedElData[ITEM_ID_KEY],
+    source: SOURCES.POINTER
+  });
+}
+function handleDraggedIsOverIndex(e) {
+  printDebug(function() {
+    return ["dragged is over index", e.currentTarget, e.detail];
+  });
+  var _dzToConfig$get3 = dzToConfig$1.get(e.currentTarget), originalItems = _dzToConfig$get3.items, dropFromOthersDisabled = _dzToConfig$get3.dropFromOthersDisabled;
+  if (dropFromOthersDisabled && e.currentTarget !== originDropZone) {
+    printDebug(function() {
+      return "drop is currently disabled";
+    });
+    return;
+  }
+  var items = _toConsumableArray(originalItems);
+  isDraggedOutsideOfAnyDz = false;
+  var index = e.detail.indexObj.index;
+  var shadowElIdx = findShadowElementIdx(items);
+  if (shadowElIdx !== -1) {
+    items.splice(shadowElIdx, 1);
+  }
+  items.splice(index, 0, shadowElData);
+  dispatchConsiderEvent(e.currentTarget, items, {
+    trigger: TRIGGERS.DRAGGED_OVER_INDEX,
+    id: draggedElData[ITEM_ID_KEY],
+    source: SOURCES.POINTER
+  });
+}
+function handleMouseMove(e) {
+  e.preventDefault();
+  var c = e.touches ? e.touches[0] : e;
+  currentMousePosition = {
+    x: c.clientX,
+    y: c.clientY
+  };
+  draggedEl.style.transform = "translate3d(".concat(currentMousePosition.x - dragStartMousePosition.x, "px, ").concat(currentMousePosition.y - dragStartMousePosition.y, "px, 0)");
+}
+function handleDrop$1() {
+  printDebug(function() {
+    return "dropped";
+  });
+  finalizingPreviousDrag = true;
+  window.removeEventListener("mousemove", handleMouseMove);
+  window.removeEventListener("touchmove", handleMouseMove);
+  window.removeEventListener("mouseup", handleDrop$1);
+  window.removeEventListener("touchend", handleDrop$1);
+  unWatchDraggedElement();
+  moveDraggedElementToWasDroppedState(draggedEl);
+  if (!shadowElDropZone) {
+    printDebug(function() {
+      return "element was dropped right after it left origin but before entering somewhere else";
+    });
+    shadowElDropZone = originDropZone;
+  }
+  printDebug(function() {
+    return ["dropped in dz", shadowElDropZone];
+  });
+  var _dzToConfig$get4 = dzToConfig$1.get(shadowElDropZone), items = _dzToConfig$get4.items, type = _dzToConfig$get4.type;
+  styleInactiveDropZones(typeToDropZones$1.get(type), function(dz) {
+    return dzToConfig$1.get(dz).dropTargetStyle;
+  }, function(dz) {
+    return dzToConfig$1.get(dz).dropTargetClasses;
+  });
+  var shadowElIdx = findShadowElementIdx(items);
+  if (shadowElIdx === -1) {
+    if (shadowElDropZone === originDropZone) {
+      shadowElIdx = originIndex;
+    }
+  }
+  items = items.map(function(item) {
+    return item[SHADOW_ITEM_MARKER_PROPERTY_NAME] ? draggedElData : item;
+  });
+  function finalizeWithinZone() {
+    unlockOriginDzMinDimensions();
+    dispatchFinalizeEvent(shadowElDropZone, items, {
+      trigger: isDraggedOutsideOfAnyDz ? TRIGGERS.DROPPED_OUTSIDE_OF_ANY : TRIGGERS.DROPPED_INTO_ZONE,
+      id: draggedElData[ITEM_ID_KEY],
+      source: SOURCES.POINTER
+    });
+    if (shadowElDropZone !== originDropZone) {
+      dispatchFinalizeEvent(originDropZone, dzToConfig$1.get(originDropZone).items, {
+        trigger: TRIGGERS.DROPPED_INTO_ANOTHER,
+        id: draggedElData[ITEM_ID_KEY],
+        source: SOURCES.POINTER
+      });
+    }
+    var domShadowEl = Array.from(shadowElDropZone.children).find(function(c) {
+      return c.getAttribute(SHADOW_ELEMENT_ATTRIBUTE_NAME);
+    });
+    if (domShadowEl)
+      unDecorateShadowElement(domShadowEl);
+    cleanupPostDrop();
+  }
+  if (dzToConfig$1.get(shadowElDropZone).dropAnimationDisabled) {
+    finalizeWithinZone();
+  } else {
+    animateDraggedToFinalPosition(shadowElIdx, finalizeWithinZone);
+  }
+}
+function animateDraggedToFinalPosition(shadowElIdx, callback) {
+  var shadowElRect = shadowElIdx > -1 ? getBoundingRectNoTransforms(shadowElDropZone.children[shadowElIdx], false) : getBoundingRectNoTransforms(shadowElDropZone, false);
+  var newTransform = {
+    x: shadowElRect.left - parseFloat(draggedEl.style.left),
+    y: shadowElRect.top - parseFloat(draggedEl.style.top)
+  };
+  var _dzToConfig$get5 = dzToConfig$1.get(shadowElDropZone), dropAnimationDurationMs = _dzToConfig$get5.dropAnimationDurationMs;
+  var transition = "transform ".concat(dropAnimationDurationMs, "ms ease");
+  draggedEl.style.transition = draggedEl.style.transition ? draggedEl.style.transition + "," + transition : transition;
+  draggedEl.style.transform = "translate3d(".concat(newTransform.x, "px, ").concat(newTransform.y, "px, 0)");
+  window.setTimeout(callback, dropAnimationDurationMs);
+}
+function scheduleDZForRemovalAfterDrop(dz, destroy) {
+  scheduledForRemovalAfterDrop.push({
+    dz,
+    destroy
+  });
+  window.requestAnimationFrame(function() {
+    hideElement(dz);
+    document.body.appendChild(dz);
+  });
+}
+function cleanupPostDrop() {
+  if (draggedEl && draggedEl.remove) {
+    draggedEl.remove();
+  }
+  if (originalDragTarget && originalDragTarget.remove) {
+    originalDragTarget.remove();
+  }
+  draggedEl = void 0;
+  originalDragTarget = void 0;
+  draggedElData = void 0;
+  draggedElType = void 0;
+  originDropZone = void 0;
+  originIndex = void 0;
+  shadowElData = void 0;
+  shadowElDropZone = void 0;
+  dragStartMousePosition = void 0;
+  currentMousePosition = void 0;
+  isWorkingOnPreviousDrag = false;
+  finalizingPreviousDrag = false;
+  unlockOriginDzMinDimensions = void 0;
+  isDraggedOutsideOfAnyDz = false;
+  if (touchDragHoldTimer) {
+    clearTimeout(touchDragHoldTimer);
+  }
+  touchDragHoldTimer = void 0;
+  touchHoldElapsed = false;
+  useCursorForDetectionActive = false;
+  if (scheduledForRemovalAfterDrop.length) {
+    printDebug(function() {
+      return ["will destroy zones that were removed during drag", scheduledForRemovalAfterDrop];
+    });
+    scheduledForRemovalAfterDrop.forEach(function(_ref) {
+      var dz = _ref.dz, destroy = _ref.destroy;
+      destroy();
+      dz.remove();
+    });
+    scheduledForRemovalAfterDrop = [];
+  }
+}
+function dndzone$2(node, options) {
+  var initialized = false;
+  var config = {
+    items: void 0,
+    type: void 0,
+    flipDurationMs: 0,
+    dragDisabled: false,
+    morphDisabled: false,
+    dropFromOthersDisabled: false,
+    dropTargetStyle: DEFAULT_DROP_TARGET_STYLE$1,
+    dropTargetClasses: [],
+    transformDraggedElement: function transformDraggedElement() {
+    },
+    centreDraggedOnCursor: false,
+    useCursorForDetection: false,
+    dropAnimationDisabled: false,
+    delayTouchStartMs: 0
+  };
+  printDebug(function() {
+    return ["dndzone good to go options: ".concat(toString(options), ", config: ").concat(toString(config)), {
+      node
+    }];
+  });
+  var elToIdx = /* @__PURE__ */ new Map();
+  function addMaybeListeners() {
+    window.addEventListener("mousemove", handleMouseMoveMaybeDragStart, {
+      passive: false
+    });
+    window.addEventListener("touchmove", handleMouseMoveMaybeDragStart, {
+      passive: false,
+      capture: false
+    });
+    window.addEventListener("mouseup", handleFalseAlarm, {
+      passive: false
+    });
+    window.addEventListener("touchend", handleFalseAlarm, {
+      passive: false
+    });
+  }
+  function removeMaybeListeners() {
+    window.removeEventListener("mousemove", handleMouseMoveMaybeDragStart);
+    window.removeEventListener("touchmove", handleMouseMoveMaybeDragStart);
+    window.removeEventListener("mouseup", handleFalseAlarm);
+    window.removeEventListener("touchend", handleFalseAlarm);
+    if (touchDragHoldTimer) {
+      clearTimeout(touchDragHoldTimer);
+      touchDragHoldTimer = void 0;
+      touchHoldElapsed = false;
+    }
+  }
+  function handleFalseAlarm(e) {
+    removeMaybeListeners();
+    originalDragTarget = void 0;
+    dragStartMousePosition = void 0;
+    currentMousePosition = void 0;
+    if (e.type === "touchend") {
+      var clickEvent = new Event("click", {
+        bubbles: true,
+        cancelable: true
+      });
+      e.target.dispatchEvent(clickEvent);
+    }
+  }
+  function handleMouseMoveMaybeDragStart(e) {
+    var isTouch = !!e.touches;
+    var c = isTouch ? e.touches[0] : e;
+    if (isTouch && config.delayTouchStartMs > 0 && !touchHoldElapsed) {
+      currentMousePosition = {
+        x: c.clientX,
+        y: c.clientY
+      };
+      if (Math.abs(currentMousePosition.x - dragStartMousePosition.x) >= MIN_MOVEMENT_BEFORE_DRAG_START_PX || Math.abs(currentMousePosition.y - dragStartMousePosition.y) >= MIN_MOVEMENT_BEFORE_DRAG_START_PX) {
+        if (touchDragHoldTimer) {
+          clearTimeout(touchDragHoldTimer);
+          touchDragHoldTimer = void 0;
+        }
+        handleFalseAlarm(e);
+      }
+      return;
+    }
+    e.preventDefault();
+    currentMousePosition = {
+      x: c.clientX,
+      y: c.clientY
+    };
+    if (Math.abs(currentMousePosition.x - dragStartMousePosition.x) >= MIN_MOVEMENT_BEFORE_DRAG_START_PX || Math.abs(currentMousePosition.y - dragStartMousePosition.y) >= MIN_MOVEMENT_BEFORE_DRAG_START_PX) {
+      removeMaybeListeners();
+      handleDragStart();
+    }
+  }
+  function handleMouseDown(e) {
+    if (e.target !== e.currentTarget && (e.target.value !== void 0 || e.target.isContentEditable)) {
+      printDebug(function() {
+        return "won't initiate drag on a nested input element";
+      });
+      return;
+    }
+    if (e.button) {
+      printDebug(function() {
+        return "ignoring none left click button: ".concat(e.button);
+      });
+      return;
+    }
+    if (isWorkingOnPreviousDrag) {
+      printDebug(function() {
+        return "cannot start a new drag before finalizing previous one";
+      });
+      return;
+    }
+    var isTouchStart = !!e.touches;
+    var useDelay = isTouchStart && config.delayTouchStartMs > 0;
+    if (!useDelay) {
+      e.preventDefault();
+    }
+    e.stopPropagation();
+    var c = isTouchStart ? e.touches[0] : e;
+    dragStartMousePosition = {
+      x: c.clientX,
+      y: c.clientY
+    };
+    currentMousePosition = _objectSpread2({}, dragStartMousePosition);
+    originalDragTarget = e.currentTarget;
+    if (useDelay) {
+      touchHoldElapsed = false;
+      touchDragHoldTimer = window.setTimeout(function() {
+        if (!originalDragTarget)
+          return;
+        touchHoldElapsed = true;
+        removeMaybeListeners();
+        handleDragStart();
+      }, config.delayTouchStartMs);
+    }
+    addMaybeListeners();
+  }
+  function handleDragStart() {
+    printDebug(function() {
+      return ["drag start config: ".concat(toString(config)), originalDragTarget];
+    });
+    isWorkingOnPreviousDrag = true;
+    var currentIdx = elToIdx.get(originalDragTarget);
+    originIndex = currentIdx;
+    originDropZone = originalDragTarget.parentElement;
+    var rootNode = originDropZone.closest("dialog") || originDropZone.closest("[popover]") || originDropZone.getRootNode();
+    var originDropZoneRoot = rootNode.body || rootNode;
+    var originalItems = config.items, type = config.type, centreDraggedOnCursor = config.centreDraggedOnCursor, useCursorForDetection = config.useCursorForDetection;
+    var items = _toConsumableArray(originalItems);
+    draggedElData = items[currentIdx];
+    draggedElType = type;
+    shadowElData = createShadowElData(draggedElData);
+    useCursorForDetectionActive = useCursorForDetection;
+    draggedEl = createDraggedElementFrom(originalDragTarget, centreDraggedOnCursor && currentMousePosition);
+    originDropZoneRoot.appendChild(draggedEl);
+    function keepOriginalElementInDom() {
+      if (!originalDragTarget.parentElement) {
+        originalDragTarget.setAttribute(ORIGINAL_DRAGGED_ITEM_MARKER_ATTRIBUTE, true);
+        originDropZoneRoot.appendChild(originalDragTarget);
+        watchDraggedElement();
+        hideElement(originalDragTarget);
+        shadowElData[ITEM_ID_KEY] = draggedElData[ITEM_ID_KEY];
+        draggedEl.focus();
+      } else {
+        window.requestAnimationFrame(keepOriginalElementInDom);
+      }
+    }
+    window.requestAnimationFrame(keepOriginalElementInDom);
+    styleActiveDropZones(Array.from(typeToDropZones$1.get(config.type)).filter(function(dz) {
+      return dz === originDropZone || !dzToConfig$1.get(dz).dropFromOthersDisabled;
+    }), function(dz) {
+      return dzToConfig$1.get(dz).dropTargetStyle;
+    }, function(dz) {
+      return dzToConfig$1.get(dz).dropTargetClasses;
+    });
+    items.splice(currentIdx, 1, shadowElData);
+    unlockOriginDzMinDimensions = preventShrinking(originDropZone);
+    dispatchConsiderEvent(originDropZone, items, {
+      trigger: TRIGGERS.DRAG_STARTED,
+      id: draggedElData[ITEM_ID_KEY],
+      source: SOURCES.POINTER
+    });
+    window.addEventListener("mousemove", handleMouseMove, {
+      passive: false
+    });
+    window.addEventListener("touchmove", handleMouseMove, {
+      passive: false,
+      capture: false
+    });
+    window.addEventListener("mouseup", handleDrop$1, {
+      passive: false
+    });
+    window.addEventListener("touchend", handleDrop$1, {
+      passive: false
+    });
+  }
+  function configure(_ref2) {
+    var _ref2$items = _ref2.items, items = _ref2$items === void 0 ? void 0 : _ref2$items, _ref2$flipDurationMs = _ref2.flipDurationMs, dropAnimationDurationMs = _ref2$flipDurationMs === void 0 ? 0 : _ref2$flipDurationMs, _ref2$type = _ref2.type, newType = _ref2$type === void 0 ? DEFAULT_DROP_ZONE_TYPE$1 : _ref2$type, _ref2$dragDisabled = _ref2.dragDisabled, dragDisabled = _ref2$dragDisabled === void 0 ? false : _ref2$dragDisabled, _ref2$morphDisabled = _ref2.morphDisabled, morphDisabled = _ref2$morphDisabled === void 0 ? false : _ref2$morphDisabled, _ref2$dropFromOthersD = _ref2.dropFromOthersDisabled, dropFromOthersDisabled = _ref2$dropFromOthersD === void 0 ? false : _ref2$dropFromOthersD, _ref2$dropTargetStyle = _ref2.dropTargetStyle, dropTargetStyle = _ref2$dropTargetStyle === void 0 ? DEFAULT_DROP_TARGET_STYLE$1 : _ref2$dropTargetStyle, _ref2$dropTargetClass = _ref2.dropTargetClasses, dropTargetClasses = _ref2$dropTargetClass === void 0 ? [] : _ref2$dropTargetClass, _ref2$transformDragge = _ref2.transformDraggedElement, transformDraggedElement = _ref2$transformDragge === void 0 ? function() {
+    } : _ref2$transformDragge, _ref2$centreDraggedOn = _ref2.centreDraggedOnCursor, centreDraggedOnCursor = _ref2$centreDraggedOn === void 0 ? false : _ref2$centreDraggedOn, _ref2$useCursorForDet = _ref2.useCursorForDetection, useCursorForDetection = _ref2$useCursorForDet === void 0 ? false : _ref2$useCursorForDet, _ref2$dropAnimationDi = _ref2.dropAnimationDisabled, dropAnimationDisabled = _ref2$dropAnimationDi === void 0 ? false : _ref2$dropAnimationDi, _ref2$delayTouchStart = _ref2.delayTouchStart, delayTouchStartOpt = _ref2$delayTouchStart === void 0 ? false : _ref2$delayTouchStart;
+    config.dropAnimationDurationMs = dropAnimationDurationMs;
+    var effectiveDelayMs = 0;
+    if (delayTouchStartOpt === true) {
+      effectiveDelayMs = DEFAULT_TOUCH_DELAY_MS;
+    } else if (typeof delayTouchStartOpt === "number" && isFinite(delayTouchStartOpt) && delayTouchStartOpt >= 0) {
+      effectiveDelayMs = delayTouchStartOpt;
+    }
+    config.delayTouchStartMs = effectiveDelayMs;
+    if (config.type && newType !== config.type) {
+      unregisterDropZone$1(node, config.type);
+    }
+    config.type = newType;
+    config.items = _toConsumableArray(items);
+    config.dragDisabled = dragDisabled;
+    config.morphDisabled = morphDisabled;
+    config.transformDraggedElement = transformDraggedElement;
+    config.centreDraggedOnCursor = centreDraggedOnCursor;
+    config.useCursorForDetection = useCursorForDetection;
+    config.dropAnimationDisabled = dropAnimationDisabled;
+    if (initialized && isWorkingOnPreviousDrag && !finalizingPreviousDrag && (!areObjectsShallowEqual(dropTargetStyle, config.dropTargetStyle) || !areArraysShallowEqualSameOrder(dropTargetClasses, config.dropTargetClasses))) {
+      styleInactiveDropZones([node], function() {
+        return config.dropTargetStyle;
+      }, function() {
+        return dropTargetClasses;
+      });
+      styleActiveDropZones([node], function() {
+        return dropTargetStyle;
+      }, function() {
+        return dropTargetClasses;
+      });
+    }
+    config.dropTargetStyle = dropTargetStyle;
+    config.dropTargetClasses = _toConsumableArray(dropTargetClasses);
+    function getConfigProp(dz, propName) {
+      return dzToConfig$1.get(dz) ? dzToConfig$1.get(dz)[propName] : config[propName];
+    }
+    if (initialized && isWorkingOnPreviousDrag && config.dropFromOthersDisabled !== dropFromOthersDisabled) {
+      if (dropFromOthersDisabled) {
+        styleInactiveDropZones([node], function(dz) {
+          return getConfigProp(dz, "dropTargetStyle");
+        }, function(dz) {
+          return getConfigProp(dz, "dropTargetClasses");
+        });
+      } else {
+        styleActiveDropZones([node], function(dz) {
+          return getConfigProp(dz, "dropTargetStyle");
+        }, function(dz) {
+          return getConfigProp(dz, "dropTargetClasses");
+        });
+      }
+    }
+    config.dropFromOthersDisabled = dropFromOthersDisabled;
+    dzToConfig$1.set(node, config);
+    registerDropZone$1(node, newType);
+    var shadowElIdx = isWorkingOnPreviousDrag ? findShadowElementIdx(config.items) : -1;
+    for (var idx = 0; idx < node.children.length; idx++) {
+      var draggableEl = node.children[idx];
+      styleDraggable(draggableEl, dragDisabled);
+      if (idx === shadowElIdx) {
+        if (!morphDisabled) {
+          morphDraggedElementToBeLike(draggedEl, draggableEl, currentMousePosition.x, currentMousePosition.y);
+        }
+        config.transformDraggedElement(draggedEl, draggedElData, idx);
+        decorateShadowEl(draggableEl);
+        continue;
+      }
+      draggableEl.removeEventListener("mousedown", elToMouseDownListener.get(draggableEl));
+      draggableEl.removeEventListener("touchstart", elToMouseDownListener.get(draggableEl));
+      if (!dragDisabled) {
+        draggableEl.addEventListener("mousedown", handleMouseDown);
+        draggableEl.addEventListener("touchstart", handleMouseDown);
+        elToMouseDownListener.set(draggableEl, handleMouseDown);
+      }
+      elToIdx.set(draggableEl, idx);
+      if (!initialized) {
+        initialized = true;
+      }
+    }
+  }
+  configure(options);
+  return {
+    update: function update2(newOptions) {
+      printDebug(function() {
+        return "pointer dndzone will update newOptions: ".concat(toString(newOptions));
+      });
+      configure(newOptions);
+    },
+    destroy: function destroy() {
+      function destroyDz() {
+        printDebug(function() {
+          return "pointer dndzone will destroy";
+        });
+        unregisterDropZone$1(node, dzToConfig$1.get(node).type);
+        dzToConfig$1["delete"](node);
+      }
+      if (isWorkingOnPreviousDrag && !node.closest("[".concat(ORIGINAL_DRAGGED_ITEM_MARKER_ATTRIBUTE, "]"))) {
+        printDebug(function() {
+          return "pointer dndzone will be scheduled for destruction";
+        });
+        scheduleDZForRemovalAfterDrop(node, destroyDz);
+      } else {
+        destroyDz();
+      }
+    }
+  };
+}
+var _ID_TO_INSTRUCTION;
+var INSTRUCTION_IDs$1 = {
+  DND_ZONE_ACTIVE: "dnd-zone-active",
+  DND_ZONE_DRAG_DISABLED: "dnd-zone-drag-disabled"
+};
+var ID_TO_INSTRUCTION = (_ID_TO_INSTRUCTION = {}, _defineProperty(_ID_TO_INSTRUCTION, INSTRUCTION_IDs$1.DND_ZONE_ACTIVE, "Tab to one the items and press space-bar or enter to start dragging it"), _defineProperty(_ID_TO_INSTRUCTION, INSTRUCTION_IDs$1.DND_ZONE_DRAG_DISABLED, "This is a disabled drag and drop list"), _ID_TO_INSTRUCTION);
+var ALERT_DIV_ID = "dnd-action-aria-alert";
+var alertsDiv;
+function initAriaOnBrowser() {
+  if (alertsDiv) {
+    return;
+  }
+  alertsDiv = document.createElement("div");
+  (function initAlertsDiv() {
+    alertsDiv.id = ALERT_DIV_ID;
+    alertsDiv.style.position = "fixed";
+    alertsDiv.style.bottom = "0";
+    alertsDiv.style.left = "0";
+    alertsDiv.style.zIndex = "-5";
+    alertsDiv.style.opacity = "0";
+    alertsDiv.style.height = "0";
+    alertsDiv.style.width = "0";
+    alertsDiv.setAttribute("role", "alert");
+  })();
+  document.body.prepend(alertsDiv);
+  Object.entries(ID_TO_INSTRUCTION).forEach(function(_ref) {
+    var _ref2 = _slicedToArray(_ref, 2), id = _ref2[0], txt = _ref2[1];
+    return document.body.prepend(instructionToHiddenDiv(id, txt));
+  });
+}
+function initAria() {
+  if (isOnServer)
+    return null;
+  if (document.readyState === "complete") {
+    initAriaOnBrowser();
+  } else {
+    window.addEventListener("DOMContentLoaded", initAriaOnBrowser);
+  }
+  return _objectSpread2({}, INSTRUCTION_IDs$1);
+}
+function destroyAria() {
+  if (isOnServer || !alertsDiv)
+    return;
+  Object.keys(ID_TO_INSTRUCTION).forEach(function(id) {
+    var _document$getElementB;
+    return (_document$getElementB = document.getElementById(id)) === null || _document$getElementB === void 0 ? void 0 : _document$getElementB.remove();
+  });
+  alertsDiv.remove();
+  alertsDiv = void 0;
+}
+function instructionToHiddenDiv(id, txt) {
+  var div2 = document.createElement("div");
+  div2.id = id;
+  div2.innerHTML = "<p>".concat(txt, "</p>");
+  div2.style.display = "none";
+  div2.style.position = "fixed";
+  div2.style.zIndex = "-5";
+  return div2;
+}
+function alertToScreenReader(txt) {
+  if (isOnServer)
+    return;
+  if (!alertsDiv) {
+    initAriaOnBrowser();
+  }
+  alertsDiv.innerHTML = "";
+  var alertText = document.createTextNode(txt);
+  alertsDiv.appendChild(alertText);
+  alertsDiv.style.display = "none";
+  alertsDiv.style.display = "inline";
+}
+var DEFAULT_DROP_ZONE_TYPE = "--any--";
+var DEFAULT_DROP_TARGET_STYLE = {
+  outline: "rgba(255, 255, 102, 0.7) solid 2px"
+};
+var isDragging = false;
+var draggedItemType;
+var focusedDz;
+var focusedDzLabel = "";
+var focusedItem;
+var focusedItemId;
+var focusedItemLabel = "";
+var allDragTargets = /* @__PURE__ */ new WeakSet();
+var elToKeyDownListeners = /* @__PURE__ */ new WeakMap();
+var elToFocusListeners = /* @__PURE__ */ new WeakMap();
+var dzToHandles = /* @__PURE__ */ new Map();
+var dzToConfig = /* @__PURE__ */ new Map();
+var typeToDropZones = /* @__PURE__ */ new Map();
+var INSTRUCTION_IDs;
+function registerDropZone(dropZoneEl, type) {
+  printDebug(function() {
+    return "registering drop-zone if absent";
+  });
+  if (typeToDropZones.size === 0) {
+    printDebug(function() {
+      return "adding global keydown and click handlers";
+    });
+    INSTRUCTION_IDs = initAria();
+    window.addEventListener("keydown", globalKeyDownHandler);
+    window.addEventListener("click", globalClickHandler);
+  }
+  if (!typeToDropZones.has(type)) {
+    typeToDropZones.set(type, /* @__PURE__ */ new Set());
+  }
+  if (!typeToDropZones.get(type).has(dropZoneEl)) {
+    typeToDropZones.get(type).add(dropZoneEl);
+    incrementActiveDropZoneCount();
+  }
+}
+function unregisterDropZone(dropZoneEl, type) {
+  printDebug(function() {
+    return "unregistering drop-zone";
+  });
+  if (focusedDz === dropZoneEl) {
+    handleDrop();
+  }
+  typeToDropZones.get(type)["delete"](dropZoneEl);
+  decrementActiveDropZoneCount();
+  if (typeToDropZones.get(type).size === 0) {
+    typeToDropZones["delete"](type);
+  }
+  if (typeToDropZones.size === 0) {
+    printDebug(function() {
+      return "removing global keydown and click handlers";
+    });
+    window.removeEventListener("keydown", globalKeyDownHandler);
+    window.removeEventListener("click", globalClickHandler);
+    INSTRUCTION_IDs = void 0;
+    destroyAria();
+  }
+}
+function globalKeyDownHandler(e) {
+  if (!isDragging)
+    return;
+  switch (e.key) {
+    case "Escape": {
+      handleDrop();
+      break;
+    }
+  }
+}
+function globalClickHandler() {
+  if (!isDragging)
+    return;
+  if (!allDragTargets.has(document.activeElement)) {
+    printDebug(function() {
+      return "clicked outside of any draggable";
+    });
+    handleDrop();
+  }
+}
+function handleZoneFocus(e) {
+  printDebug(function() {
+    return "zone focus";
+  });
+  if (!isDragging)
+    return;
+  var newlyFocusedDz = e.currentTarget;
+  if (newlyFocusedDz === focusedDz)
+    return;
+  focusedDzLabel = newlyFocusedDz.getAttribute("aria-label") || "";
+  var _dzToConfig$get = dzToConfig.get(focusedDz), originItems = _dzToConfig$get.items;
+  var originItem = originItems.find(function(item) {
+    return item[ITEM_ID_KEY] === focusedItemId;
+  });
+  var originIdx = originItems.indexOf(originItem);
+  var itemToMove = originItems.splice(originIdx, 1)[0];
+  var _dzToConfig$get2 = dzToConfig.get(newlyFocusedDz), targetItems = _dzToConfig$get2.items, autoAriaDisabled = _dzToConfig$get2.autoAriaDisabled;
+  if (newlyFocusedDz.getBoundingClientRect().top < focusedDz.getBoundingClientRect().top || newlyFocusedDz.getBoundingClientRect().left < focusedDz.getBoundingClientRect().left) {
+    targetItems.push(itemToMove);
+    if (!autoAriaDisabled) {
+      alertToScreenReader("Moved item ".concat(focusedItemLabel, " to the end of the list ").concat(focusedDzLabel));
+    }
+  } else {
+    targetItems.unshift(itemToMove);
+    if (!autoAriaDisabled) {
+      alertToScreenReader("Moved item ".concat(focusedItemLabel, " to the beginning of the list ").concat(focusedDzLabel));
+    }
+  }
+  var dzFrom = focusedDz;
+  dispatchFinalizeEvent(dzFrom, originItems, {
+    trigger: TRIGGERS.DROPPED_INTO_ANOTHER,
+    id: focusedItemId,
+    source: SOURCES.KEYBOARD
+  });
+  dispatchFinalizeEvent(newlyFocusedDz, targetItems, {
+    trigger: TRIGGERS.DROPPED_INTO_ZONE,
+    id: focusedItemId,
+    source: SOURCES.KEYBOARD
+  });
+  focusedDz = newlyFocusedDz;
+}
+function triggerAllDzsUpdate() {
+  dzToHandles.forEach(function(_ref, dz) {
+    var update2 = _ref.update;
+    return update2(dzToConfig.get(dz));
+  });
+}
+function handleDrop() {
+  var dispatchConsider = arguments.length > 0 && arguments[0] !== void 0 ? arguments[0] : true;
+  printDebug(function() {
+    return "drop";
+  });
+  if (!dzToConfig.get(focusedDz).autoAriaDisabled) {
+    alertToScreenReader("Stopped dragging item ".concat(focusedItemLabel));
+  }
+  if (allDragTargets.has(document.activeElement)) {
+    document.activeElement.blur();
+  }
+  if (dispatchConsider) {
+    dispatchConsiderEvent(focusedDz, dzToConfig.get(focusedDz).items, {
+      trigger: TRIGGERS.DRAG_STOPPED,
+      id: focusedItemId,
+      source: SOURCES.KEYBOARD
+    });
+  }
+  styleInactiveDropZones(typeToDropZones.get(draggedItemType), function(dz) {
+    return dzToConfig.get(dz).dropTargetStyle;
+  }, function(dz) {
+    return dzToConfig.get(dz).dropTargetClasses;
+  });
+  focusedItem = null;
+  focusedItemId = null;
+  focusedItemLabel = "";
+  draggedItemType = null;
+  focusedDz = null;
+  focusedDzLabel = "";
+  isDragging = false;
+  triggerAllDzsUpdate();
+}
+function dndzone$1(node, options) {
+  var config = {
+    items: void 0,
+    type: void 0,
+    dragDisabled: false,
+    zoneTabIndex: 0,
+    zoneItemTabIndex: 0,
+    dropFromOthersDisabled: false,
+    dropTargetStyle: DEFAULT_DROP_TARGET_STYLE,
+    dropTargetClasses: [],
+    autoAriaDisabled: false
+  };
+  function swap(arr, i, j) {
+    if (arr.length <= 1)
+      return;
+    arr.splice(j, 1, arr.splice(i, 1, arr[j])[0]);
+  }
+  function handleKeyDown(e) {
+    printDebug(function() {
+      return ["handling key down", e.key];
+    });
+    switch (e.key) {
+      case "Enter":
+      case " ": {
+        if ((e.target.disabled !== void 0 || e.target.href || e.target.isContentEditable) && !allDragTargets.has(e.target)) {
+          return;
+        }
+        e.preventDefault();
+        e.stopPropagation();
+        if (isDragging) {
+          handleDrop();
+        } else {
+          handleDragStart(e);
+        }
+        break;
+      }
+      case "ArrowDown":
+      case "ArrowRight": {
+        if (!isDragging)
+          return;
+        e.preventDefault();
+        e.stopPropagation();
+        var _dzToConfig$get3 = dzToConfig.get(node), items = _dzToConfig$get3.items;
+        var children2 = Array.from(node.children);
+        var idx = children2.indexOf(e.currentTarget);
+        printDebug(function() {
+          return ["arrow down", idx];
+        });
+        if (idx < children2.length - 1) {
+          if (!config.autoAriaDisabled) {
+            alertToScreenReader("Moved item ".concat(focusedItemLabel, " to position ").concat(idx + 2, " in the list ").concat(focusedDzLabel));
+          }
+          swap(items, idx, idx + 1);
+          dispatchFinalizeEvent(node, items, {
+            trigger: TRIGGERS.DROPPED_INTO_ZONE,
+            id: focusedItemId,
+            source: SOURCES.KEYBOARD
+          });
+        }
+        break;
+      }
+      case "ArrowUp":
+      case "ArrowLeft": {
+        if (!isDragging)
+          return;
+        e.preventDefault();
+        e.stopPropagation();
+        var _dzToConfig$get4 = dzToConfig.get(node), _items = _dzToConfig$get4.items;
+        var _children = Array.from(node.children);
+        var _idx = _children.indexOf(e.currentTarget);
+        printDebug(function() {
+          return ["arrow up", _idx];
+        });
+        if (_idx > 0) {
+          if (!config.autoAriaDisabled) {
+            alertToScreenReader("Moved item ".concat(focusedItemLabel, " to position ").concat(_idx, " in the list ").concat(focusedDzLabel));
+          }
+          swap(_items, _idx, _idx - 1);
+          dispatchFinalizeEvent(node, _items, {
+            trigger: TRIGGERS.DROPPED_INTO_ZONE,
+            id: focusedItemId,
+            source: SOURCES.KEYBOARD
+          });
+        }
+        break;
+      }
+    }
+  }
+  function handleDragStart(e) {
+    printDebug(function() {
+      return "drag start";
+    });
+    setCurrentFocusedItem(e.currentTarget);
+    focusedDz = node;
+    draggedItemType = config.type;
+    isDragging = true;
+    var dropTargets = Array.from(typeToDropZones.get(config.type)).filter(function(dz) {
+      return dz === focusedDz || !dzToConfig.get(dz).dropFromOthersDisabled;
+    });
+    styleActiveDropZones(dropTargets, function(dz) {
+      return dzToConfig.get(dz).dropTargetStyle;
+    }, function(dz) {
+      return dzToConfig.get(dz).dropTargetClasses;
+    });
+    if (!config.autoAriaDisabled) {
+      var msg = "Started dragging item ".concat(focusedItemLabel, ". Use the arrow keys to move it within its list ").concat(focusedDzLabel);
+      if (dropTargets.length > 1) {
+        msg += ", or tab to another list in order to move the item into it";
+      }
+      alertToScreenReader(msg);
+    }
+    dispatchConsiderEvent(node, dzToConfig.get(node).items, {
+      trigger: TRIGGERS.DRAG_STARTED,
+      id: focusedItemId,
+      source: SOURCES.KEYBOARD
+    });
+    triggerAllDzsUpdate();
+  }
+  function handleClick(e) {
+    if (!isDragging)
+      return;
+    if (e.currentTarget === focusedItem)
+      return;
+    e.stopPropagation();
+    handleDrop(false);
+    handleDragStart(e);
+  }
+  function setCurrentFocusedItem(draggableEl) {
+    var _dzToConfig$get5 = dzToConfig.get(node), items = _dzToConfig$get5.items;
+    var children2 = Array.from(node.children);
+    var focusedItemIdx = children2.indexOf(draggableEl);
+    focusedItem = draggableEl;
+    focusedItem.tabIndex = config.zoneItemTabIndex;
+    focusedItemId = items[focusedItemIdx][ITEM_ID_KEY];
+    focusedItemLabel = children2[focusedItemIdx].getAttribute("aria-label") || "";
+  }
+  function configure(_ref2) {
+    var _ref2$items = _ref2.items, items = _ref2$items === void 0 ? [] : _ref2$items, _ref2$type = _ref2.type, newType = _ref2$type === void 0 ? DEFAULT_DROP_ZONE_TYPE : _ref2$type, _ref2$dragDisabled = _ref2.dragDisabled, dragDisabled = _ref2$dragDisabled === void 0 ? false : _ref2$dragDisabled, _ref2$zoneTabIndex = _ref2.zoneTabIndex, zoneTabIndex = _ref2$zoneTabIndex === void 0 ? 0 : _ref2$zoneTabIndex, _ref2$zoneItemTabInde = _ref2.zoneItemTabIndex, zoneItemTabIndex = _ref2$zoneItemTabInde === void 0 ? 0 : _ref2$zoneItemTabInde, _ref2$dropFromOthersD = _ref2.dropFromOthersDisabled, dropFromOthersDisabled = _ref2$dropFromOthersD === void 0 ? false : _ref2$dropFromOthersD, _ref2$dropTargetStyle = _ref2.dropTargetStyle, dropTargetStyle = _ref2$dropTargetStyle === void 0 ? DEFAULT_DROP_TARGET_STYLE : _ref2$dropTargetStyle, _ref2$dropTargetClass = _ref2.dropTargetClasses, dropTargetClasses = _ref2$dropTargetClass === void 0 ? [] : _ref2$dropTargetClass, _ref2$autoAriaDisable = _ref2.autoAriaDisabled, autoAriaDisabled = _ref2$autoAriaDisable === void 0 ? false : _ref2$autoAriaDisable;
+    config.items = _toConsumableArray(items);
+    config.dragDisabled = dragDisabled;
+    config.dropFromOthersDisabled = dropFromOthersDisabled;
+    config.zoneTabIndex = zoneTabIndex;
+    config.zoneItemTabIndex = zoneItemTabIndex;
+    config.dropTargetStyle = dropTargetStyle;
+    config.dropTargetClasses = dropTargetClasses;
+    config.autoAriaDisabled = autoAriaDisabled;
+    if (config.type && newType !== config.type) {
+      unregisterDropZone(node, config.type);
+    }
+    config.type = newType;
+    registerDropZone(node, newType);
+    if (!autoAriaDisabled) {
+      node.setAttribute("role", "list");
+      node.setAttribute("aria-describedby", dragDisabled ? INSTRUCTION_IDs.DND_ZONE_DRAG_DISABLED : INSTRUCTION_IDs.DND_ZONE_ACTIVE);
+    }
+    dzToConfig.set(node, config);
+    if (isDragging) {
+      node.tabIndex = node === focusedDz || focusedItem.contains(node) || config.dropFromOthersDisabled || focusedDz && config.type !== dzToConfig.get(focusedDz).type ? -1 : 0;
+    } else {
+      node.tabIndex = config.zoneTabIndex;
+    }
+    node.addEventListener("focus", handleZoneFocus);
+    var _loop = function _loop2(i2) {
+      var draggableEl = node.children[i2];
+      allDragTargets.add(draggableEl);
+      draggableEl.tabIndex = isDragging ? -1 : config.zoneItemTabIndex;
+      if (!autoAriaDisabled) {
+        draggableEl.setAttribute("role", "listitem");
+      }
+      draggableEl.removeEventListener("keydown", elToKeyDownListeners.get(draggableEl));
+      draggableEl.removeEventListener("click", elToFocusListeners.get(draggableEl));
+      if (!dragDisabled) {
+        draggableEl.addEventListener("keydown", handleKeyDown);
+        elToKeyDownListeners.set(draggableEl, handleKeyDown);
+        draggableEl.addEventListener("click", handleClick);
+        elToFocusListeners.set(draggableEl, handleClick);
+      }
+      if (isDragging && config.items[i2][ITEM_ID_KEY] === focusedItemId) {
+        printDebug(function() {
+          return ["focusing on", {
+            i: i2,
+            focusedItemId
+          }];
+        });
+        focusedItem = draggableEl;
+        focusedItem.tabIndex = config.zoneItemTabIndex;
+        draggableEl.focus();
+      }
+    };
+    for (var i = 0; i < node.children.length; i++) {
+      _loop(i);
+    }
+  }
+  configure(options);
+  var handles = {
+    update: function update2(newOptions) {
+      printDebug(function() {
+        return "keyboard dndzone will update newOptions: ".concat(toString(newOptions));
+      });
+      configure(newOptions);
+    },
+    destroy: function destroy() {
+      printDebug(function() {
+        return "keyboard dndzone will destroy";
+      });
+      unregisterDropZone(node, config.type);
+      dzToConfig["delete"](node);
+      dzToHandles["delete"](node);
+    }
+  };
+  dzToHandles.set(node, handles);
+  return handles;
+}
+var _excluded = ["items", "flipDurationMs", "type", "dragDisabled", "morphDisabled", "dropFromOthersDisabled", "zoneTabIndex", "zoneItemTabIndex", "dropTargetStyle", "dropTargetClasses", "transformDraggedElement", "autoAriaDisabled", "centreDraggedOnCursor", "useCursorForDetection", "delayTouchStart", "dropAnimationDisabled"];
+function dndzone(node, options) {
+  if (shouldIgnoreZone(node)) {
+    return {
+      update: function update2() {
+      },
+      destroy: function destroy() {
+      }
+    };
+  }
+  validateOptions(options);
+  var pointerZone = dndzone$2(node, options);
+  var keyboardZone = dndzone$1(node, options);
+  return {
+    update: function update2(newOptions) {
+      validateOptions(newOptions);
+      pointerZone.update(newOptions);
+      keyboardZone.update(newOptions);
+    },
+    destroy: function destroy() {
+      pointerZone.destroy();
+      keyboardZone.destroy();
+    }
+  };
+}
+function shouldIgnoreZone(node) {
+  return !!node.closest("[".concat(SHADOW_ELEMENT_HINT_ATTRIBUTE_NAME, '="true"]'));
+}
+function validateOptions(options) {
+  var items = options.items;
+  options.flipDurationMs;
+  options.type;
+  options.dragDisabled;
+  options.morphDisabled;
+  options.dropFromOthersDisabled;
+  var zoneTabIndex = options.zoneTabIndex, zoneItemTabIndex = options.zoneItemTabIndex;
+  options.dropTargetStyle;
+  var dropTargetClasses = options.dropTargetClasses;
+  options.transformDraggedElement;
+  options.autoAriaDisabled;
+  options.centreDraggedOnCursor;
+  options.useCursorForDetection;
+  var delayTouchStart = options.delayTouchStart;
+  options.dropAnimationDisabled;
+  var rest = _objectWithoutProperties(options, _excluded);
+  if (Object.keys(rest).length > 0) {
+    console.warn("dndzone will ignore unknown options", rest);
+  }
+  if (!items) {
+    throw new Error("no 'items' key provided to dndzone");
+  }
+  var itemWithMissingId = items.find(function(item) {
+    return !{}.hasOwnProperty.call(item, ITEM_ID_KEY);
+  });
+  if (itemWithMissingId) {
+    throw new Error("missing '".concat(ITEM_ID_KEY, "' property for item ").concat(toString(itemWithMissingId)));
+  }
+  if (dropTargetClasses && !Array.isArray(dropTargetClasses)) {
+    throw new Error("dropTargetClasses should be an array but instead it is a ".concat(_typeof(dropTargetClasses), ", ").concat(toString(dropTargetClasses)));
+  }
+  if (zoneTabIndex && !isInt(zoneTabIndex)) {
+    throw new Error("zoneTabIndex should be a number but instead it is a ".concat(_typeof(zoneTabIndex), ", ").concat(toString(zoneTabIndex)));
+  }
+  if (zoneItemTabIndex && !isInt(zoneItemTabIndex)) {
+    throw new Error("zoneItemTabIndex should be a number but instead it is a ".concat(_typeof(zoneItemTabIndex), ", ").concat(toString(zoneItemTabIndex)));
+  }
+  if (delayTouchStart !== void 0 && delayTouchStart !== false) {
+    var validBoolean = delayTouchStart === true;
+    var validNumber = typeof delayTouchStart === "number" && isFinite(delayTouchStart) && delayTouchStart >= 0;
+    if (!validBoolean && !validNumber) {
+      throw new Error("delayTouchStart should be a boolean (true/false) or a non-negative number but instead it is a ".concat(_typeof(delayTouchStart), ", ").concat(toString(delayTouchStart)));
+    }
+  }
+}
+function isInt(value) {
+  return !isNaN(value) && function(x) {
+    return (x | 0) === x;
+  }(parseFloat(value));
+}
+function createStore(initialValue) {
+  var _val = initialValue;
+  var subs = /* @__PURE__ */ new Set();
+  return {
+    get: function get() {
+      return _val;
+    },
+    set: function set(newVal) {
+      _val = newVal;
+      Array.from(subs).forEach(function(cb) {
+        return cb(_val);
+      });
+    },
+    subscribe: function subscribe2(cb) {
+      subs.add(cb);
+      cb(_val);
+    },
+    unsubscribe: function unsubscribe(cb) {
+      subs["delete"](cb);
+    }
+  };
+}
+var isItemsDragDisabled = createStore(true);
+var userDragDisabled = createStore(false);
+
 // src/ui/views/components/ProjectTaskBoard.svelte
 function get_each_context(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[51] = list[i];
-  child_ctx[53] = i;
+  child_ctx[35] = list[i];
   return child_ctx;
 }
 function get_each_context_1(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[54] = list[i];
-  child_ctx[56] = i;
+  child_ctx[38] = list[i];
   return child_ctx;
 }
 function get_each_context_2(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[57] = list[i];
+  child_ctx[41] = list[i];
   return child_ctx;
-}
-function create_if_block_7(ctx) {
-  let div2;
-  return {
-    c() {
-      div2 = element("div");
-      attr(div2, "class", "pos-board-col-placeholder");
-      set_style(div2, "width", "300px");
-      set_style(div2, "min-width", "300px");
-      set_style(div2, "border", "2px dashed var(--interactive-accent)");
-      set_style(div2, "border-radius", "8px");
-      set_style(div2, "margin", "0 10px");
-      set_style(div2, "background", "rgba(var(--interactive-accent-rgb), 0.05)");
-    },
-    m(target, anchor) {
-      insert(target, div2, anchor);
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(div2);
-      }
-    }
-  };
 }
 function create_else_block_1(ctx) {
   let span1;
   let t0_value = (
     /*col*/
-    ctx[51].name + ""
+    ctx[35].name + ""
   );
   let t0;
   let t1;
@@ -3585,7 +5768,7 @@ function create_else_block_1(ctx) {
   let t2;
   let t3_value = (
     /*col*/
-    ctx[51].tasks.length + ""
+    ctx[35].items.length + ""
   );
   let t3;
   let t4;
@@ -3613,13 +5796,13 @@ function create_else_block_1(ctx) {
       append(span0, t4);
     },
     p(ctx2, dirty) {
-      if (dirty[0] & /*columns*/
-      4 && t0_value !== (t0_value = /*col*/
-      ctx2[51].name + ""))
+      if (dirty[0] & /*boardColumns*/
+      1 && t0_value !== (t0_value = /*col*/
+      ctx2[35].name + ""))
         set_data(t0, t0_value);
-      if (dirty[0] & /*columns*/
-      4 && t3_value !== (t3_value = /*col*/
-      ctx2[51].tasks.length + ""))
+      if (dirty[0] & /*boardColumns*/
+      1 && t3_value !== (t3_value = /*col*/
+      ctx2[35].items.length + ""))
         set_data(t3, t3_value);
     },
     d(detaching) {
@@ -3629,7 +5812,7 @@ function create_else_block_1(ctx) {
     }
   };
 }
-function create_if_block_6(ctx) {
+function create_if_block_3(ctx) {
   let input;
   let input_value_value;
   let mounted;
@@ -3637,9 +5820,9 @@ function create_if_block_6(ctx) {
   function blur_handler(...args) {
     return (
       /*blur_handler*/
-      ctx[32](
+      ctx[23](
         /*col*/
-        ctx[51],
+        ctx[35],
         ...args
       )
     );
@@ -3647,9 +5830,9 @@ function create_if_block_6(ctx) {
   function keydown_handler(...args) {
     return (
       /*keydown_handler*/
-      ctx[33](
+      ctx[24](
         /*col*/
-        ctx[51],
+        ctx[35],
         ...args
       )
     );
@@ -3659,13 +5842,13 @@ function create_if_block_6(ctx) {
       input = element("input");
       attr(input, "type", "text");
       input.value = input_value_value = /*col*/
-      ctx[51].name;
+      ctx[35].name;
       set_style(input, "background", "transparent");
       set_style(input, "color", "inherit");
       set_style(input, "font-size", "inherit");
       set_style(input, "font-weight", "inherit");
       set_style(input, "border", "1px solid " + /*col*/
-      ctx[51].color);
+      ctx[35].color);
       set_style(input, "border-radius", "4px");
       set_style(input, "padding", "2px 5px");
       set_style(input, "flex", "1");
@@ -3686,15 +5869,15 @@ function create_if_block_6(ctx) {
     },
     p(new_ctx, dirty) {
       ctx = new_ctx;
-      if (dirty[0] & /*columns*/
-      4 && input_value_value !== (input_value_value = /*col*/
-      ctx[51].name) && input.value !== input_value_value) {
+      if (dirty[0] & /*boardColumns*/
+      1 && input_value_value !== (input_value_value = /*col*/
+      ctx[35].name) && input.value !== input_value_value) {
         input.value = input_value_value;
       }
-      if (dirty[0] & /*columns*/
-      4) {
+      if (dirty[0] & /*boardColumns*/
+      1) {
         set_style(input, "border", "1px solid " + /*col*/
-        ctx[51].color);
+        ctx[35].color);
       }
     },
     d(detaching) {
@@ -3706,16 +5889,16 @@ function create_if_block_6(ctx) {
     }
   };
 }
-function create_if_block_5(ctx) {
+function create_if_block_2(ctx) {
   let button;
   let mounted;
   let dispose;
   function click_handler() {
     return (
       /*click_handler*/
-      ctx[35](
+      ctx[26](
         /*col*/
-        ctx[51]
+        ctx[35]
       )
     );
   }
@@ -3747,45 +5930,11 @@ function create_if_block_5(ctx) {
     }
   };
 }
-function create_if_block_4(ctx) {
-  let div2;
-  return {
-    c() {
-      div2 = element("div");
-      attr(div2, "class", "pos-drag-placeholder");
-      set_style(
-        div2,
-        "height",
-        /*dragHeight*/
-        ctx[6] + "px"
-      );
-    },
-    m(target, anchor) {
-      insert(target, div2, anchor);
-    },
-    p(ctx2, dirty) {
-      if (dirty[0] & /*dragHeight*/
-      64) {
-        set_style(
-          div2,
-          "height",
-          /*dragHeight*/
-          ctx2[6] + "px"
-        );
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(div2);
-      }
-    }
-  };
-}
-function create_if_block_3(ctx) {
+function create_if_block_1(ctx) {
   let div2;
   let t_value = (
     /*task*/
-    ctx[54].description + ""
+    ctx[38].description + ""
   );
   let t;
   return {
@@ -3799,9 +5948,9 @@ function create_if_block_3(ctx) {
       append(div2, t);
     },
     p(ctx2, dirty) {
-      if (dirty[0] & /*columns*/
-      4 && t_value !== (t_value = /*task*/
-      ctx2[54].description + ""))
+      if (dirty[0] & /*boardColumns*/
+      1 && t_value !== (t_value = /*task*/
+      ctx2[38].description + ""))
         set_data(t, t_value);
     },
     d(detaching) {
@@ -3816,13 +5965,13 @@ function create_else_block(ctx) {
   let span0;
   let t0_value = (
     /*prop*/
-    ctx[57].name + ""
+    ctx[41].name + ""
   );
   let t0;
   let t1;
   let t2_value = (
     /*prop*/
-    ctx[57].value + ""
+    ctx[41].value + ""
   );
   let t2;
   let t3;
@@ -3855,13 +6004,13 @@ function create_else_block(ctx) {
       append(span1, t3);
     },
     p(ctx2, dirty) {
-      if (dirty[0] & /*columns*/
-      4 && t0_value !== (t0_value = /*prop*/
-      ctx2[57].name + ""))
+      if (dirty[0] & /*boardColumns*/
+      1 && t0_value !== (t0_value = /*prop*/
+      ctx2[41].name + ""))
         set_data(t0, t0_value);
-      if (dirty[0] & /*columns*/
-      4 && t2_value !== (t2_value = /*prop*/
-      ctx2[57].value + ""))
+      if (dirty[0] & /*boardColumns*/
+      1 && t2_value !== (t2_value = /*prop*/
+      ctx2[41].value + ""))
         set_data(t2, t2_value);
     },
     d(detaching) {
@@ -3871,18 +6020,18 @@ function create_else_block(ctx) {
     }
   };
 }
-function create_if_block_2(ctx) {
+function create_if_block(ctx) {
   let span1;
   let span0;
   let t0_value = (
     /*prop*/
-    ctx[57].name + ""
+    ctx[41].name + ""
   );
   let t0;
   let t1;
   let t2_value = (
     /*prop*/
-    ctx[57].value + ""
+    ctx[41].value + ""
   );
   let t2;
   let t3;
@@ -3902,16 +6051,16 @@ function create_if_block_2(ctx) {
         span1,
         "background-color",
         /*prop*/
-        ctx[57].color + "20"
+        ctx[41].color + "20"
       );
       set_style(
         span1,
         "color",
         /*prop*/
-        ctx[57].color
+        ctx[41].color
       );
       set_style(span1, "border", "1px solid " + /*prop*/
-      ctx[57].color + "40");
+      ctx[41].color + "40");
       set_style(span1, "display", "inline-block");
       set_style(span1, "white-space", "normal");
       set_style(span1, "text-align", "left");
@@ -3926,36 +6075,36 @@ function create_if_block_2(ctx) {
       append(span1, t3);
     },
     p(ctx2, dirty) {
-      if (dirty[0] & /*columns*/
-      4 && t0_value !== (t0_value = /*prop*/
-      ctx2[57].name + ""))
+      if (dirty[0] & /*boardColumns*/
+      1 && t0_value !== (t0_value = /*prop*/
+      ctx2[41].name + ""))
         set_data(t0, t0_value);
-      if (dirty[0] & /*columns*/
-      4 && t2_value !== (t2_value = /*prop*/
-      ctx2[57].value + ""))
+      if (dirty[0] & /*boardColumns*/
+      1 && t2_value !== (t2_value = /*prop*/
+      ctx2[41].value + ""))
         set_data(t2, t2_value);
-      if (dirty[0] & /*columns*/
-      4) {
+      if (dirty[0] & /*boardColumns*/
+      1) {
         set_style(
           span1,
           "background-color",
           /*prop*/
-          ctx2[57].color + "20"
+          ctx2[41].color + "20"
         );
       }
-      if (dirty[0] & /*columns*/
-      4) {
+      if (dirty[0] & /*boardColumns*/
+      1) {
         set_style(
           span1,
           "color",
           /*prop*/
-          ctx2[57].color
+          ctx2[41].color
         );
       }
-      if (dirty[0] & /*columns*/
-      4) {
+      if (dirty[0] & /*boardColumns*/
+      1) {
         set_style(span1, "border", "1px solid " + /*prop*/
-        ctx2[57].color + "40");
+        ctx2[41].color + "40");
       }
     },
     d(detaching) {
@@ -3970,9 +6119,9 @@ function create_each_block_2(ctx) {
   function select_block_type_1(ctx2, dirty) {
     if (
       /*prop*/
-      ctx2[57].color
+      ctx2[41].color
     )
-      return create_if_block_2;
+      return create_if_block;
     return create_else_block;
   }
   let current_block_type = select_block_type_1(ctx, [-1, -1]);
@@ -4007,49 +6156,41 @@ function create_each_block_2(ctx) {
   };
 }
 function create_each_block_1(key_1, ctx) {
-  let first;
-  let t0;
   let div5;
   let div3;
   let div2;
   let div0;
-  let t1_value = (
+  let t0_value = (
     /*task*/
-    ctx[54].name + ""
+    ctx[38].name + ""
   );
+  let t0;
   let t1;
   let t2;
-  let t3;
   let div1;
   let span;
-  let t4;
-  let t5_value = (
+  let t3;
+  let t4_value = (
     /*task*/
-    (ctx[54].weight || 1) + ""
+    (ctx[38].weight || 1) + ""
   );
+  let t4;
   let t5;
   let t6;
-  let t7;
   let div4;
   let button;
+  let t8;
   let mounted;
   let dispose;
-  let if_block0 = (
-    /*dragOverStatus*/
-    ctx[4] === /*col*/
-    ctx[51].id && /*dragOverIndex*/
-    ctx[5] === /*i*/
-    ctx[56] && create_if_block_4(ctx)
-  );
-  let if_block1 = (
+  let if_block = (
     /*task*/
-    ctx[54].description && create_if_block_3(ctx)
+    ctx[38].description && create_if_block_1(ctx)
   );
   let each_value_2 = ensure_array_like(
     /*getCustomProps*/
-    ctx[11](
+    ctx[2](
       /*task*/
-      ctx[54]
+      ctx[38]
     )
   );
   let each_blocks = [];
@@ -4059,28 +6200,18 @@ function create_each_block_1(key_1, ctx) {
   function click_handler_1() {
     return (
       /*click_handler_1*/
-      ctx[40](
+      ctx[28](
         /*task*/
-        ctx[54]
+        ctx[38]
       )
     );
   }
   function click_handler_2() {
     return (
       /*click_handler_2*/
-      ctx[41](
+      ctx[29](
         /*task*/
-        ctx[54]
-      )
-    );
-  }
-  function dragstart_handler_1(...args) {
-    return (
-      /*dragstart_handler_1*/
-      ctx[42](
-        /*task*/
-        ctx[54],
-        ...args
+        ctx[38]
       )
     );
   }
@@ -4088,31 +6219,28 @@ function create_each_block_1(key_1, ctx) {
     key: key_1,
     first: null,
     c() {
-      first = empty();
-      if (if_block0)
-        if_block0.c();
-      t0 = space();
       div5 = element("div");
       div3 = element("div");
       div2 = element("div");
       div0 = element("div");
-      t1 = text(t1_value);
+      t0 = text(t0_value);
+      t1 = space();
+      if (if_block)
+        if_block.c();
       t2 = space();
-      if (if_block1)
-        if_block1.c();
-      t3 = space();
       div1 = element("div");
       span = element("span");
-      t4 = text("W:");
-      t5 = text(t5_value);
-      t6 = space();
+      t3 = text("W:");
+      t4 = text(t4_value);
+      t5 = space();
       for (let i = 0; i < each_blocks.length; i += 1) {
         each_blocks[i].c();
       }
-      t7 = space();
+      t6 = space();
       div4 = element("div");
       button = element("button");
       button.textContent = "Delete";
+      t8 = space();
       attr(div0, "class", "pos-card-name");
       set_style(span, "font-size", "0.85em");
       set_style(span, "opacity", "0.7");
@@ -4128,108 +6256,72 @@ function create_each_block_1(key_1, ctx) {
       attr(button, "class", "pos-del");
       attr(div4, "class", "pos-ptc-acts");
       attr(div5, "class", "pos-card pos-board-card");
-      attr(div5, "draggable", "true");
-      toggle_class(
-        div5,
-        "pos-dragging-source",
-        /*dragId*/
-        ctx[3] === /*task*/
-        ctx[54].id
-      );
-      this.first = first;
+      this.first = div5;
     },
     m(target, anchor) {
-      insert(target, first, anchor);
-      if (if_block0)
-        if_block0.m(target, anchor);
-      insert(target, t0, anchor);
       insert(target, div5, anchor);
       append(div5, div3);
       append(div3, div2);
       append(div2, div0);
-      append(div0, t1);
+      append(div0, t0);
+      append(div2, t1);
+      if (if_block)
+        if_block.m(div2, null);
       append(div2, t2);
-      if (if_block1)
-        if_block1.m(div2, null);
-      append(div2, t3);
       append(div2, div1);
       append(div1, span);
+      append(span, t3);
       append(span, t4);
-      append(span, t5);
-      append(div1, t6);
+      append(div1, t5);
       for (let i = 0; i < each_blocks.length; i += 1) {
         if (each_blocks[i]) {
           each_blocks[i].m(div1, null);
         }
       }
-      append(div5, t7);
+      append(div5, t6);
       append(div5, div4);
       append(div4, button);
+      append(div5, t8);
       if (!mounted) {
         dispose = [
           listen(div2, "click", stop_propagation(click_handler_1)),
-          listen(button, "click", click_handler_2),
-          listen(div5, "dragstart", dragstart_handler_1),
-          listen(
-            div5,
-            "dragend",
-            /*handleDragEnd*/
-            ctx[22]
-          )
+          listen(button, "click", click_handler_2)
         ];
         mounted = true;
       }
     },
     p(new_ctx, dirty) {
       ctx = new_ctx;
-      if (
-        /*dragOverStatus*/
-        ctx[4] === /*col*/
-        ctx[51].id && /*dragOverIndex*/
-        ctx[5] === /*i*/
-        ctx[56]
-      ) {
-        if (if_block0) {
-          if_block0.p(ctx, dirty);
-        } else {
-          if_block0 = create_if_block_4(ctx);
-          if_block0.c();
-          if_block0.m(t0.parentNode, t0);
-        }
-      } else if (if_block0) {
-        if_block0.d(1);
-        if_block0 = null;
-      }
-      if (dirty[0] & /*columns*/
-      4 && t1_value !== (t1_value = /*task*/
-      ctx[54].name + ""))
-        set_data(t1, t1_value);
+      if (dirty[0] & /*boardColumns*/
+      1 && t0_value !== (t0_value = /*task*/
+      ctx[38].name + ""))
+        set_data(t0, t0_value);
       if (
         /*task*/
-        ctx[54].description
+        ctx[38].description
       ) {
-        if (if_block1) {
-          if_block1.p(ctx, dirty);
+        if (if_block) {
+          if_block.p(ctx, dirty);
         } else {
-          if_block1 = create_if_block_3(ctx);
-          if_block1.c();
-          if_block1.m(div2, t3);
+          if_block = create_if_block_1(ctx);
+          if_block.c();
+          if_block.m(div2, t2);
         }
-      } else if (if_block1) {
-        if_block1.d(1);
-        if_block1 = null;
+      } else if (if_block) {
+        if_block.d(1);
+        if_block = null;
       }
-      if (dirty[0] & /*columns*/
-      4 && t5_value !== (t5_value = /*task*/
-      (ctx[54].weight || 1) + ""))
-        set_data(t5, t5_value);
-      if (dirty[0] & /*getCustomProps, columns*/
-      2052) {
+      if (dirty[0] & /*boardColumns*/
+      1 && t4_value !== (t4_value = /*task*/
+      (ctx[38].weight || 1) + ""))
+        set_data(t4, t4_value);
+      if (dirty[0] & /*getCustomProps, boardColumns*/
+      5) {
         each_value_2 = ensure_array_like(
           /*getCustomProps*/
-          ctx[11](
+          ctx[2](
             /*task*/
-            ctx[54]
+            ctx[38]
           )
         );
         let i;
@@ -4248,222 +6340,108 @@ function create_each_block_1(key_1, ctx) {
         }
         each_blocks.length = each_value_2.length;
       }
-      if (dirty[0] & /*dragId, columns*/
-      12) {
-        toggle_class(
-          div5,
-          "pos-dragging-source",
-          /*dragId*/
-          ctx[3] === /*task*/
-          ctx[54].id
-        );
-      }
     },
     d(detaching) {
       if (detaching) {
-        detach(first);
-        detach(t0);
         detach(div5);
       }
-      if (if_block0)
-        if_block0.d(detaching);
-      if (if_block1)
-        if_block1.d();
+      if (if_block)
+        if_block.d();
       destroy_each(each_blocks, detaching);
       mounted = false;
       run_all(dispose);
     }
   };
 }
-function create_if_block_1(ctx) {
-  let div2;
-  return {
-    c() {
-      div2 = element("div");
-      attr(div2, "class", "pos-drag-placeholder");
-      set_style(
-        div2,
-        "height",
-        /*dragHeight*/
-        ctx[6] + "px"
-      );
-    },
-    m(target, anchor) {
-      insert(target, div2, anchor);
-    },
-    p(ctx2, dirty) {
-      if (dirty[0] & /*dragHeight*/
-      64) {
-        set_style(
-          div2,
-          "height",
-          /*dragHeight*/
-          ctx2[6] + "px"
-        );
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(div2);
-      }
-    }
-  };
-}
 function create_each_block(key_1, ctx) {
-  let first;
-  let t0;
   let div3;
   let h4;
-  let t1;
+  let t0;
   let div0;
   let input;
   let input_value_value;
+  let t1;
   let t2;
-  let t3;
   let div2;
   let div1;
   let each_blocks = [];
   let each_1_lookup = /* @__PURE__ */ new Map();
-  let t4;
-  let t5;
+  let dndzone_action;
+  let t3;
   let button;
-  let div3_data_col_id_value;
   let mounted;
   let dispose;
-  let if_block0 = (
-    /*dragOverColId*/
-    ctx[8] && /*dragOverColIndex*/
-    ctx[9] === /*colIdx*/
-    ctx[53] && create_if_block_7(ctx)
-  );
   function select_block_type(ctx2, dirty) {
     if (
       /*editingColId*/
-      ctx2[10] === /*col*/
-      ctx2[51].id
+      ctx2[1] === /*col*/
+      ctx2[35].id
     )
-      return create_if_block_6;
+      return create_if_block_3;
     return create_else_block_1;
   }
   let current_block_type = select_block_type(ctx, [-1, -1]);
-  let if_block1 = current_block_type(ctx);
+  let if_block0 = current_block_type(ctx);
   function change_handler(...args) {
     return (
       /*change_handler*/
-      ctx[34](
+      ctx[25](
         /*col*/
-        ctx[51],
+        ctx[35],
         ...args
       )
     );
   }
-  let if_block2 = !/*col*/
-  ctx[51].isCore && create_if_block_5(ctx);
-  function dragstart_handler(...args) {
-    return (
-      /*dragstart_handler*/
-      ctx[36](
-        /*col*/
-        ctx[51],
-        ...args
-      )
-    );
-  }
-  function dragover_handler(...args) {
-    return (
-      /*dragover_handler*/
-      ctx[37](
-        /*col*/
-        ctx[51],
-        ...args
-      )
-    );
-  }
-  function drop_handler(...args) {
-    return (
-      /*drop_handler*/
-      ctx[38](
-        /*col*/
-        ctx[51],
-        ...args
-      )
-    );
-  }
+  let if_block1 = !/*col*/
+  ctx[35].isCore && create_if_block_2(ctx);
   function dblclick_handler() {
     return (
       /*dblclick_handler*/
-      ctx[39](
+      ctx[27](
         /*col*/
-        ctx[51]
+        ctx[35]
       )
     );
   }
   let each_value_1 = ensure_array_like(
     /*col*/
-    ctx[51].tasks
+    ctx[35].items
   );
   const get_key = (ctx2) => (
     /*task*/
-    ctx2[54].id
+    ctx2[38].id
   );
   for (let i = 0; i < each_value_1.length; i += 1) {
     let child_ctx = get_each_context_1(ctx, each_value_1, i);
     let key = get_key(child_ctx);
     each_1_lookup.set(key, each_blocks[i] = create_each_block_1(key, child_ctx));
   }
-  let if_block3 = (
-    /*dragOverStatus*/
-    ctx[4] === /*col*/
-    ctx[51].id && /*dragOverIndex*/
-    ctx[5] >= /*col*/
-    ctx[51].tasks.length && create_if_block_1(ctx)
-  );
+  function consider_handler(...args) {
+    return (
+      /*consider_handler*/
+      ctx[30](
+        /*col*/
+        ctx[35],
+        ...args
+      )
+    );
+  }
+  function finalize_handler(...args) {
+    return (
+      /*finalize_handler*/
+      ctx[31](
+        /*col*/
+        ctx[35],
+        ...args
+      )
+    );
+  }
   function click_handler_3() {
     return (
       /*click_handler_3*/
-      ctx[43](
+      ctx[32](
         /*col*/
-        ctx[51]
-      )
-    );
-  }
-  function dragover_handler_1(...args) {
-    return (
-      /*dragover_handler_1*/
-      ctx[44](
-        /*col*/
-        ctx[51],
-        ...args
-      )
-    );
-  }
-  function drop_handler_1(...args) {
-    return (
-      /*drop_handler_1*/
-      ctx[45](
-        /*col*/
-        ctx[51],
-        ...args
-      )
-    );
-  }
-  function dragover_handler_2(...args) {
-    return (
-      /*dragover_handler_2*/
-      ctx[46](
-        /*col*/
-        ctx[51],
-        ...args
-      )
-    );
-  }
-  function drop_handler_2(...args) {
-    return (
-      /*drop_handler_2*/
-      ctx[47](
-        /*col*/
-        ctx[51],
-        ...args
+        ctx[35]
       )
     );
   }
@@ -4471,34 +6449,27 @@ function create_each_block(key_1, ctx) {
     key: key_1,
     first: null,
     c() {
-      first = empty();
-      if (if_block0)
-        if_block0.c();
-      t0 = space();
       div3 = element("div");
       h4 = element("h4");
-      if_block1.c();
-      t1 = space();
+      if_block0.c();
+      t0 = space();
       div0 = element("div");
       input = element("input");
+      t1 = space();
+      if (if_block1)
+        if_block1.c();
       t2 = space();
-      if (if_block2)
-        if_block2.c();
-      t3 = space();
       div2 = element("div");
       div1 = element("div");
       for (let i = 0; i < each_blocks.length; i += 1) {
         each_blocks[i].c();
       }
-      t4 = space();
-      if (if_block3)
-        if_block3.c();
-      t5 = space();
+      t3 = space();
       button = element("button");
       button.textContent = "+ Add Task";
       attr(input, "type", "color");
       input.value = input_value_value = /*col*/
-      ctx[51].color;
+      ctx[35].color;
       set_style(input, "width", "20px");
       set_style(input, "height", "20px");
       set_style(input, "padding", "0");
@@ -4514,50 +6485,37 @@ function create_each_block(key_1, ctx) {
         h4,
         "color",
         /*col*/
-        ctx[51].color
+        ctx[35].color
       );
       set_style(h4, "border-bottom", "2px solid " + /*col*/
-      ctx[51].color + "40");
+      ctx[35].color + "40");
       set_style(h4, "display", "flex");
       set_style(h4, "align-items", "center");
       set_style(h4, "justify-content", "space-between");
-      attr(h4, "draggable", "true");
-      attr(button, "class", "pos-board-add-btn");
       attr(div1, "class", "pos-board-list");
+      set_style(div1, "min-height", "50px");
+      attr(button, "class", "pos-board-add-btn");
       attr(div2, "class", "pos-board-list-wrapper");
       attr(div3, "class", "pos-board-col");
-      attr(div3, "data-col-id", div3_data_col_id_value = /*col*/
-      ctx[51].id);
-      toggle_class(
-        div3,
-        "pos-dragging-source",
-        /*dragColId*/
-        ctx[7] === /*col*/
-        ctx[51].id
-      );
       toggle_class(
         div3,
         "pos-col-elastic",
         /*col*/
-        ctx[51].isCore
+        ctx[35].isCore
       );
-      this.first = first;
+      this.first = div3;
     },
     m(target, anchor) {
-      insert(target, first, anchor);
-      if (if_block0)
-        if_block0.m(target, anchor);
-      insert(target, t0, anchor);
       insert(target, div3, anchor);
       append(div3, h4);
-      if_block1.m(h4, null);
-      append(h4, t1);
+      if_block0.m(h4, null);
+      append(h4, t0);
       append(h4, div0);
       append(div0, input);
-      append(div0, t2);
-      if (if_block2)
-        if_block2.m(div0, null);
-      append(div3, t3);
+      append(div0, t1);
+      if (if_block1)
+        if_block1.m(div0, null);
+      append(div3, t2);
       append(div3, div2);
       append(div2, div1);
       for (let i = 0; i < each_blocks.length; i += 1) {
@@ -4565,327 +6523,239 @@ function create_each_block(key_1, ctx) {
           each_blocks[i].m(div1, null);
         }
       }
-      append(div1, t4);
-      if (if_block3)
-        if_block3.m(div1, null);
-      append(div1, t5);
-      append(div1, button);
+      append(div2, t3);
+      append(div2, button);
       if (!mounted) {
         dispose = [
           listen(input, "change", change_handler),
-          listen(h4, "dragstart", dragstart_handler),
-          listen(
-            h4,
-            "dragend",
-            /*handleColDragEnd*/
-            ctx[14]
-          ),
-          listen(h4, "dragover", dragover_handler),
-          listen(h4, "drop", drop_handler),
           listen(h4, "dblclick", dblclick_handler),
-          listen(button, "click", stop_propagation(click_handler_3)),
-          listen(div2, "dragover", dragover_handler_1),
-          listen(div2, "drop", drop_handler_1),
-          listen(div3, "dragover", dragover_handler_2),
-          listen(div3, "drop", drop_handler_2)
+          action_destroyer(dndzone_action = dndzone.call(null, div1, {
+            items: (
+              /*col*/
+              ctx[35].items
+            ),
+            flipDurationMs,
+            dropTargetStyle: {}
+          })),
+          listen(div1, "consider", consider_handler),
+          listen(div1, "finalize", finalize_handler),
+          listen(button, "click", stop_propagation(click_handler_3))
         ];
         mounted = true;
       }
     },
     p(new_ctx, dirty) {
       ctx = new_ctx;
-      if (
-        /*dragOverColId*/
-        ctx[8] && /*dragOverColIndex*/
-        ctx[9] === /*colIdx*/
-        ctx[53]
-      ) {
-        if (if_block0) {
-        } else {
-          if_block0 = create_if_block_7(ctx);
-          if_block0.c();
-          if_block0.m(t0.parentNode, t0);
-        }
-      } else if (if_block0) {
-        if_block0.d(1);
-        if_block0 = null;
-      }
-      if (current_block_type === (current_block_type = select_block_type(ctx, dirty)) && if_block1) {
-        if_block1.p(ctx, dirty);
+      if (current_block_type === (current_block_type = select_block_type(ctx, dirty)) && if_block0) {
+        if_block0.p(ctx, dirty);
       } else {
-        if_block1.d(1);
-        if_block1 = current_block_type(ctx);
-        if (if_block1) {
-          if_block1.c();
-          if_block1.m(h4, t1);
+        if_block0.d(1);
+        if_block0 = current_block_type(ctx);
+        if (if_block0) {
+          if_block0.c();
+          if_block0.m(h4, t0);
         }
       }
-      if (dirty[0] & /*columns*/
-      4 && input_value_value !== (input_value_value = /*col*/
-      ctx[51].color)) {
+      if (dirty[0] & /*boardColumns*/
+      1 && input_value_value !== (input_value_value = /*col*/
+      ctx[35].color)) {
         input.value = input_value_value;
       }
       if (!/*col*/
-      ctx[51].isCore) {
-        if (if_block2) {
-          if_block2.p(ctx, dirty);
+      ctx[35].isCore) {
+        if (if_block1) {
+          if_block1.p(ctx, dirty);
         } else {
-          if_block2 = create_if_block_5(ctx);
-          if_block2.c();
-          if_block2.m(div0, null);
+          if_block1 = create_if_block_2(ctx);
+          if_block1.c();
+          if_block1.m(div0, null);
         }
-      } else if (if_block2) {
-        if_block2.d(1);
-        if_block2 = null;
+      } else if (if_block1) {
+        if_block1.d(1);
+        if_block1 = null;
       }
-      if (dirty[0] & /*columns*/
-      4) {
+      if (dirty[0] & /*boardColumns*/
+      1) {
         set_style(
           h4,
           "color",
           /*col*/
-          ctx[51].color
+          ctx[35].color
         );
       }
-      if (dirty[0] & /*columns*/
-      4) {
+      if (dirty[0] & /*boardColumns*/
+      1) {
         set_style(h4, "border-bottom", "2px solid " + /*col*/
-        ctx[51].color + "40");
+        ctx[35].color + "40");
       }
-      if (dirty[0] & /*dragId, columns, handleDragStart, handleDragEnd, deleteTask, editTask, getCustomProps, dragHeight, dragOverStatus, dragOverIndex*/
-      207620220) {
+      if (dirty[0] & /*deleteTask, boardColumns, editTask, getCustomProps*/
+      12293) {
         each_value_1 = ensure_array_like(
           /*col*/
-          ctx[51].tasks
+          ctx[35].items
         );
-        each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx, each_value_1, each_1_lookup, div1, destroy_block, create_each_block_1, t4, get_each_context_1);
+        each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx, each_value_1, each_1_lookup, div1, destroy_block, create_each_block_1, null, get_each_context_1);
       }
-      if (
-        /*dragOverStatus*/
-        ctx[4] === /*col*/
-        ctx[51].id && /*dragOverIndex*/
-        ctx[5] >= /*col*/
-        ctx[51].tasks.length
-      ) {
-        if (if_block3) {
-          if_block3.p(ctx, dirty);
-        } else {
-          if_block3 = create_if_block_1(ctx);
-          if_block3.c();
-          if_block3.m(div1, t5);
-        }
-      } else if (if_block3) {
-        if_block3.d(1);
-        if_block3 = null;
-      }
-      if (dirty[0] & /*columns*/
-      4 && div3_data_col_id_value !== (div3_data_col_id_value = /*col*/
-      ctx[51].id)) {
-        attr(div3, "data-col-id", div3_data_col_id_value);
-      }
-      if (dirty[0] & /*dragColId, columns*/
-      132) {
-        toggle_class(
-          div3,
-          "pos-dragging-source",
-          /*dragColId*/
-          ctx[7] === /*col*/
-          ctx[51].id
-        );
-      }
-      if (dirty[0] & /*columns*/
-      4) {
+      if (dndzone_action && is_function(dndzone_action.update) && dirty[0] & /*boardColumns*/
+      1)
+        dndzone_action.update.call(null, {
+          items: (
+            /*col*/
+            ctx[35].items
+          ),
+          flipDurationMs,
+          dropTargetStyle: {}
+        });
+      if (dirty[0] & /*boardColumns*/
+      1) {
         toggle_class(
           div3,
           "pos-col-elastic",
           /*col*/
-          ctx[51].isCore
+          ctx[35].isCore
         );
       }
     },
     d(detaching) {
       if (detaching) {
-        detach(first);
-        detach(t0);
         detach(div3);
       }
-      if (if_block0)
-        if_block0.d(detaching);
-      if_block1.d();
-      if (if_block2)
-        if_block2.d();
+      if_block0.d();
+      if (if_block1)
+        if_block1.d();
       for (let i = 0; i < each_blocks.length; i += 1) {
         each_blocks[i].d();
       }
-      if (if_block3)
-        if_block3.d();
       mounted = false;
       run_all(dispose);
     }
   };
 }
-function create_if_block(ctx) {
-  let div2;
-  return {
-    c() {
-      div2 = element("div");
-      attr(div2, "class", "pos-board-col-placeholder");
-      set_style(div2, "width", "300px");
-      set_style(div2, "min-width", "300px");
-      set_style(div2, "border", "2px dashed var(--interactive-accent)");
-      set_style(div2, "border-radius", "8px");
-      set_style(div2, "margin", "0 10px");
-      set_style(div2, "background", "rgba(var(--interactive-accent-rgb), 0.05)");
-    },
-    m(target, anchor) {
-      insert(target, div2, anchor);
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(div2);
-      }
-    }
-  };
-}
 function create_fragment(ctx) {
-  let div0;
-  let button;
-  let t1;
+  let div2;
   let div1;
   let each_blocks = [];
   let each_1_lookup = /* @__PURE__ */ new Map();
-  let t2;
+  let t0;
+  let div0;
+  let button;
+  let dndzone_action;
   let mounted;
   let dispose;
   let each_value = ensure_array_like(
-    /*columns*/
-    ctx[2]
+    /*boardColumns*/
+    ctx[0]
   );
   const get_key = (ctx2) => (
     /*col*/
-    ctx2[51].id
+    ctx2[35].id
   );
   for (let i = 0; i < each_value.length; i += 1) {
     let child_ctx = get_each_context(ctx, each_value, i);
     let key = get_key(child_ctx);
     each_1_lookup.set(key, each_blocks[i] = create_each_block(key, child_ctx));
   }
-  let if_block = (
-    /*dragOverColId*/
-    ctx[8] && /*dragOverColIndex*/
-    ctx[9] >= /*columns*/
-    ctx[2].length && create_if_block(ctx)
-  );
   return {
     c() {
-      div0 = element("div");
-      button = element("button");
-      button.textContent = "+ Add Kanban Column";
-      t1 = space();
+      div2 = element("div");
       div1 = element("div");
       for (let i = 0; i < each_blocks.length; i += 1) {
         each_blocks[i].c();
       }
-      t2 = space();
-      if (if_block)
-        if_block.c();
+      t0 = space();
+      div0 = element("div");
+      button = element("button");
+      button.textContent = "+ Add Kanban Column";
       attr(button, "class", "pos-btn");
-      set_style(button, "padding", "4px 10px");
-      set_style(button, "font-weight", "bold");
-      set_style(button, "background", "var(--interactive-accent)");
-      set_style(button, "color", "var(--text-on-accent)");
-      attr(div0, "class", "pos-board-header-actions");
-      set_style(div0, "position", "absolute");
-      set_style(div0, "top", "10px");
-      set_style(div0, "right", "20px");
-      set_style(div0, "z-index", "10");
-      attr(div1, "class", "pos-board-workspace");
+      set_style(button, "white-space", "nowrap");
+      set_style(div0, "padding", "10px");
+      set_style(div0, "display", "flex");
+      set_style(div0, "align-items", "flex-start");
+      attr(div1, "class", "pos-board-container");
+      attr(div2, "class", "pos-board-scroll-container");
     },
     m(target, anchor) {
-      insert(target, div0, anchor);
-      append(div0, button);
-      insert(target, t1, anchor);
-      insert(target, div1, anchor);
+      insert(target, div2, anchor);
+      append(div2, div1);
       for (let i = 0; i < each_blocks.length; i += 1) {
         if (each_blocks[i]) {
           each_blocks[i].m(div1, null);
         }
       }
-      append(div1, t2);
-      if (if_block)
-        if_block.m(div1, null);
+      append(div1, t0);
+      append(div1, div0);
+      append(div0, button);
       if (!mounted) {
         dispose = [
           listen(
             button,
             "click",
             /*addColumn*/
-            ctx[20]
+            ctx[10]
+          ),
+          action_destroyer(dndzone_action = dndzone.call(null, div1, {
+            items: (
+              /*boardColumns*/
+              ctx[0]
+            ),
+            flipDurationMs,
+            type: "columns"
+          })),
+          listen(
+            div1,
+            "consider",
+            /*handleColumnConsider*/
+            ctx[3]
           ),
           listen(
             div1,
-            "dragover",
-            /*dragover_handler_3*/
-            ctx[48]
-          ),
-          listen(
-            div1,
-            "drop",
-            /*drop_handler_3*/
-            ctx[49]
+            "finalize",
+            /*handleColumnFinalize*/
+            ctx[4]
           )
         ];
         mounted = true;
       }
     },
     p(ctx2, dirty) {
-      if (dirty[0] & /*columns, dragColId, handleColDragOver, handleColDrop, handleDragOver, handleDrop, createPlannedTask, dragHeight, dragOverStatus, dragOverIndex, dragId, handleDragStart, handleDragEnd, deleteTask, editTask, getCustomProps, handleColDragStart, handleColDragEnd, editingColId, deleteColumn, updateColumnColor, updateColumnName, dragOverColId, dragOverColIndex*/
-      267382780) {
+      if (dirty[0] & /*boardColumns, createPlannedTask, handleTaskConsider, handleTaskFinalize, deleteTask, editTask, getCustomProps, editingColId, deleteColumn, updateColumnColor, updateColumnName*/
+      15335) {
         each_value = ensure_array_like(
-          /*columns*/
-          ctx2[2]
+          /*boardColumns*/
+          ctx2[0]
         );
-        each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx2, each_value, each_1_lookup, div1, destroy_block, create_each_block, t2, get_each_context);
+        each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx2, each_value, each_1_lookup, div1, destroy_block, create_each_block, t0, get_each_context);
       }
-      if (
-        /*dragOverColId*/
-        ctx2[8] && /*dragOverColIndex*/
-        ctx2[9] >= /*columns*/
-        ctx2[2].length
-      ) {
-        if (if_block) {
-        } else {
-          if_block = create_if_block(ctx2);
-          if_block.c();
-          if_block.m(div1, null);
-        }
-      } else if (if_block) {
-        if_block.d(1);
-        if_block = null;
-      }
+      if (dndzone_action && is_function(dndzone_action.update) && dirty[0] & /*boardColumns*/
+      1)
+        dndzone_action.update.call(null, {
+          items: (
+            /*boardColumns*/
+            ctx2[0]
+          ),
+          flipDurationMs,
+          type: "columns"
+        });
     },
     i: noop,
     o: noop,
     d(detaching) {
       if (detaching) {
-        detach(div0);
-        detach(t1);
-        detach(div1);
+        detach(div2);
       }
       for (let i = 0; i < each_blocks.length; i += 1) {
         each_blocks[i].d();
       }
-      if (if_block)
-        if_block.d();
       mounted = false;
       run_all(dispose);
     }
   };
 }
+var flipDurationMs = 200;
 function instance($$self, $$props, $$invalidate) {
   let rawProjectStatuses;
   let statuses;
-  let columns;
+  let computedColumns;
   let { app } = $$props;
   let { fileManager } = $$props;
   let { projectId } = $$props;
@@ -4895,6 +6765,9 @@ function instance($$self, $$props, $$invalidate) {
     const bVal = Number(b.orderIndex) || 0;
     return aVal - bVal;
   });
+  let boardColumns = [];
+  let isDraggingColumns = false;
+  let isDraggingTasks = false;
   function getCustomProps(task) {
     if (!task.properties || !((fileManager.plugin.settings.projectSchemas || {})[projectId] || []))
       return [];
@@ -4925,14 +6798,6 @@ function instance($$self, $$props, $$invalidate) {
     });
     return res;
   }
-  let dragId = null;
-  let dragOverStatus = null;
-  let dragOverIndex = -1;
-  let dragHeight = 0;
-  let dragColId = null;
-  let dragOverColId = null;
-  let dragOverColIndex = -1;
-  let editingColId = null;
   async function ensureProjectStatuses() {
     const settings = fileManager.plugin.settings;
     if (!settings.projectStatuses)
@@ -4942,67 +6807,39 @@ function instance($$self, $$props, $$invalidate) {
     }
     return settings;
   }
-  function handleColDragStart(e, id) {
-    e.stopPropagation();
-    if (editingColId === id) {
-      e.preventDefault();
-      return;
-    }
-    $$invalidate(7, dragColId = id);
-    if (e.dataTransfer) {
-      e.dataTransfer.effectAllowed = "move";
-      e.dataTransfer.setData("text/plain", "col:" + id);
-      const el = e.currentTarget;
-      el.style.opacity = "0.5";
-    }
+  function handleColumnConsider(e) {
+    $$invalidate(18, isDraggingColumns = true);
+    $$invalidate(0, boardColumns = e.detail.items);
   }
-  function handleColDragEnd(e) {
-    e.stopPropagation();
-    $$invalidate(7, dragColId = null);
-    $$invalidate(8, dragOverColId = null);
-    $$invalidate(9, dragOverColIndex = -1);
-    if (e.currentTarget)
-      e.currentTarget.style.opacity = "1";
-  }
-  function handleColDragOver(e, id) {
-    e.stopPropagation();
-    if (!dragColId || dragColId === id)
-      return;
-    e.preventDefault();
-    if (e.dataTransfer)
-      e.dataTransfer.dropEffect = "move";
-    $$invalidate(8, dragOverColId = id);
-    const colIndex = columns.findIndex((c) => c.id === id);
-    const rect = e.currentTarget.getBoundingClientRect();
-    const middle = rect.left + rect.width / 2;
-    if (e.clientX > middle)
-      $$invalidate(9, dragOverColIndex = colIndex + 1);
-    else
-      $$invalidate(9, dragOverColIndex = colIndex);
-  }
-  async function handleColDrop(e, id) {
-    e.stopPropagation();
-    if (!dragColId || dragColId === id)
-      return;
-    e.preventDefault();
+  async function handleColumnFinalize(e) {
+    $$invalidate(0, boardColumns = e.detail.items);
+    $$invalidate(18, isDraggingColumns = false);
     const settings = await ensureProjectStatuses();
-    let newOrder = [...columns];
-    const fromIndex = newOrder.findIndex((c) => c.id === dragColId);
-    if (fromIndex !== -1) {
-      const [movedItem] = newOrder.splice(fromIndex, 1);
-      let insertIndex = dragOverColIndex;
-      if (insertIndex > newOrder.length)
-        insertIndex = newOrder.length;
-      newOrder.splice(insertIndex, 0, movedItem);
-      settings.projectStatuses[projectId] = newOrder.map((c) => ({ id: c.id, name: c.name, color: c.color }));
-      await fileManager.plugin.saveSettings();
-      $$invalidate(0, fileManager.plugin.settings = settings, fileManager);
-      $$invalidate(0, fileManager);
-    }
-    $$invalidate(7, dragColId = null);
-    $$invalidate(8, dragOverColId = null);
-    $$invalidate(9, dragOverColIndex = -1);
+    settings.projectStatuses[projectId] = boardColumns.map((c) => ({ id: c.id, name: c.name, color: c.color }));
+    await fileManager.plugin.saveSettings();
+    $$invalidate(14, fileManager.plugin.settings = settings, fileManager);
+    $$invalidate(14, fileManager);
   }
+  function handleTaskConsider(colId, e) {
+    $$invalidate(19, isDraggingTasks = true);
+    const colIndex = boardColumns.findIndex((c) => c.id === colId);
+    $$invalidate(0, boardColumns[colIndex].items = e.detail.items, boardColumns);
+    $$invalidate(0, boardColumns = [...boardColumns]);
+  }
+  async function handleTaskFinalize(colId, e) {
+    const colIndex = boardColumns.findIndex((c) => c.id === colId);
+    $$invalidate(0, boardColumns[colIndex].items = e.detail.items, boardColumns);
+    $$invalidate(0, boardColumns = [...boardColumns]);
+    $$invalidate(19, isDraggingTasks = false);
+    const promises = [];
+    boardColumns[colIndex].items.forEach((t, idx) => {
+      if (t.status !== colId || t.orderIndex !== idx) {
+        promises.push(fileManager.updateTask(t.id, { status: colId, orderIndex: idx }));
+      }
+    });
+    await Promise.all(promises);
+  }
+  let editingColId = null;
   async function updateColumnColor(colId, newColor) {
     const settings = await ensureProjectStatuses();
     if (["backlog", "running", "review"].includes(colId)) {
@@ -5017,8 +6854,8 @@ function instance($$self, $$props, $$invalidate) {
         col.color = newColor;
     }
     await fileManager.plugin.saveSettings();
-    $$invalidate(0, fileManager.plugin.settings = settings, fileManager);
-    $$invalidate(0, fileManager);
+    $$invalidate(14, fileManager.plugin.settings = settings, fileManager);
+    $$invalidate(14, fileManager);
   }
   async function updateColumnName(colId, newName) {
     const settings = await ensureProjectStatuses();
@@ -5034,9 +6871,9 @@ function instance($$self, $$props, $$invalidate) {
         col.name = newName;
     }
     await fileManager.plugin.saveSettings();
-    $$invalidate(0, fileManager.plugin.settings = settings, fileManager);
-    $$invalidate(0, fileManager);
-    $$invalidate(10, editingColId = null);
+    $$invalidate(14, fileManager.plugin.settings = settings, fileManager);
+    $$invalidate(14, fileManager);
+    $$invalidate(1, editingColId = null);
   }
   async function deleteColumn(colId) {
     if (!confirm("Are you sure you want to delete this column? ALL TASKS inside this column will also be permanently deleted!"))
@@ -5051,8 +6888,8 @@ function instance($$self, $$props, $$invalidate) {
     if (idx !== -1) {
       ps.splice(idx, 1);
       await fileManager.plugin.saveSettings();
-      $$invalidate(0, fileManager.plugin.settings = settings, fileManager);
-      $$invalidate(0, fileManager);
+      $$invalidate(14, fileManager.plugin.settings = settings, fileManager);
+      $$invalidate(14, fileManager);
     }
   }
   async function addColumn() {
@@ -5064,94 +6901,11 @@ function instance($$self, $$props, $$invalidate) {
       color: "#a29bfe"
     });
     await fileManager.plugin.saveSettings();
-    $$invalidate(0, fileManager.plugin.settings = settings, fileManager);
-    $$invalidate(0, fileManager);
-    $$invalidate(10, editingColId = newId);
-  }
-  function handleDragStart(e, id) {
-    e.stopPropagation();
-    console.log("Drag started:", id);
-    $$invalidate(3, dragId = id);
-    if (e.dataTransfer) {
-      e.dataTransfer.effectAllowed = "move";
-      e.dataTransfer.setData("text/plain", id);
-      const el = e.currentTarget;
-      $$invalidate(6, dragHeight = el.offsetHeight);
-      setTimeout(() => el.classList.add("pos-dragging"), 0);
-    }
-  }
-  function handleDragEnd(e) {
-    e.stopPropagation();
-    $$invalidate(3, dragId = null);
-    $$invalidate(4, dragOverStatus = null);
-    $$invalidate(5, dragOverIndex = -1);
-    if (e.currentTarget)
-      e.currentTarget.classList.remove("pos-dragging");
-  }
-  function handleDragOver(e, status) {
-    if (dragColId)
-      return;
-    e.stopPropagation();
-    if (!dragId)
-      return;
-    e.preventDefault();
-    if (e.dataTransfer)
-      e.dataTransfer.dropEffect = "move";
-    const list = e.currentTarget;
-    const cards = Array.from(list.querySelectorAll(".pos-board-card:not(.pos-dragging)"));
-    const mouseY = e.clientY;
-    let targetIndex = cards.length;
-    for (let i = 0; i < cards.length; i++) {
-      const rect = cards[i].getBoundingClientRect();
-      const middle = rect.top + rect.height / 2;
-      if (mouseY < middle) {
-        targetIndex = i;
-        break;
-      }
-    }
-    $$invalidate(4, dragOverStatus = status);
-    $$invalidate(5, dragOverIndex = targetIndex);
-  }
-  async function handleDrop(e, status) {
-    var _a;
-    if (dragColId)
-      return;
-    e.stopPropagation();
-    console.log("Dropped on status:", status);
-    e.preventDefault();
-    if (!dragId)
-      return;
-    const targetIndex = dragOverIndex === -1 ? ((_a = columns.find((c) => c.id === status)) == null ? void 0 : _a.tasks.length) || 0 : dragOverIndex;
-    const task = projectTasks.find((t) => t.id === dragId);
-    $$invalidate(3, dragId = null);
-    $$invalidate(4, dragOverStatus = null);
-    $$invalidate(5, dragOverIndex = -1);
-    if (!task)
-      return;
-    const oldStatus = task.status;
-    const allTasksOfProject = projectTasks;
-    const destCol = allTasksOfProject.filter((t) => t.status === status && t.id !== task.id);
-    destCol.splice(targetIndex, 0, { ...task, status });
-    const promises = destCol.map((t, idx) => {
-      if (t.id === task.id || t.orderIndex !== idx) {
-        return fileManager.updateTask(t.id, {
-          orderIndex: idx,
-          status: t.id === task.id ? status : t.status
-        });
-      }
-      return Promise.resolve();
-    });
-    if (oldStatus !== status) {
-      const sourceCol = allTasksOfProject.filter((t) => t.status === oldStatus && t.id !== task.id);
-      sourceCol.forEach((t, idx) => {
-        if (t.orderIndex !== idx)
-          promises.push(fileManager.updateTask(t.id, { orderIndex: idx }));
-      });
-    }
-    await Promise.all(promises);
+    $$invalidate(14, fileManager.plugin.settings = settings, fileManager);
+    $$invalidate(14, fileManager);
+    $$invalidate(1, editingColId = newId);
   }
   function createPlannedTask(statusId) {
-    console.log("Creating task in status:", statusId);
     new NewTaskModal(
       app,
       async (name) => {
@@ -5170,7 +6924,6 @@ function instance($$self, $$props, $$invalidate) {
     ).open();
   }
   function editTask(task) {
-    console.log("Editing task:", task.id);
     new QuickEditTaskModal(
       app,
       fileManager.plugin,
@@ -5181,107 +6934,45 @@ function instance($$self, $$props, $$invalidate) {
     ).open();
   }
   async function deleteTask(id) {
-    await fileManager.deleteTask(id);
+    if (confirm("Delete this task permanently?")) {
+      await fileManager.deleteTask(id);
+    }
   }
   const blur_handler = (col, e) => updateColumnName(col.id, e.currentTarget.value);
   const keydown_handler = (col, e) => {
     if (e.key === "Enter")
       updateColumnName(col.id, e.currentTarget.value);
     if (e.key === "Escape")
-      $$invalidate(10, editingColId = null);
+      $$invalidate(1, editingColId = null);
   };
   const change_handler = (col, e) => updateColumnColor(col.id, e.currentTarget.value);
   const click_handler = (col) => deleteColumn(col.id);
-  const dragstart_handler = (col, e) => handleColDragStart(e, col.id);
-  const dragover_handler = (col, e) => handleColDragOver(e, col.id);
-  const drop_handler = (col, e) => handleColDrop(e, col.id);
-  const dblclick_handler = (col) => $$invalidate(10, editingColId = col.id);
+  const dblclick_handler = (col) => $$invalidate(1, editingColId = col.id);
   const click_handler_1 = (task) => editTask(task);
   const click_handler_2 = (task) => deleteTask(task.id);
-  const dragstart_handler_1 = (task, e) => handleDragStart(e, task.id);
+  const consider_handler = (col, e) => handleTaskConsider(col.id, e);
+  const finalize_handler = (col, e) => handleTaskFinalize(col.id, e);
   const click_handler_3 = (col) => createPlannedTask(col.id);
-  const dragover_handler_1 = (col, e) => handleDragOver(e, col.id);
-  const drop_handler_1 = (col, e) => handleDrop(e, col.id);
-  const dragover_handler_2 = (col, e) => {
-    if (dragColId)
-      handleColDragOver(e, col.id);
-  };
-  const drop_handler_2 = (col, e) => {
-    if (dragColId)
-      handleColDrop(e, col.id);
-  };
-  const dragover_handler_3 = (e) => {
-    if (dragColId) {
-      e.preventDefault();
-      if (e.dataTransfer)
-        e.dataTransfer.dropEffect = "move";
-      const cols = Array.from(e.currentTarget.children).filter((c) => c.classList.contains("pos-board-col") && !c.classList.contains("pos-dragging-source"));
-      const mouseX = e.clientX;
-      let targetId = null;
-      for (let i = 0; i < cols.length; i++) {
-        const rect = cols[i].getBoundingClientRect();
-        const middle = rect.left + rect.width / 2;
-        if (mouseX < middle) {
-          targetId = cols[i].dataset.colId;
-          break;
-        }
-      }
-      let actualIndex = columns.length;
-      if (targetId)
-        actualIndex = columns.findIndex((c) => c.id === targetId);
-      $$invalidate(8, dragOverColId = "workspace");
-      $$invalidate(9, dragOverColIndex = actualIndex);
-    }
-  };
-  const drop_handler_3 = async (e) => {
-    if (dragColId) {
-      e.preventDefault();
-      const settings = await ensureProjectStatuses();
-      let ps = settings.projectStatuses[projectId];
-      const fromIndex = ps.findIndex((s) => s.id === dragColId);
-      if (fromIndex !== -1) {
-        const [movedItem] = ps.splice(fromIndex, 1);
-        let insertIndex = dragOverColIndex;
-        if (insertIndex < columns.length) {
-          const targetColId = columns[insertIndex].id;
-          let toIndex = ps.findIndex((s) => s.id === targetColId);
-          if (toIndex !== -1)
-            ps.splice(toIndex, 0, movedItem);
-          else
-            ps.push(movedItem);
-        } else {
-          ps.push(movedItem);
-        }
-        await fileManager.plugin.saveSettings();
-        $$invalidate(0, fileManager.plugin.settings = settings, fileManager);
-        $$invalidate(0, fileManager);
-      }
-      $$invalidate(7, dragColId = null);
-      $$invalidate(8, dragOverColId = null);
-      $$invalidate(9, dragOverColIndex = -1);
-    }
-  };
   $$self.$$set = ($$props2) => {
     if ("app" in $$props2)
-      $$invalidate(28, app = $$props2.app);
+      $$invalidate(15, app = $$props2.app);
     if ("fileManager" in $$props2)
-      $$invalidate(0, fileManager = $$props2.fileManager);
+      $$invalidate(14, fileManager = $$props2.fileManager);
     if ("projectId" in $$props2)
-      $$invalidate(1, projectId = $$props2.projectId);
+      $$invalidate(16, projectId = $$props2.projectId);
     if ("projectTasks" in $$props2)
-      $$invalidate(29, projectTasks = $$props2.projectTasks);
+      $$invalidate(17, projectTasks = $$props2.projectTasks);
   };
   $$self.$$.update = () => {
     if ($$self.$$.dirty[0] & /*fileManager, projectId*/
-    3) {
+    81920) {
       $:
-        $$invalidate(31, rawProjectStatuses = (fileManager.plugin.settings.projectStatuses || {})[projectId]);
+        $$invalidate(22, rawProjectStatuses = (fileManager.plugin.settings.projectStatuses || {})[projectId]);
     }
-    if ($$self.$$.dirty[0] & /*fileManager, projectTasks*/
-    536870913 | $$self.$$.dirty[1] & /*rawProjectStatuses*/
-    1) {
+    if ($$self.$$.dirty[0] & /*rawProjectStatuses, fileManager, projectTasks*/
+    4341760) {
       $:
-        $$invalidate(30, statuses = (() => {
+        $$invalidate(20, statuses = (() => {
           var _a, _b, _c, _d, _e, _f;
           let ps = rawProjectStatuses;
           if (!ps || !Array.isArray(ps)) {
@@ -5297,7 +6988,6 @@ function instance($$self, $$props, $$invalidate) {
             ];
           }
           const g = fileManager.plugin.settings.globalStatuses || {};
-          const cols = [];
           const activeStatuses = new Set(projectTasks.map((t) => t.status));
           const finalCols = [];
           const knownIds = /* @__PURE__ */ new Set();
@@ -5348,70 +7038,56 @@ function instance($$self, $$props, $$invalidate) {
         })());
     }
     if ($$self.$$.dirty[0] & /*statuses, projectTasks*/
-    1610612736) {
+    1179648) {
       $:
-        $$invalidate(2, columns = statuses.map((s) => ({
+        $$invalidate(21, computedColumns = statuses.map((s) => ({
           ...s,
-          tasks: sortTasks(projectTasks.filter((t) => t.status === s.id))
+          items: sortTasks(projectTasks.filter((t) => t.status === s.id))
         })));
     }
-    if ($$self.$$.dirty[0] & /*projectTasks, columns*/
-    536870916) {
-      $:
-        console.log("PROJECT TASKS UPDATED:", projectTasks.length, "columns:", columns.length);
+    if ($$self.$$.dirty[0] & /*isDraggingColumns, isDraggingTasks, computedColumns*/
+    2883584) {
+      $: {
+        if (!isDraggingColumns && !isDraggingTasks) {
+          $$invalidate(0, boardColumns = computedColumns.map((c) => ({ ...c, items: [...c.items] })));
+        }
+      }
     }
   };
   return [
-    fileManager,
-    projectId,
-    columns,
-    dragId,
-    dragOverStatus,
-    dragOverIndex,
-    dragHeight,
-    dragColId,
-    dragOverColId,
-    dragOverColIndex,
+    boardColumns,
     editingColId,
     getCustomProps,
-    ensureProjectStatuses,
-    handleColDragStart,
-    handleColDragEnd,
-    handleColDragOver,
-    handleColDrop,
+    handleColumnConsider,
+    handleColumnFinalize,
+    handleTaskConsider,
+    handleTaskFinalize,
     updateColumnColor,
     updateColumnName,
     deleteColumn,
     addColumn,
-    handleDragStart,
-    handleDragEnd,
-    handleDragOver,
-    handleDrop,
     createPlannedTask,
     editTask,
     deleteTask,
+    fileManager,
     app,
+    projectId,
     projectTasks,
+    isDraggingColumns,
+    isDraggingTasks,
     statuses,
+    computedColumns,
     rawProjectStatuses,
     blur_handler,
     keydown_handler,
     change_handler,
     click_handler,
-    dragstart_handler,
-    dragover_handler,
-    drop_handler,
     dblclick_handler,
     click_handler_1,
     click_handler_2,
-    dragstart_handler_1,
-    click_handler_3,
-    dragover_handler_1,
-    drop_handler_1,
-    dragover_handler_2,
-    drop_handler_2,
-    dragover_handler_3,
-    drop_handler_3
+    consider_handler,
+    finalize_handler,
+    click_handler_3
   ];
 }
 var ProjectTaskBoard = class extends SvelteComponent {
@@ -5424,10 +7100,10 @@ var ProjectTaskBoard = class extends SvelteComponent {
       create_fragment,
       safe_not_equal,
       {
-        app: 28,
-        fileManager: 0,
-        projectId: 1,
-        projectTasks: 29
+        app: 15,
+        fileManager: 14,
+        projectId: 16,
+        projectTasks: 17
       },
       null,
       [-1, -1]
@@ -5692,7 +7368,7 @@ function create_each_block_6(ctx) {
     }
   };
 }
-function create_if_block_72(ctx) {
+function create_if_block_7(ctx) {
   let show_if;
   let if_block_anchor;
   function func2(...args) {
@@ -6371,7 +8047,7 @@ function create_each_block_3(key_1, ctx) {
   let if_block = (
     /*filter*/
     ctx[63].operator !== "is-empty" && /*filter*/
-    ctx[63].operator !== "not-empty" && create_if_block_72(ctx)
+    ctx[63].operator !== "not-empty" && create_if_block_7(ctx)
   );
   function click_handler_2() {
     return (
@@ -6574,7 +8250,7 @@ function create_each_block_3(key_1, ctx) {
         if (if_block) {
           if_block.p(ctx, dirty);
         } else {
-          if_block = create_if_block_72(ctx);
+          if_block = create_if_block_7(ctx);
           if_block.c();
           if_block.m(div2, t13);
         }
@@ -6595,7 +8271,7 @@ function create_each_block_3(key_1, ctx) {
     }
   };
 }
-function create_if_block_62(ctx) {
+function create_if_block_6(ctx) {
   let div1;
   let span;
   let t0_value = (
@@ -6771,7 +8447,7 @@ function create_if_block2(ctx) {
     }
   };
 }
-function create_if_block_52(ctx) {
+function create_if_block_5(ctx) {
   let span;
   let t_value = (
     /*task*/
@@ -6985,7 +8661,7 @@ function create_if_block_32(ctx) {
       /*p*/
       ctx2[62].color
     )
-      return create_if_block_42;
+      return create_if_block_4;
     return create_else_block_2;
   }
   let current_block_type = select_block_type_4(ctx, [-1, -1, -1]);
@@ -7049,7 +8725,7 @@ function create_else_block_2(ctx) {
     }
   };
 }
-function create_if_block_42(ctx) {
+function create_if_block_4(ctx) {
   let span;
   let t_value = (
     /*p*/
@@ -7308,7 +8984,7 @@ function create_each_block2(key_1, ctx) {
   }
   let if_block = (
     /*task*/
-    ctx[53].description && create_if_block_52(ctx)
+    ctx[53].description && create_if_block_5(ctx)
   );
   let each_value_1 = ensure_array_like(
     /*schema*/
@@ -7486,7 +9162,7 @@ function create_each_block2(key_1, ctx) {
         if (if_block) {
           if_block.p(ctx, dirty);
         } else {
-          if_block = create_if_block_52(ctx);
+          if_block = create_if_block_5(ctx);
           if_block.c();
           if_block.m(div0, null);
         }
@@ -7709,7 +9385,7 @@ function create_fragment2(ctx) {
   }
   let if_block1 = (
     /*selectedTaskIds*/
-    ctx[6].size > 0 && create_if_block_62(ctx)
+    ctx[6].size > 0 && create_if_block_6(ctx)
   );
   function select_block_type_1(ctx2, dirty) {
     if (
@@ -7960,7 +9636,7 @@ function create_fragment2(ctx) {
         if (if_block1) {
           if_block1.p(ctx2, dirty);
         } else {
-          if_block1 = create_if_block_62(ctx2);
+          if_block1 = create_if_block_6(ctx2);
           if_block1.c();
           if_block1.m(div3, t5);
         }
@@ -9203,7 +10879,7 @@ function create_if_block_82(ctx) {
     }
   };
 }
-function create_if_block_73(ctx) {
+function create_if_block_72(ctx) {
   let div2;
   let each_value_9 = ensure_array_like(
     /*task*/
@@ -9338,7 +11014,7 @@ function create_each_block_8(key_1, ctx) {
   let if_block2 = (
     /*task*/
     ctx[93].tags && /*task*/
-    ctx[93].tags.length > 0 && create_if_block_73(ctx)
+    ctx[93].tags.length > 0 && create_if_block_72(ctx)
   );
   function click_handler_5() {
     return (
@@ -9485,7 +11161,7 @@ function create_each_block_8(key_1, ctx) {
         if (if_block2) {
           if_block2.p(ctx, dirty);
         } else {
-          if_block2 = create_if_block_73(ctx);
+          if_block2 = create_if_block_72(ctx);
           if_block2.c();
           if_block2.m(div2, t4);
         }
@@ -9650,7 +11326,7 @@ function create_each_block_72(ctx) {
     }
   };
 }
-function create_if_block_63(ctx) {
+function create_if_block_62(ctx) {
   let span;
   return {
     c() {
@@ -9667,7 +11343,7 @@ function create_if_block_63(ctx) {
     }
   };
 }
-function create_if_block_53(ctx) {
+function create_if_block_52(ctx) {
   let div2;
   return {
     c() {
@@ -9705,11 +11381,11 @@ function create_each_block_62(ctx) {
   let t5;
   let if_block0 = (
     /*td*/
-    ctx[99].isToday && create_if_block_63(ctx)
+    ctx[99].isToday && create_if_block_62(ctx)
   );
   let if_block1 = (
     /*ganttZoom*/
-    ctx[2] > 150 && create_if_block_53(ctx)
+    ctx[2] > 150 && create_if_block_52(ctx)
   );
   return {
     c() {
@@ -9784,7 +11460,7 @@ function create_each_block_62(ctx) {
       ) {
         if (if_block0) {
         } else {
-          if_block0 = create_if_block_63(ctx2);
+          if_block0 = create_if_block_62(ctx2);
           if_block0.c();
           if_block0.m(div2, t4);
         }
@@ -9798,7 +11474,7 @@ function create_each_block_62(ctx) {
       ) {
         if (if_block1) {
         } else {
-          if_block1 = create_if_block_53(ctx2);
+          if_block1 = create_if_block_52(ctx2);
           if_block1.c();
           if_block1.m(div2, t5);
         }
@@ -9854,7 +11530,7 @@ function create_each_block_62(ctx) {
     }
   };
 }
-function create_if_block_43(ctx) {
+function create_if_block_42(ctx) {
   let div2;
   return {
     c() {
@@ -10243,7 +11919,7 @@ function create_each_block_42(ctx) {
   let div_style_value;
   let if_block0 = (
     /*todayColIndex*/
-    ctx[6] >= 0 && create_if_block_43(ctx)
+    ctx[6] >= 0 && create_if_block_42(ctx)
   );
   let if_block1 = (
     /*tasksByRow*/
@@ -10292,7 +11968,7 @@ function create_each_block_42(ctx) {
         if (if_block0) {
           if_block0.p(ctx2, dirty);
         } else {
-          if_block0 = create_if_block_43(ctx2);
+          if_block0 = create_if_block_42(ctx2);
           if_block0.c();
           if_block0.m(div2, t0);
         }
@@ -11931,7 +13607,7 @@ function create_if_block4(ctx) {
     }
   };
 }
-function create_if_block_64(ctx) {
+function create_if_block_63(ctx) {
   let span;
   return {
     c() {
@@ -11953,7 +13629,7 @@ function create_if_block_64(ctx) {
     }
   };
 }
-function create_if_block_54(ctx) {
+function create_if_block_53(ctx) {
   let div2;
   let t_value = (
     /*p*/
@@ -11983,7 +13659,7 @@ function create_if_block_54(ctx) {
     }
   };
 }
-function create_if_block_44(ctx) {
+function create_if_block_43(ctx) {
   let span;
   let t0;
   let t1_value = (
@@ -12239,7 +13915,7 @@ function create_each_block4(key_1, ctx) {
   let dispose;
   let if_block0 = (
     /*showArchived*/
-    ctx[0] && create_if_block_64(ctx)
+    ctx[0] && create_if_block_63(ctx)
   );
   function click_handler() {
     return (
@@ -12252,11 +13928,11 @@ function create_each_block4(key_1, ctx) {
   }
   let if_block1 = (
     /*p*/
-    ctx[29].description && create_if_block_54(ctx)
+    ctx[29].description && create_if_block_53(ctx)
   );
   let if_block2 = (
     /*overdue*/
-    ctx[34] > 0 && create_if_block_44(ctx)
+    ctx[34] > 0 && create_if_block_43(ctx)
   );
   let if_block3 = (
     /*highPriority*/
@@ -12470,7 +14146,7 @@ function create_each_block4(key_1, ctx) {
       ) {
         if (if_block0) {
         } else {
-          if_block0 = create_if_block_64(ctx);
+          if_block0 = create_if_block_63(ctx);
           if_block0.c();
           if_block0.m(div0, null);
         }
@@ -12485,7 +14161,7 @@ function create_each_block4(key_1, ctx) {
         if (if_block1) {
           if_block1.p(ctx, dirty);
         } else {
-          if_block1 = create_if_block_54(ctx);
+          if_block1 = create_if_block_53(ctx);
           if_block1.c();
           if_block1.m(div8, t3);
         }
@@ -12516,7 +14192,7 @@ function create_each_block4(key_1, ctx) {
         if (if_block2) {
           if_block2.p(ctx, dirty);
         } else {
-          if_block2 = create_if_block_44(ctx);
+          if_block2 = create_if_block_43(ctx);
           if_block2.c();
           if_block2.m(div2, t14);
         }
@@ -12992,8 +14668,8 @@ function create_else_block5(ctx) {
   let mounted;
   let dispose;
   let if_block0 = !/*isFullPage*/
-  ctx[4] && create_if_block_65(ctx);
-  const if_block_creators = [create_if_block_16, create_if_block_45, create_else_block_23];
+  ctx[4] && create_if_block_64(ctx);
+  const if_block_creators = [create_if_block_16, create_if_block_44, create_else_block_23];
   const if_blocks = [];
   function select_block_type_1(ctx2, dirty) {
     if (
@@ -13152,7 +14828,7 @@ function create_else_block5(ctx) {
         if (if_block0) {
           if_block0.p(ctx2, dirty);
         } else {
-          if_block0 = create_if_block_65(ctx2);
+          if_block0 = create_if_block_64(ctx2);
           if_block0.c();
           if_block0.m(div1, t0);
         }
@@ -13310,7 +14986,7 @@ function create_if_block5(ctx) {
     }
   };
 }
-function create_if_block_65(ctx) {
+function create_if_block_64(ctx) {
   let button;
   let mounted;
   let dispose;
@@ -13347,7 +15023,7 @@ function create_else_block_23(ctx) {
   let if_block;
   let if_block_anchor;
   let current;
-  const if_block_creators = [create_if_block_55, create_else_block_32];
+  const if_block_creators = [create_if_block_54, create_else_block_32];
   const if_blocks = [];
   function select_block_type_3(ctx2, dirty) {
     if (
@@ -13409,7 +15085,7 @@ function create_else_block_23(ctx) {
     }
   };
 }
-function create_if_block_45(ctx) {
+function create_if_block_44(ctx) {
   let div2;
   let projectdeadlines;
   let current;
@@ -13711,7 +15387,7 @@ function create_else_block_32(ctx) {
     }
   };
 }
-function create_if_block_55(ctx) {
+function create_if_block_54(ctx) {
   let previous_key = (
     /*settingsVersion*/
     ctx[10]
@@ -15113,7 +16789,7 @@ function create_if_block_83(ctx) {
     }
   };
 }
-function create_if_block_74(ctx) {
+function create_if_block_73(ctx) {
   let span;
   let t0_value = fmtTime(
     /*ti*/
@@ -15163,7 +16839,7 @@ function create_if_block_74(ctx) {
     }
   };
 }
-function create_if_block_66(ctx) {
+function create_if_block_65(ctx) {
   let input;
   let input_value_value;
   let mounted;
@@ -15295,7 +16971,7 @@ function create_each_block_24(key_1, ctx) {
   );
   let if_block4 = (
     /*ti*/
-    ctx[83] && create_if_block_74(ctx)
+    ctx[83] && create_if_block_73(ctx)
   );
   function click_handler_5() {
     return (
@@ -15336,7 +17012,7 @@ function create_each_block_24(key_1, ctx) {
   }
   let if_block5 = (
     /*task*/
-    ctx[77].isFixedDuration && create_if_block_66(ctx)
+    ctx[77].isFixedDuration && create_if_block_65(ctx)
   );
   function click_handler_8() {
     return (
@@ -15585,7 +17261,7 @@ function create_each_block_24(key_1, ctx) {
         if (if_block4) {
           if_block4.p(ctx, dirty);
         } else {
-          if_block4 = create_if_block_74(ctx);
+          if_block4 = create_if_block_73(ctx);
           if_block4.c();
           if_block4.m(div1, null);
         }
@@ -15609,7 +17285,7 @@ function create_each_block_24(key_1, ctx) {
         if (if_block5) {
           if_block5.p(ctx, dirty);
         } else {
-          if_block5 = create_if_block_66(ctx);
+          if_block5 = create_if_block_65(ctx);
           if_block5.c();
           if_block5.m(div3, t16);
         }
@@ -15669,7 +17345,7 @@ function create_each_block_24(key_1, ctx) {
     }
   };
 }
-function create_if_block_56(ctx) {
+function create_if_block_55(ctx) {
   let div2;
   return {
     c() {
@@ -15703,7 +17379,7 @@ function create_if_block_56(ctx) {
     }
   };
 }
-function create_if_block_46(ctx) {
+function create_if_block_45(ctx) {
   let div0;
   let t;
   let div1;
@@ -16312,11 +17988,11 @@ function create_fragment6(ctx) {
     ctx[13] === /*sRunning*/
     ctx[6].id && /*dragOverIndex*/
     ctx[14] >= /*running*/
-    ctx[7].length && create_if_block_56(ctx)
+    ctx[7].length && create_if_block_55(ctx)
   );
   let if_block2 = (
     /*isLocked*/
-    ctx[3] && create_if_block_46(ctx)
+    ctx[3] && create_if_block_45(ctx)
   );
   let each_value = ensure_array_like(
     /*review*/
@@ -16734,7 +18410,7 @@ function create_fragment6(ctx) {
         if (if_block1) {
           if_block1.p(ctx2, dirty);
         } else {
-          if_block1 = create_if_block_56(ctx2);
+          if_block1 = create_if_block_55(ctx2);
           if_block1.c();
           if_block1.m(div6, null);
         }
@@ -16749,7 +18425,7 @@ function create_fragment6(ctx) {
         if (if_block2) {
           if_block2.p(ctx2, dirty);
         } else {
-          if_block2 = create_if_block_46(ctx2);
+          if_block2 = create_if_block_45(ctx2);
           if_block2.c();
           if_block2.m(div7, null);
         }
@@ -17119,7 +18795,7 @@ function instance6($$self, $$props, $$invalidate) {
     $$invalidate(13, dragOverStatus = status);
     $$invalidate(14, dragOverIndex = index);
   }
-  async function handleDrop(e, status) {
+  async function handleDrop2(e, status) {
     e.preventDefault();
     if (!dragId)
       return;
@@ -17199,7 +18875,7 @@ function instance6($$self, $$props, $$invalidate) {
   const click_handler_4 = (task) => deleteTask(task.id);
   const dragstart_handler = (task, e) => handleDragStart(e, task.id);
   const dragover_handler = (e) => handleDragOver(e, sBacklog.id);
-  const drop_handler = (e) => handleDrop(e, sBacklog.id);
+  const drop_handler = (e) => handleDrop2(e, sBacklog.id);
   const click_handler_5 = (task) => editTask(task);
   const click_handler_6 = (task) => fileManager.updateTask(task.id, { weight: Math.max(1, task.weight - 1) });
   const click_handler_7 = (task) => fileManager.updateTask(task.id, { weight: task.weight + 1 });
@@ -17213,12 +18889,12 @@ function instance6($$self, $$props, $$invalidate) {
     $$invalidate(4, runningWrapperHeight);
   }
   const dragover_handler_1 = (e) => handleDragOver(e, sRunning.id);
-  const drop_handler_1 = (e) => handleDrop(e, sRunning.id);
+  const drop_handler_1 = (e) => handleDrop2(e, sRunning.id);
   const click_handler_9 = (task) => editTask(task);
   const click_handler_10 = (task) => deleteTask(task.id);
   const dragstart_handler_2 = (task, e) => handleDragStart(e, task.id);
   const dragover_handler_2 = (e) => handleDragOver(e, sReview.id);
-  const drop_handler_2 = (e) => handleDrop(e, sReview.id);
+  const drop_handler_2 = (e) => handleDrop2(e, sReview.id);
   $$self.$$set = ($$props2) => {
     if ("app" in $$props2)
       $$invalidate(32, app = $$props2.app);
@@ -17347,7 +19023,7 @@ function instance6($$self, $$props, $$invalidate) {
     handleDragStart,
     handleDragEnd,
     handleDragOver,
-    handleDrop,
+    handleDrop2,
     app,
     projectId,
     lockedTimeline,

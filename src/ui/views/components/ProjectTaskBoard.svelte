@@ -1,16 +1,14 @@
 <script lang="ts">
   import { App } from 'obsidian';
-  
+  import { dndzone } from 'svelte-dnd-action';
   import type { TaskData } from '../../../types';
   import type { FileManager } from '../../../data/FileManager';
   import { NewTaskModal, QuickEditTaskModal } from '../../../modals/Modals';
 
   export let app: App;
   export let fileManager: FileManager;
-  
   export let projectId: string;
   export let projectTasks: TaskData[];
-  $: console.log('PROJECT TASKS UPDATED:', projectTasks.length, 'columns:', columns.length);
 
   const sortTasks = (tasks: TaskData[]) => tasks.sort((a, b) => { const aVal = Number(a.orderIndex) || 0; const bVal = Number(b.orderIndex) || 0; return aVal - bVal; });
 
@@ -18,7 +16,6 @@
   $: statuses = (() => {
     let ps = rawProjectStatuses;
     if (!ps || !Array.isArray(ps)) {
-
       ps = [
         { id: 'backlog' },
         { id: 'planned', name: 'Planned', color: '#0984e3' },
@@ -28,24 +25,15 @@
     }
     
     const g = fileManager.plugin.settings.globalStatuses || {};
-    const cols = [];
-    
-    // Core columns first, if they don't exist in ps, add them in default order
-    // Force all columns into a single unified array mapped from ps and defaults
     const activeStatuses = new Set(projectTasks.map(t => t.status));
-    
     const finalCols = [];
-    
-    // 1. Gather all known columns
     const knownIds = new Set();
     
-    // Add ps items exactly in order
     ps.forEach(s => {
       finalCols.push({ ...s, name: s.name || s.id, color: s.color || '#a29bfe', isCore: s.id === 'backlog' || s.id === 'running' || s.id === 'review' });
       knownIds.add(s.id);
     });
     
-    // 2. If core items are missing, place them where they belong
     if (!knownIds.has('backlog')) {
       finalCols.unshift({ id: 'backlog', name: g['backlog']?.name || 'Elastic Backlog', color: g['backlog']?.color || '#636e72', isCore: true });
     }
@@ -56,7 +44,6 @@
       finalCols.push({ id: 'review', name: g['review']?.name || 'Finished', color: g['review']?.color || '#fdcb6e', isCore: true });
     }
     
-    // 3. Any active statuses not tracked anywhere get appended
     activeStatuses.forEach(statusId => {
       if (!finalCols.find(c => c.id === statusId)) {
         finalCols.push({ id: statusId, name: statusId, color: '#a29bfe', isCore: false });
@@ -66,10 +53,21 @@
     return finalCols;
   })();
 
-  $: columns = statuses.map(s => ({
+  $: computedColumns = statuses.map(s => ({
     ...s,
-    tasks: sortTasks(projectTasks.filter(t => t.status === s.id))
+    items: sortTasks(projectTasks.filter(t => t.status === s.id))
   }));
+
+  let boardColumns = [];
+  let isDraggingColumns = false;
+  let isDraggingTasks = false;
+
+  // Reactively sync our local state with the computed state, unless we are currently dragging
+  $: {
+    if (!isDraggingColumns && !isDraggingTasks) {
+      boardColumns = computedColumns.map(c => ({ ...c, items: [...c.items] }));
+    }
+  }
 
   function getCustomProps(task: TaskData) {
     if (!task.properties || !((fileManager.plugin.settings.projectSchemas || {})[projectId] || [])) return [];
@@ -94,20 +92,6 @@
     return res;
   }
 
-  // Task Drag state
-  let dragId: string | null = null;
-  let dragOverStatus: string | null = null;
-  let dragOverIndex: number = -1;
-  let dragHeight = 0;
-
-  // Column Drag state
-  let dragColId: string | null = null;
-  let dragOverColId: string | null = null;
-  let dragOverColIndex: number = -1;
-  
-  // UI Edit state
-  let editingColId: string | null = null;
-
   async function ensureProjectStatuses() {
     const settings = fileManager.plugin.settings;
     if (!settings.projectStatuses) settings.projectStatuses = {};
@@ -117,61 +101,47 @@
     return settings;
   }
 
-  function handleColDragStart(e: DragEvent, id: string) {
-    e.stopPropagation();
-    if (editingColId === id) { e.preventDefault(); return; } // Don't drag while editing
-    dragColId = id;
-    if (e.dataTransfer) {
-      e.dataTransfer.effectAllowed = 'move';
-      e.dataTransfer.setData('text/plain', 'col:' + id);
-      const el = e.currentTarget as HTMLElement;
-      el.style.opacity = '0.5';
-    }
-  }
-  function handleColDragEnd(e: DragEvent) {
-    e.stopPropagation();
-    dragColId = null;
-    dragOverColId = null;
-    dragOverColIndex = -1;
-    if (e.currentTarget) (e.currentTarget as HTMLElement).style.opacity = '1';
-  }
-  function handleColDragOver(e: DragEvent, id: string) {
-    e.stopPropagation();
-    if (!dragColId || dragColId === id) return;
-    e.preventDefault();
-    if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
-    
-    dragOverColId = id;
-    const colIndex = columns.findIndex(c => c.id === id);
-    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    const middle = rect.left + rect.width / 2;
-    if (e.clientX > middle) dragOverColIndex = colIndex + 1;
-    else dragOverColIndex = colIndex;
+  // Column Reordering (Board Level)
+  function handleColumnConsider(e) {
+    isDraggingColumns = true;
+    boardColumns = e.detail.items;
   }
   
-  async function handleColDrop(e: DragEvent, id: string) {
-    e.stopPropagation();
-    if (!dragColId || dragColId === id) return;
-    e.preventDefault();
+  async function handleColumnFinalize(e) {
+    boardColumns = e.detail.items;
+    isDraggingColumns = false;
     const settings = await ensureProjectStatuses();
-    
-    let newOrder = [...columns];
-    const fromIndex = newOrder.findIndex(c => c.id === dragColId);
-    if (fromIndex !== -1) {
-      const [movedItem] = newOrder.splice(fromIndex, 1);
-      let insertIndex = dragOverColIndex;
-      if (insertIndex > newOrder.length) insertIndex = newOrder.length;
-      newOrder.splice(insertIndex, 0, movedItem);
-      
-      settings.projectStatuses[projectId] = newOrder.map(c => ({ id: c.id, name: c.name, color: c.color }));
-      await fileManager.plugin.saveSettings();
-      fileManager.plugin.settings = settings;
-      fileManager = fileManager;
-    }
-    dragColId = null;
-    dragOverColId = null;
-    dragOverColIndex = -1;
+    settings.projectStatuses[projectId] = boardColumns.map(c => ({ id: c.id, name: c.name, color: c.color }));
+    await fileManager.plugin.saveSettings();
+    fileManager.plugin.settings = settings;
+    fileManager = fileManager; // Force Svelte Reactivity
   }
+
+  // Task Reordering (Cross-Column)
+  function handleTaskConsider(colId, e) {
+    isDraggingTasks = true;
+    const colIndex = boardColumns.findIndex(c => c.id === colId);
+    boardColumns[colIndex].items = e.detail.items;
+    boardColumns = [...boardColumns];
+  }
+  
+  async function handleTaskFinalize(colId, e) {
+    const colIndex = boardColumns.findIndex(c => c.id === colId);
+    boardColumns[colIndex].items = e.detail.items;
+    boardColumns = [...boardColumns];
+    isDraggingTasks = false;
+    
+    const promises = [];
+    boardColumns[colIndex].items.forEach((t, idx) => {
+      if (t.status !== colId || t.orderIndex !== idx) {
+        promises.push(fileManager.updateTask(t.id, { status: colId, orderIndex: idx }));
+      }
+    });
+    await Promise.all(promises);
+  }
+
+  // Edit State
+  let editingColId: string | null = null;
 
   async function updateColumnColor(colId: string, newColor: string) {
     const settings = await ensureProjectStatuses();
@@ -185,7 +155,7 @@
     }
     await fileManager.plugin.saveSettings();
     fileManager.plugin.settings = settings;
-    fileManager = fileManager; // Force Svelte Reactivity
+    fileManager = fileManager;
   }
 
   async function updateColumnName(colId: string, newName: string) {
@@ -200,20 +170,18 @@
     }
     await fileManager.plugin.saveSettings();
     fileManager.plugin.settings = settings;
-    fileManager = fileManager; // Force Svelte Reactivity
+    fileManager = fileManager;
     editingColId = null;
   }
 
   async function deleteColumn(colId: string) {
     if (!confirm("Are you sure you want to delete this column? ALL TASKS inside this column will also be permanently deleted!")) return;
     
-    // Delete all tasks in this column
     const tasksToDelete = projectTasks.filter(t => t.status === colId);
     for (const t of tasksToDelete) {
       await fileManager.deleteTask(t.id);
     }
     
-    // Delete the column
     const settings = await ensureProjectStatuses();
     const ps = settings.projectStatuses[projectId];
     const idx = ps.findIndex(s => s.id === colId);
@@ -221,7 +189,7 @@
       ps.splice(idx, 1);
       await fileManager.plugin.saveSettings();
       fileManager.plugin.settings = settings;
-    fileManager = fileManager; // Force Svelte Reactivity
+      fileManager = fileManager;
     }
   }
 
@@ -231,245 +199,99 @@
     settings.projectStatuses[projectId].push({ id: newId, name: 'New Column', color: '#a29bfe' });
     await fileManager.plugin.saveSettings();
     fileManager.plugin.settings = settings;
-    fileManager = fileManager; // Force Svelte Reactivity
+    fileManager = fileManager;
     editingColId = newId;
   }
 
-  function handleDragStart(e: DragEvent, id: string) {
-    e.stopPropagation();
-    console.log('Drag started:', id);
-    dragId = id;
-    if (e.dataTransfer) {
-      e.dataTransfer.effectAllowed = 'move';
-      e.dataTransfer.setData('text/plain', id);
-      const el = e.currentTarget as HTMLElement;
-      dragHeight = el.offsetHeight;
-      setTimeout(() => el.classList.add('pos-dragging'), 0);
-    }
-  }
-
-  function handleDragEnd(e: DragEvent) {
-    e.stopPropagation();
-    dragId = null;
-    dragOverStatus = null;
-    dragOverIndex = -1;
-    if (e.currentTarget) (e.currentTarget as HTMLElement).classList.remove('pos-dragging');
-  }
-
-  function handleDragOver(e: DragEvent, status: string) {
-      if (dragColId) return; // Let it bubble to column handler
-      e.stopPropagation();
-      if (!dragId) return;
-    e.preventDefault();
-    if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
-    
-    const list = e.currentTarget as HTMLElement;
-    const cards = Array.from(list.querySelectorAll('.pos-board-card:not(.pos-dragging)'));
-    const mouseY = e.clientY;
-    
-    let targetIndex = cards.length;
-    for (let i = 0; i < cards.length; i++) {
-      const rect = cards[i].getBoundingClientRect();
-      const middle = rect.top + rect.height / 2;
-      if (mouseY < middle) { targetIndex = i; break; }
-    }
-    dragOverStatus = status;
-    dragOverIndex = targetIndex;
-  }
-
-  async function handleDrop(e: DragEvent, status: string) {
-      if (dragColId) return; // Let it bubble to column handler
-      e.stopPropagation();
-      console.log('Dropped on status:', status);
-      e.preventDefault();
-      if (!dragId) return;
-    
-    const targetIndex = dragOverIndex === -1 ? columns.find(c => c.id === status)?.tasks.length || 0 : dragOverIndex;
-    const task = projectTasks.find(t => t.id === dragId);
-    
-    dragId = null;
-    dragOverStatus = null;
-    dragOverIndex = -1;
-    
-    if (!task) return;
-    const oldStatus = task.status;
-    const allTasksOfProject = projectTasks;
-    const destCol = allTasksOfProject.filter(t => t.status === status && t.id !== task.id);
-    destCol.splice(targetIndex, 0, { ...task, status });
-    
-    const promises = destCol.map((t, idx) => {
-      if (t.id === task.id || t.orderIndex !== idx) {
-        return fileManager.updateTask(t.id, { orderIndex: idx, status: t.id === task.id ? status : t.status });
-      }
-      return Promise.resolve();
-    });
-    
-    if (oldStatus !== status) {
-      const sourceCol = allTasksOfProject.filter(t => t.status === oldStatus && t.id !== task.id);
-      sourceCol.forEach((t, idx) => {
-        if (t.orderIndex !== idx) promises.push(fileManager.updateTask(t.id, { orderIndex: idx }));
-      });
-    }
-    await Promise.all(promises);
-  }
-
   function createPlannedTask(statusId: string) {
-    
-    console.log('Creating task in status:', statusId);
     new NewTaskModal(app, async (name) => {
       let pid = projectId;
       if (pid === '-- All Projects --') pid = '';
       const colTasks = projectTasks.filter(t => t.status === statusId);
-        const maxOrder = colTasks.length > 0 ? Math.max(...colTasks.map(t => Number(t.orderIndex) || 0)) + 1 : 0;
-        await fileManager.createTask({ name, project: pid, status: statusId, orderIndex: maxOrder });
-        
+      const maxOrder = colTasks.length > 0 ? Math.max(...colTasks.map(t => Number(t.orderIndex) || 0)) + 1 : 0;
+      await fileManager.createTask({ name, project: pid, status: statusId, orderIndex: maxOrder });
     }).open();
   }
 
   function editTask(task: TaskData) {
-    console.log('Editing task:', task.id);
     new QuickEditTaskModal(app, fileManager.plugin, task, async (updates) => {
       await fileManager.updateTask(task.id, updates);
     }).open();
   }
 
   async function deleteTask(id: string) {
-    await fileManager.deleteTask(id);
+    if (confirm('Delete this task permanently?')) {
+      await fileManager.deleteTask(id);
+    }
   }
+
+  const flipDurationMs = 200;
 </script>
 
-<div class="pos-board-header-actions" style="position: absolute; top: 10px; right: 20px; z-index: 10;">
-     <button class="pos-btn" style="padding: 4px 10px; font-weight: bold; background: var(--interactive-accent); color: var(--text-on-accent);" on:click={addColumn}>+ Add Kanban Column</button>
-   </div>
-   <div class="pos-board-workspace"
-    on:dragover={(e) => {
-      if (dragColId) {
-        e.preventDefault();
-        if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+<div class="pos-board-scroll-container">
+  <div class="pos-board-container" use:dndzone={{items: boardColumns, flipDurationMs, type: 'columns'}} on:consider={handleColumnConsider} on:finalize={handleColumnFinalize}>
+    {#each boardColumns as col (col.id)}
+    <div class="pos-board-col" class:pos-col-elastic={col.isCore}>
+      <h4 class="pos-board-col-title" 
+          style="color: {col.color}; border-bottom: 2px solid {col.color}40; display: flex; align-items: center; justify-content: space-between;"
+          on:dblclick={() => editingColId = col.id}
+      >
+        {#if editingColId === col.id}
+           <input type="text" value={col.name} 
+             style="background: transparent; color: inherit; font-size: inherit; font-weight: inherit; border: 1px solid {col.color}; border-radius: 4px; padding: 2px 5px; flex: 1; outline: none; margin-right: 5px;"
+             on:blur={(e) => updateColumnName(col.id, e.currentTarget.value)}
+             on:keydown={(e) => { if (e.key === 'Enter') updateColumnName(col.id, e.currentTarget.value); if (e.key === 'Escape') editingColId = null; }}
+             autofocus
+           />
+        {:else}
+           <span style="cursor: grab; flex: 1;">{col.name} <span style="opacity:0.5; font-size:0.8em">({col.items.length})</span></span>
+        {/if}
         
-        const cols = Array.from((e.currentTarget).children).filter(c => c.classList.contains('pos-board-col') && !c.classList.contains('pos-dragging-source'));
-        const mouseX = e.clientX;
-        let targetId = null;
-        for (let i = 0; i < cols.length; i++) {
-          const rect = cols[i].getBoundingClientRect();
-          const middle = rect.left + rect.width / 2;
-          if (mouseX < middle) { targetId = cols[i].dataset.colId; break; }
-        }
-        
-        let actualIndex = columns.length;
-        if (targetId) actualIndex = columns.findIndex(c => c.id === targetId);
-        
-        dragOverColId = 'workspace';
-        dragOverColIndex = actualIndex;
-      }
-    }}
-    on:drop={async (e) => {
-      if (dragColId) {
-        e.preventDefault();
-        const settings = await ensureProjectStatuses();
-        let ps = settings.projectStatuses[projectId];
-        
-        const fromIndex = ps.findIndex(s => s.id === dragColId);
-        if (fromIndex !== -1) {
-          const [movedItem] = ps.splice(fromIndex, 1);
-          let insertIndex = dragOverColIndex;
-          
-          if (insertIndex < columns.length) {
-             const targetColId = columns[insertIndex].id;
-             let toIndex = ps.findIndex(s => s.id === targetColId);
-             if (toIndex !== -1) ps.splice(toIndex, 0, movedItem);
-             else ps.push(movedItem);
-          } else {
-             ps.push(movedItem);
-          }
-          await fileManager.plugin.saveSettings();
-          fileManager.plugin.settings = settings;
-    fileManager = fileManager; // Force Svelte Reactivity
-        }
-        dragColId = null;
-        dragOverColId = null;
-        dragOverColIndex = -1;
-      }
-    }}
->
-  {#each columns as col, colIdx (col.id)}
-  {#if dragOverColId && dragOverColIndex === colIdx}
-    <div class="pos-board-col-placeholder" style="width: 300px; min-width: 300px; border: 2px dashed var(--interactive-accent); border-radius: 8px; margin: 0 10px; background: rgba(var(--interactive-accent-rgb), 0.05);"></div>
-  {/if}
-  <div class="pos-board-col" data-col-id={col.id} class:pos-dragging-source={dragColId === col.id} class:pos-col-elastic={col.isCore} on:dragover={(e) => { if(dragColId) handleColDragOver(e, col.id); }} on:drop={(e) => { if(dragColId) handleColDrop(e, col.id); }}>
-    <h4 class="pos-board-col-title" 
-        style="color: {col.color}; border-bottom: 2px solid {col.color}40; display: flex; align-items: center; justify-content: space-between;"
-        draggable="true"
-        on:dragstart={(e) => handleColDragStart(e, col.id)}
-        on:dragend={handleColDragEnd}
-        on:dragover={(e) => handleColDragOver(e, col.id)}
-        on:drop={(e) => handleColDrop(e, col.id)}
-        on:dblclick={() => editingColId = col.id}
-    >
-      {#if editingColId === col.id}
-         <input type="text" value={col.name} 
-           style="background: transparent; color: inherit; font-size: inherit; font-weight: inherit; border: 1px solid {col.color}; border-radius: 4px; padding: 2px 5px; flex: 1; outline: none; margin-right: 5px;"
-           on:blur={(e) => updateColumnName(col.id, e.currentTarget.value)}
-           on:keydown={(e) => { if (e.key === 'Enter') updateColumnName(col.id, e.currentTarget.value); if (e.key === 'Escape') editingColId = null; }}
-           autofocus
-         />
-      {:else}
-         <span style="cursor: grab; flex: 1;">{col.name} <span style="opacity:0.5; font-size:0.8em">({col.tasks.length})</span></span>
-      {/if}
-      
-      <div style="display: flex; gap: 5px; align-items: center;">
-         <input type="color" value={col.color} style="width: 20px; height: 20px; padding: 0; border: none; cursor: pointer; background: none;" on:change={(e) => updateColumnColor(col.id, e.currentTarget.value)} title="Change column color" />
-         {#if !col.isCore}
-           <button class="pos-del" style="padding: 2px 6px; font-size: 0.8em;" on:click|stopPropagation={() => deleteColumn(col.id)} title="Delete Column">x</button>
-         {/if}
-      </div>
-    </h4>
-    <div class="pos-board-list-wrapper" on:dragover={(e) => handleDragOver(e, col.id)} on:drop={(e) => handleDrop(e, col.id)}>
-      <div class="pos-board-list">
-        {#each col.tasks as task, i (task.id)}
-          {#if dragOverStatus === col.id && dragOverIndex === i}
-            <div class="pos-drag-placeholder" style="height: {dragHeight}px"></div>
-          {/if}
-          <!-- svelte-ignore a11y-no-static-element-interactions -->
-          <div class="pos-card pos-board-card" class:pos-dragging-source={dragId === task.id} draggable="true" on:dragstart={(e) => handleDragStart(e, task.id)} on:dragend={handleDragEnd}>
-            <div class="pos-ptc-header">
-              <!-- svelte-ignore a11y-click-events-have-key-events -->
-              <div class="pos-ptc-body" style="cursor: pointer;" on:click|stopPropagation={() => editTask(task)}>
-                <div class="pos-card-name">{task.name}</div>
-                {#if task.description}<div class="pos-card-desc">{task.description}</div>{/if}
-                <div class="pos-ptc-meta" style="display: flex; flex-direction: column; gap: 4px; margin-top: 8px; align-items: flex-start;">
-                  <span style="font-size: 0.85em; opacity: 0.7;">W:{task.weight || 1}</span>
-                  {#each getCustomProps(task) as prop}
-                    {#if prop.color}
-                      <span class="pos-tag-pill" style="background-color: {prop.color}20; color: {prop.color}; border: 1px solid {prop.color}40; display: inline-block; white-space: normal; text-align: left; line-height: 1.2;">
-                        <span style="opacity: 0.7; font-size: 0.9em; margin-right: 4px;">{prop.name}:</span>{prop.value}
-                      </span>
-                    {:else}
-                      <span class="pos-tag-pill" style="background-color: var(--background-modifier-border); color: var(--text-normal); display: inline-block; white-space: normal; text-align: left; line-height: 1.2; border: 1px solid var(--background-modifier-border-hover);">
-                        <span style="opacity: 0.7; font-size: 0.9em; margin-right: 4px;">{prop.name}:</span>{prop.value}
-                      </span>
-                    {/if}
-                  {/each}
+        <div style="display: flex; gap: 5px; align-items: center;">
+           <input type="color" value={col.color} style="width: 20px; height: 20px; padding: 0; border: none; cursor: pointer; background: none;" on:change={(e) => updateColumnColor(col.id, e.currentTarget.value)} title="Change column color" />
+           {#if !col.isCore}
+             <button class="pos-del" style="padding: 2px 6px; font-size: 0.8em;" on:click|stopPropagation={() => deleteColumn(col.id)} title="Delete Column">x</button>
+           {/if}
+        </div>
+      </h4>
+      <div class="pos-board-list-wrapper">
+        <div class="pos-board-list" style="min-height: 50px;" use:dndzone={{items: col.items, flipDurationMs, dropTargetStyle: {}}} on:consider={(e) => handleTaskConsider(col.id, e)} on:finalize={(e) => handleTaskFinalize(col.id, e)}>
+          {#each col.items as task (task.id)}
+            <div class="pos-card pos-board-card">
+              <div class="pos-ptc-header">
+                <!-- svelte-ignore a11y-click-events-have-key-events -->
+                <div class="pos-ptc-body" style="cursor: pointer;" on:click|stopPropagation={() => editTask(task)}>
+                  <div class="pos-card-name">{task.name}</div>
+                  {#if task.description}<div class="pos-card-desc">{task.description}</div>{/if}
+                  <div class="pos-ptc-meta" style="display: flex; flex-direction: column; gap: 4px; margin-top: 8px; align-items: flex-start;">
+                    <span style="font-size: 0.85em; opacity: 0.7;">W:{task.weight || 1}</span>
+                    {#each getCustomProps(task) as prop}
+                      {#if prop.color}
+                        <span class="pos-tag-pill" style="background-color: {prop.color}20; color: {prop.color}; border: 1px solid {prop.color}40; display: inline-block; white-space: normal; text-align: left; line-height: 1.2;">
+                          <span style="opacity: 0.7; font-size: 0.9em; margin-right: 4px;">{prop.name}:</span>{prop.value}
+                        </span>
+                      {:else}
+                        <span class="pos-tag-pill" style="background-color: var(--background-modifier-border); color: var(--text-normal); display: inline-block; white-space: normal; text-align: left; line-height: 1.2; border: 1px solid var(--background-modifier-border-hover);">
+                          <span style="opacity: 0.7; font-size: 0.9em; margin-right: 4px;">{prop.name}:</span>{prop.value}
+                        </span>
+                      {/if}
+                    {/each}
+                  </div>
                 </div>
               </div>
+              <div class="pos-ptc-acts">
+                <button class="pos-del" on:click={() => deleteTask(task.id)}>Delete</button>
+              </div>
             </div>
-            <div class="pos-ptc-acts">
-              <button class="pos-del" on:click={() => deleteTask(task.id)}>Delete</button>
-            </div>
-          </div>
-        {/each}
-        {#if dragOverStatus === col.id && dragOverIndex >= col.tasks.length}
-          <div class="pos-drag-placeholder" style="height: {dragHeight}px"></div>
-        {/if}
+          {/each}
+        </div>
         <button class="pos-board-add-btn" on:click|stopPropagation={() => createPlannedTask(col.id)}>+ Add Task</button>
       </div>
     </div>
+    {/each}
+    
+    <div style="padding: 10px; display: flex; align-items: flex-start;">
+      <button class="pos-btn" style="white-space: nowrap;" on:click={addColumn}>+ Add Kanban Column</button>
+    </div>
   </div>
-  {/each}
-  {#if dragOverColId && dragOverColIndex >= columns.length}
-    <div class="pos-board-col-placeholder" style="width: 300px; min-width: 300px; border: 2px dashed var(--interactive-accent); border-radius: 8px; margin: 0 10px; background: rgba(var(--interactive-accent-rgb), 0.05);"></div>
-  {/if}
-  
-  <!-- Add Column Button -->
-  
 </div>
