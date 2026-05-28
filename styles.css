@@ -2618,3 +2618,8 @@ body.pos-is-moving * {
   opacity: 0.4;
   outline: 2px dashed var(--interactive-accent);
 }
+
+.pos-col-elastic {
+  background-color: rgba(var(--interactive-accent-rgb), 0.05) !important;
+  border-radius: 8px;
+}

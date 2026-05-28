@@ -124,17 +124,11 @@
     }
 
     const fromIndex = settings.statuses.findIndex(s => s.id === dragColId);
+    const oldToIndex = settings.statuses.findIndex(s => s.id === id);
     const [movedItem] = settings.statuses.splice(fromIndex, 1);
-    
-    // We drop it at targetIdx (which is relative to the visible columns in the DOM)
-    // Actually, mapping DOM index to settings index is tricky if settings has hidden columns.
-    // Let's just insert it before 'id'. If we dropped on the right side of the last element, we append.
-    let toIndex = settings.statuses.findIndex(s => s.id === id);
-    // Since we use the mouse position in dragOver, we can just check if targetIdx is after the current ID
-    // But since Svelte re-renders, it's easier to just insert before the column we hovered on if the mouse is on its left half.
-    // If the mouse is on its right half, the targetIndex would be i+1.
-    // Let's approximate: if we drop, just insert it at toIndex.
-    settings.statuses.splice(toIndex, 0, movedItem);
+    const newToIndex = settings.statuses.findIndex(s => s.id === id);
+    const finalIndex = fromIndex < oldToIndex ? newToIndex + 1 : newToIndex;
+    settings.statuses.splice(finalIndex, 0, movedItem);
     
     await fileManager.plugin.saveSettings();
     fileManager.plugin.settings = settings; // trigger reactivity
@@ -268,7 +262,7 @@
     new NewTaskModal(app, async (name) => {
       let pid = projectId;
       if (pid === '-- All Projects --') pid = '';
-      await fileManager.createTask(name, pid, { status: statusId });
+      await fileManager.createTask({ name, project: pid, status: statusId });
     }).open();
   }
 
@@ -292,7 +286,7 @@
   {#if dragOverColId && dragOverColIndex === colIdx}
     <div class="pos-board-col-placeholder" style="width: 300px; min-width: 300px; border: 2px dashed var(--interactive-accent); border-radius: 8px; margin: 0 10px; background: rgba(var(--interactive-accent-rgb), 0.05);"></div>
   {/if}
-  <div class="pos-board-col" class:pos-dragging-source={dragColId === col.id}>
+  <div class="pos-board-col" class:pos-dragging-source={dragColId === col.id} class:pos-col-elastic={['backlog', 'running', 'review'].includes(col.id)}>
     <h4 class="pos-board-col-title" 
         style="color: {col.color}; border-bottom: 2px solid {col.color}40; display: flex; align-items: center; justify-content: space-between;"
         draggable="true"

@@ -10,7 +10,7 @@
   export let fileManager: FileManager;
   export let plugin;
 
-  let mode: 'projects' | 'elastic' | 'deadlines' = 'projects';
+  let mode: 'projects' | 'elastic' | 'deadlines' = 'elastic';
   let selectedProjectId: string | null = 'all';
 
   $: activeProjects = $projectsStore.filter(p => p.status === 'active');
@@ -18,7 +18,6 @@
 
 <div class="pos-view">
   <div class="pos-mode-bar">
-    <button class="pos-mode-btn" class:pos-mode-active={mode === 'projects'} on:click={() => mode = 'projects'}>Projects</button>
     <button class="pos-mode-btn" class:pos-mode-active={mode === 'elastic'} on:click={() => mode = 'elastic'}>Elastic</button>
     <button class="pos-mode-btn" class:pos-mode-active={mode === 'deadlines'} on:click={() => mode = 'deadlines'}>Deadlines</button>
     
@@ -37,6 +36,7 @@
     {/if}
     
     <div style="flex: 1;"></div>
+    <button class="pos-mode-btn" class:pos-mode-active={mode === 'projects'} on:click={() => mode = 'projects'}>Project Hub</button>
     <button 
       class="pos-settings-btn" 
       style="background: transparent; border: none; font-size: 1.2em; cursor: pointer; color: var(--text-muted);"

@@ -10943,7 +10943,7 @@ function create_if_block_34(ctx) {
       )
         add_render_callback(() => (
           /*select_change_handler*/
-          ctx[10].call(select)
+          ctx[9].call(select)
         ));
       attr(div2, "class", "pos-project-selector-row");
     },
@@ -10970,7 +10970,7 @@ function create_if_block_34(ctx) {
           select,
           "change",
           /*select_change_handler*/
-          ctx[10]
+          ctx[9]
         );
         mounted = true;
       }
@@ -11237,10 +11237,10 @@ function create_fragment5(ctx) {
   let t1;
   let button1;
   let t3;
-  let button2;
-  let t5;
-  let t6;
+  let t4;
   let div0;
+  let t5;
+  let button2;
   let t7;
   let button3;
   let t9;
@@ -11282,18 +11282,18 @@ function create_fragment5(ctx) {
       div3 = element("div");
       div1 = element("div");
       button0 = element("button");
-      button0.textContent = "Projects";
+      button0.textContent = "Elastic";
       t1 = space();
       button1 = element("button");
-      button1.textContent = "Elastic";
+      button1.textContent = "Deadlines";
       t3 = space();
-      button2 = element("button");
-      button2.textContent = "Deadlines";
-      t5 = space();
       if (if_block0)
         if_block0.c();
-      t6 = space();
+      t4 = space();
       div0 = element("div");
+      t5 = space();
+      button2 = element("button");
+      button2.textContent = "Project Hub";
       t7 = space();
       button3 = element("button");
       button3.textContent = "[Settings]";
@@ -11306,23 +11306,23 @@ function create_fragment5(ctx) {
         button0,
         "pos-mode-active",
         /*mode*/
-        ctx[3] === "projects"
+        ctx[3] === "elastic"
       );
       attr(button1, "class", "pos-mode-btn");
       toggle_class(
         button1,
         "pos-mode-active",
         /*mode*/
-        ctx[3] === "elastic"
+        ctx[3] === "deadlines"
       );
+      set_style(div0, "flex", "1");
       attr(button2, "class", "pos-mode-btn");
       toggle_class(
         button2,
         "pos-mode-active",
         /*mode*/
-        ctx[3] === "deadlines"
+        ctx[3] === "projects"
       );
-      set_style(div0, "flex", "1");
       attr(button3, "class", "pos-settings-btn");
       set_style(button3, "background", "transparent");
       set_style(button3, "border", "none");
@@ -11341,12 +11341,12 @@ function create_fragment5(ctx) {
       append(div1, t1);
       append(div1, button1);
       append(div1, t3);
-      append(div1, button2);
-      append(div1, t5);
       if (if_block0)
         if_block0.m(div1, null);
-      append(div1, t6);
+      append(div1, t4);
       append(div1, div0);
+      append(div1, t5);
+      append(div1, button2);
       append(div1, t7);
       append(div1, button3);
       append(div3, t9);
@@ -11373,7 +11373,7 @@ function create_fragment5(ctx) {
             button2,
             "click",
             /*click_handler_2*/
-            ctx[9]
+            ctx[10]
           ),
           listen(
             button3,
@@ -11392,22 +11392,13 @@ function create_fragment5(ctx) {
           button0,
           "pos-mode-active",
           /*mode*/
-          ctx2[3] === "projects"
-        );
-      }
-      if (!current || dirty & /*mode*/
-      8) {
-        toggle_class(
-          button1,
-          "pos-mode-active",
-          /*mode*/
           ctx2[3] === "elastic"
         );
       }
       if (!current || dirty & /*mode*/
       8) {
         toggle_class(
-          button2,
+          button1,
           "pos-mode-active",
           /*mode*/
           ctx2[3] === "deadlines"
@@ -11422,11 +11413,20 @@ function create_fragment5(ctx) {
         } else {
           if_block0 = create_if_block_34(ctx2);
           if_block0.c();
-          if_block0.m(div1, t6);
+          if_block0.m(div1, t4);
         }
       } else if (if_block0) {
         if_block0.d(1);
         if_block0 = null;
+      }
+      if (!current || dirty & /*mode*/
+      8) {
+        toggle_class(
+          button2,
+          "pos-mode-active",
+          /*mode*/
+          ctx2[3] === "projects"
+        );
       }
       let previous_block_index = current_block_type_index;
       current_block_type_index = select_block_type(ctx2, dirty);
@@ -11488,16 +11488,16 @@ function instance5($$self, $$props, $$invalidate) {
   let { app } = $$props;
   let { fileManager } = $$props;
   let { plugin } = $$props;
-  let mode = "projects";
+  let mode = "elastic";
   let selectedProjectId = "all";
-  const click_handler = () => $$invalidate(3, mode = "projects");
-  const click_handler_1 = () => $$invalidate(3, mode = "elastic");
-  const click_handler_2 = () => $$invalidate(3, mode = "deadlines");
+  const click_handler = () => $$invalidate(3, mode = "elastic");
+  const click_handler_1 = () => $$invalidate(3, mode = "deadlines");
   function select_change_handler() {
     selectedProjectId = select_value(this);
     $$invalidate(4, selectedProjectId);
     $$invalidate(5, activeProjects), $$invalidate(6, $projectsStore);
   }
+  const click_handler_2 = () => $$invalidate(3, mode = "projects");
   const click_handler_3 = () => {
     if (app.setting) {
       app.setting.open();
@@ -11533,8 +11533,8 @@ function instance5($$self, $$props, $$invalidate) {
     $projectsStore,
     click_handler,
     click_handler_1,
-    click_handler_2,
     select_change_handler,
+    click_handler_2,
     click_handler_3,
     func2
   ];
@@ -12301,6 +12301,10 @@ function create_each_block5(key_1, ctx) {
         ctx[0] === /*col*/
         ctx[39].id
       );
+      toggle_class(div2, "pos-col-elastic", ["backlog", "running", "review"].includes(
+        /*col*/
+        ctx[39].id
+      ));
       this.first = first;
     },
     m(target, anchor) {
@@ -12429,6 +12433,13 @@ function create_each_block5(key_1, ctx) {
           ctx[0] === /*col*/
           ctx[39].id
         );
+      }
+      if (dirty[0] & /*columns*/
+      128) {
+        toggle_class(div2, "pos-col-elastic", ["backlog", "running", "review"].includes(
+          /*col*/
+          ctx[39].id
+        ));
       }
     },
     d(detaching) {
@@ -12672,9 +12683,11 @@ function instance6($$self, $$props, $$invalidate) {
       });
     }
     const fromIndex = settings.statuses.findIndex((s) => s.id === dragColId);
+    const oldToIndex = settings.statuses.findIndex((s) => s.id === id);
     const [movedItem] = settings.statuses.splice(fromIndex, 1);
-    let toIndex = settings.statuses.findIndex((s) => s.id === id);
-    settings.statuses.splice(toIndex, 0, movedItem);
+    const newToIndex = settings.statuses.findIndex((s) => s.id === id);
+    const finalIndex = fromIndex < oldToIndex ? newToIndex + 1 : newToIndex;
+    settings.statuses.splice(finalIndex, 0, movedItem);
     await fileManager.plugin.saveSettings();
     $$invalidate(21, fileManager.plugin.settings = settings, fileManager);
     $$invalidate(0, dragColId = null);
@@ -12807,7 +12820,7 @@ function instance6($$self, $$props, $$invalidate) {
         let pid = projectId;
         if (pid === "-- All Projects --")
           pid = "";
-        await fileManager.createTask(name, pid, { status: statusId });
+        await fileManager.createTask({ name, project: pid, status: statusId });
       }
     ).open();
   }
