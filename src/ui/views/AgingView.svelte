@@ -94,10 +94,11 @@
   }
 
   function handleSelectProject(id: string) {
-    if (isFullPage) {
-      onSelect(id, 'elastic');
+    const pFile = fileManager.getProjectNoteFile(id);
+    if (pFile) {
+      app.workspace.getLeaf('tab').openFile(pFile);
     } else {
-      plugin.activateWorkspaceView(id);
+      new Notice('Project note not found');
     }
   }
 

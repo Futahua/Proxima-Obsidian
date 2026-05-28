@@ -230,7 +230,13 @@ export class FileManager {
             for (const schema of this.plugin.settings.taskSchema) {
                if (schema.type === 'formula' && schema.expression) {
                   try {
-                    const scope: Record<string, any> = {};
+                    const scope: Record<string, any> = {
+                      prop: (name: string) => {
+                        const s = this.plugin.settings.taskSchema.find(x => x.name === name || x.id === name);
+                        return s ? props[s.id] : undefined;
+                      }
+                    };
+                    // Also spread properties directly for backwards compatibility
                     for (const s of this.plugin.settings.taskSchema) {
                       if (s.name && props[s.id] !== undefined) {
                         scope[s.name] = props[s.id];

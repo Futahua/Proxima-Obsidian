@@ -2785,7 +2785,12 @@ var FileManager = class {
             for (const schema of this.plugin.settings.taskSchema) {
               if (schema.type === "formula" && schema.expression) {
                 try {
-                  const scope = {};
+                  const scope = {
+                    prop: (name) => {
+                      const s = this.plugin.settings.taskSchema.find((x) => x.name === name || x.id === name);
+                      return s ? props[s.id] : void 0;
+                    }
+                  };
                   for (const s of this.plugin.settings.taskSchema) {
                     if (s.name && props[s.id] !== void 0) {
                       scope[s.name] = props[s.id];
@@ -11801,10 +11806,11 @@ function instance4($$self, $$props, $$invalidate) {
     }
   }
   function handleSelectProject(id) {
-    if (isFullPage) {
-      onSelect(id, "elastic");
+    const pFile = fileManager.getProjectNoteFile(id);
+    if (pFile) {
+      app.workspace.getLeaf("tab").openFile(pFile);
     } else {
-      plugin.activateWorkspaceView(id);
+      new import_obsidian4.Notice("Project note not found");
     }
   }
   function input_change_handler() {
