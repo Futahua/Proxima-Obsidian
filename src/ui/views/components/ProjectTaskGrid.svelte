@@ -65,6 +65,9 @@
       else taskValue = task.properties ? task.properties[rule.property] : undefined;
       
       const rVal = rule.value;
+      if (rule.property === 'isCompleted' && typeof taskValue === 'boolean') {
+        taskValue = taskValue ? 'true' : 'false';
+      }
       const op = rule.operator;
       
       if (op === 'is-empty') {
@@ -249,7 +252,33 @@
         </select>
         
         {#if filter.operator !== 'is-empty' && filter.operator !== 'not-empty'}
-          <input type="text" bind:value={filter.value} on:input={saveFilters} class="pos-grid-search-input" style="flex: 1; max-width: 200px;" placeholder="Value..." />
+          {#if filter.property === 'status'}
+            <select bind:value={filter.value} on:change={saveFilters} class="pos-grid-select-filter">
+              <option value="backlog">Elastic Backlog</option>
+              <option value="planned">Planned</option>
+              <option value="running">Elastic Running</option>
+              <option value="review">Finished</option>
+              {#each (fileManager.plugin.settings.statuses || []) as st}
+                 {#if !['backlog', 'planned', 'running', 'review'].includes(st.id)}
+                   <option value={st.id}>{st.name}</option>
+                 {/if}
+              {/each}
+            </select>
+          {:else if filter.property === 'isCompleted'}
+            <select bind:value={filter.value} on:change={saveFilters} class="pos-grid-select-filter">
+              <option value="true">True</option>
+              <option value="false">False</option>
+            </select>
+          {:else if schema.find(s => s.id === filter.property)?.type === 'select' || schema.find(s => s.id === filter.property)?.type === 'multi-select'}
+            <select bind:value={filter.value} on:change={saveFilters} class="pos-grid-select-filter">
+              <option value="">-- Select Option --</option>
+              {#each (schema.find(s => s.id === filter.property)?.options || []) as opt}
+                <option value={opt.id}>{opt.name}</option>
+              {/each}
+            </select>
+          {:else}
+            <input type="text" bind:value={filter.value} on:input={saveFilters} class="pos-grid-search-input" style="flex: 1; max-width: 200px;" placeholder="Value..." />
+          {/if}
         {/if}
         
         <button class="pos-del" style="padding: 4px 8px;" on:click={() => removeFilter(filter.id)}>x</button>

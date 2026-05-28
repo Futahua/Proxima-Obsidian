@@ -16,16 +16,18 @@
   });
   $: settingsStatuses = fileManager.plugin.settings.statuses || [];
   $: statuses = (() => {
-    const cols = [ { id: 'backlog', name: 'Elastic Backlog', color: '#636e72' } ];
+    const cols = [ 
+      { id: 'backlog', name: 'Elastic Backlog', color: '#636e72' },
+      { id: 'running', name: 'Elastic Running', color: '#00b894' },
+      { id: 'review', name: 'Finished', color: '#fdcb6e' }
+    ];
     settingsStatuses.forEach(s => {
       if (!cols.find(c => c.id === s.id)) cols.push(s);
     });
     const activeStatuses = new Set(projectTasks.map(t => t.status));
     activeStatuses.forEach(statusId => {
       if (!cols.find(c => c.id === statusId)) {
-        if (statusId === 'running') cols.push({ id: 'running', name: 'Elastic Running', color: '#00b894' });
-        else if (statusId === 'review') cols.push({ id: 'review', name: 'Elastic Review', color: '#fdcb6e' });
-        else cols.push({ id: statusId, name: statusId, color: '#a29bfe' });
+        cols.push({ id: statusId, name: statusId, color: '#a29bfe' });
       }
     });
     return cols;
@@ -262,7 +264,63 @@
   }
 </script>
 
-<div class="pos-board-workspace">
+<div class="pos-board-workspace"
+    on:dragover={(e) => {
+      // If we are dragging a column, allow drop on the workspace itself
+      if (dragColId) {
+        e.preventDefault();
+        if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+        
+        // Find which index we are hovering over
+        const cols = Array.from((e.currentTarget).children).filter(c => c.classList.contains('pos-board-col') && !c.classList.contains('pos-dragging-source'));
+        const mouseX = e.clientX;
+        let targetIndex = cols.length;
+        
+        for (let i = 0; i < cols.length; i++) {
+          const rect = cols[i].getBoundingClientRect();
+          const middle = rect.left + rect.width / 2;
+          if (mouseX < middle) {
+            targetIndex = i;
+            break;
+          }
+        }
+        
+        dragOverColId = 'workspace';
+        dragOverColIndex = targetIndex;
+      }
+    }}
+    on:drop={async (e) => {
+      if (dragColId) {
+        e.preventDefault();
+        const settings = fileManager.plugin.settings;
+        if (!settings.statuses) settings.statuses = [];
+        
+        const fromIndex = settings.statuses.findIndex(s => s.id === dragColId);
+        if (fromIndex !== -1) {
+          const [movedItem] = settings.statuses.splice(fromIndex, 1);
+          let insertIndex = dragOverColIndex;
+          
+          if (insertIndex < columns.length) {
+             const targetColId = columns[insertIndex].id;
+             let toIndex = settings.statuses.findIndex(s => s.id === targetColId);
+             if (toIndex !== -1) {
+               settings.statuses.splice(toIndex, 0, movedItem);
+             } else {
+               settings.statuses.push(movedItem);
+             }
+          } else {
+             settings.statuses.push(movedItem);
+          }
+          
+          await fileManager.plugin.saveSettings();
+          fileManager.plugin.settings = settings; // trigger reactivity
+        }
+        dragColId = null;
+        dragOverColId = null;
+        dragOverColIndex = -1;
+      }
+    }}
+>
   {#each columns as col, colIdx (col.id)}
   {#if dragOverColId && dragOverColIndex === colIdx}
     <div class="pos-board-col-placeholder" style="width: 300px; min-width: 300px; border: 2px dashed var(--interactive-accent); border-radius: 8px; margin: 0 10px; background: rgba(var(--interactive-accent-rgb), 0.05);"></div>
