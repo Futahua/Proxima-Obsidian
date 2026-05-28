@@ -10,7 +10,11 @@
   export let projectTasks: TaskData[];
 
   const sortTasks = (tasks: TaskData[]) => tasks.sort((a, b) => (a.priority - b.priority) || (a.orderIndex - b.orderIndex));
-  $: statuses = fileManager.plugin.settings.statuses || [];
+  $: settingsStatuses = fileManager.plugin.settings.statuses || [];
+  $: statuses = [
+    { id: 'backlog', name: 'Elastic Backlog', color: '#636e72' },
+    ...settingsStatuses.filter(s => s.id !== 'backlog')
+  ];
   $: columns = statuses.map(s => ({
     ...s,
     tasks: sortTasks(projectTasks.filter(t => t.status === s.id))
@@ -76,7 +80,9 @@
     } else {
       if (e.dataTransfer) e.dataTransfer.setData('text/plain', id);
     }
-    dragId = id;
+    setTimeout(() => {
+      dragId = id;
+    }, 0);
   }
 
   function handleDragEnd() {
