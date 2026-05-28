@@ -11553,21 +11553,45 @@ var import_obsidian6 = require("obsidian");
 // src/ui/views/components/ProjectTaskBoard.svelte
 function get_each_context5(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[38] = list[i];
+  child_ctx[39] = list[i];
+  child_ctx[41] = i;
   return child_ctx;
 }
 function get_each_context_13(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[41] = list[i];
-  child_ctx[43] = i;
+  child_ctx[42] = list[i];
+  child_ctx[44] = i;
   return child_ctx;
 }
 function get_each_context_23(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[44] = list[i];
+  child_ctx[45] = list[i];
   return child_ctx;
 }
-function create_if_block_35(ctx) {
+function create_if_block_54(ctx) {
+  let div2;
+  return {
+    c() {
+      div2 = element("div");
+      attr(div2, "class", "pos-board-col-placeholder");
+      set_style(div2, "width", "300px");
+      set_style(div2, "min-width", "300px");
+      set_style(div2, "border", "2px dashed var(--interactive-accent)");
+      set_style(div2, "border-radius", "8px");
+      set_style(div2, "margin", "0 10px");
+      set_style(div2, "background", "rgba(var(--interactive-accent-rgb), 0.05)");
+    },
+    m(target, anchor) {
+      insert(target, div2, anchor);
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div2);
+      }
+    }
+  };
+}
+function create_if_block_44(ctx) {
   let div2;
   return {
     c() {
@@ -11577,7 +11601,7 @@ function create_if_block_35(ctx) {
         div2,
         "height",
         /*dragHeight*/
-        ctx[5] + "px"
+        ctx[6] + "px"
       );
     },
     m(target, anchor) {
@@ -11585,12 +11609,12 @@ function create_if_block_35(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*dragHeight*/
-      32) {
+      64) {
         set_style(
           div2,
           "height",
           /*dragHeight*/
-          ctx2[5] + "px"
+          ctx2[6] + "px"
         );
       }
     },
@@ -11601,11 +11625,11 @@ function create_if_block_35(ctx) {
     }
   };
 }
-function create_if_block_25(ctx) {
+function create_if_block_35(ctx) {
   let div2;
   let t_value = (
     /*task*/
-    ctx[41].description + ""
+    ctx[42].description + ""
   );
   let t;
   return {
@@ -11620,8 +11644,8 @@ function create_if_block_25(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*columns*/
-      64 && t_value !== (t_value = /*task*/
-      ctx2[41].description + ""))
+      128 && t_value !== (t_value = /*task*/
+      ctx2[42].description + ""))
         set_data(t, t_value);
     },
     d(detaching) {
@@ -11635,13 +11659,13 @@ function create_else_block3(ctx) {
   let span;
   let t0_value = (
     /*prop*/
-    ctx[44].name + ""
+    ctx[45].name + ""
   );
   let t0;
   let t1;
   let t2_value = (
     /*prop*/
-    ctx[44].value + ""
+    ctx[45].value + ""
   );
   let t2;
   let t3;
@@ -11665,12 +11689,12 @@ function create_else_block3(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*columns*/
-      64 && t0_value !== (t0_value = /*prop*/
-      ctx2[44].name + ""))
+      128 && t0_value !== (t0_value = /*prop*/
+      ctx2[45].name + ""))
         set_data(t0, t0_value);
       if (dirty[0] & /*columns*/
-      64 && t2_value !== (t2_value = /*prop*/
-      ctx2[44].value + ""))
+      128 && t2_value !== (t2_value = /*prop*/
+      ctx2[45].value + ""))
         set_data(t2, t2_value);
     },
     d(detaching) {
@@ -11680,11 +11704,11 @@ function create_else_block3(ctx) {
     }
   };
 }
-function create_if_block_19(ctx) {
+function create_if_block_25(ctx) {
   let span;
   let t0_value = (
     /*prop*/
-    ctx[44].value + ""
+    ctx[45].value + ""
   );
   let t0;
   let t1;
@@ -11698,16 +11722,16 @@ function create_if_block_19(ctx) {
         span,
         "background-color",
         /*prop*/
-        ctx[44].color + "20"
+        ctx[45].color + "20"
       );
       set_style(
         span,
         "color",
         /*prop*/
-        ctx[44].color
+        ctx[45].color
       );
       set_style(span, "border", "1px solid " + /*prop*/
-      ctx[44].color + "40");
+      ctx[45].color + "40");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -11716,31 +11740,31 @@ function create_if_block_19(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*columns*/
-      64 && t0_value !== (t0_value = /*prop*/
-      ctx2[44].value + ""))
+      128 && t0_value !== (t0_value = /*prop*/
+      ctx2[45].value + ""))
         set_data(t0, t0_value);
       if (dirty[0] & /*columns*/
-      64) {
+      128) {
         set_style(
           span,
           "background-color",
           /*prop*/
-          ctx2[44].color + "20"
+          ctx2[45].color + "20"
         );
       }
       if (dirty[0] & /*columns*/
-      64) {
+      128) {
         set_style(
           span,
           "color",
           /*prop*/
-          ctx2[44].color
+          ctx2[45].color
         );
       }
       if (dirty[0] & /*columns*/
-      64) {
+      128) {
         set_style(span, "border", "1px solid " + /*prop*/
-        ctx2[44].color + "40");
+        ctx2[45].color + "40");
       }
     },
     d(detaching) {
@@ -11755,9 +11779,9 @@ function create_each_block_23(ctx) {
   function select_block_type(ctx2, dirty) {
     if (
       /*prop*/
-      ctx2[44].color
+      ctx2[45].color
     )
-      return create_if_block_19;
+      return create_if_block_25;
     return create_else_block3;
   }
   let current_block_type = select_block_type(ctx, [-1, -1]);
@@ -11800,7 +11824,7 @@ function create_each_block_13(key_1, ctx) {
   let div0;
   let t1_value = (
     /*task*/
-    ctx[41].name + ""
+    ctx[42].name + ""
   );
   let t1;
   let t2;
@@ -11810,7 +11834,7 @@ function create_each_block_13(key_1, ctx) {
   let t4;
   let t5_value = (
     /*task*/
-    (ctx[41].weight || 1) + ""
+    (ctx[42].weight || 1) + ""
   );
   let t5;
   let t6;
@@ -11821,20 +11845,20 @@ function create_each_block_13(key_1, ctx) {
   let dispose;
   let if_block0 = (
     /*dragOverStatus*/
-    ctx[3] === /*col*/
-    ctx[38].id && /*dragOverIndex*/
-    ctx[4] === /*i*/
-    ctx[43] && create_if_block_35(ctx)
+    ctx[4] === /*col*/
+    ctx[39].id && /*dragOverIndex*/
+    ctx[5] === /*i*/
+    ctx[44] && create_if_block_44(ctx)
   );
   let if_block1 = (
     /*task*/
-    ctx[41].description && create_if_block_25(ctx)
+    ctx[42].description && create_if_block_35(ctx)
   );
   let each_value_2 = ensure_array_like(
     /*getCustomProps*/
-    ctx[7](
+    ctx[8](
       /*task*/
-      ctx[41]
+      ctx[42]
     )
   );
   let each_blocks = [];
@@ -11844,27 +11868,27 @@ function create_each_block_13(key_1, ctx) {
   function click_handler() {
     return (
       /*click_handler*/
-      ctx[30](
+      ctx[31](
         /*task*/
-        ctx[41]
+        ctx[42]
       )
     );
   }
   function click_handler_1() {
     return (
       /*click_handler_1*/
-      ctx[31](
+      ctx[32](
         /*task*/
-        ctx[41]
+        ctx[42]
       )
     );
   }
   function dragstart_handler_1(...args) {
     return (
       /*dragstart_handler_1*/
-      ctx[32](
+      ctx[33](
         /*task*/
-        ctx[41],
+        ctx[42],
         ...args
       )
     );
@@ -11911,8 +11935,8 @@ function create_each_block_13(key_1, ctx) {
         div5,
         "pos-dragging-source",
         /*dragId*/
-        ctx[2] === /*task*/
-        ctx[41].id
+        ctx[3] === /*task*/
+        ctx[42].id
       );
       this.first = first;
     },
@@ -11952,7 +11976,7 @@ function create_each_block_13(key_1, ctx) {
             div5,
             "dragend",
             /*handleDragEnd*/
-            ctx[14]
+            ctx[15]
           )
         ];
         mounted = true;
@@ -11962,15 +11986,15 @@ function create_each_block_13(key_1, ctx) {
       ctx = new_ctx;
       if (
         /*dragOverStatus*/
-        ctx[3] === /*col*/
-        ctx[38].id && /*dragOverIndex*/
-        ctx[4] === /*i*/
-        ctx[43]
+        ctx[4] === /*col*/
+        ctx[39].id && /*dragOverIndex*/
+        ctx[5] === /*i*/
+        ctx[44]
       ) {
         if (if_block0) {
           if_block0.p(ctx, dirty);
         } else {
-          if_block0 = create_if_block_35(ctx);
+          if_block0 = create_if_block_44(ctx);
           if_block0.c();
           if_block0.m(t0.parentNode, t0);
         }
@@ -11979,17 +12003,17 @@ function create_each_block_13(key_1, ctx) {
         if_block0 = null;
       }
       if (dirty[0] & /*columns*/
-      64 && t1_value !== (t1_value = /*task*/
-      ctx[41].name + ""))
+      128 && t1_value !== (t1_value = /*task*/
+      ctx[42].name + ""))
         set_data(t1, t1_value);
       if (
         /*task*/
-        ctx[41].description
+        ctx[42].description
       ) {
         if (if_block1) {
           if_block1.p(ctx, dirty);
         } else {
-          if_block1 = create_if_block_25(ctx);
+          if_block1 = create_if_block_35(ctx);
           if_block1.c();
           if_block1.m(div2, t3);
         }
@@ -11998,16 +12022,16 @@ function create_each_block_13(key_1, ctx) {
         if_block1 = null;
       }
       if (dirty[0] & /*columns*/
-      64 && t5_value !== (t5_value = /*task*/
-      (ctx[41].weight || 1) + ""))
+      128 && t5_value !== (t5_value = /*task*/
+      (ctx[42].weight || 1) + ""))
         set_data(t5, t5_value);
       if (dirty[0] & /*getCustomProps, columns*/
-      192) {
+      384) {
         each_value_2 = ensure_array_like(
           /*getCustomProps*/
-          ctx[7](
+          ctx[8](
             /*task*/
-            ctx[41]
+            ctx[42]
           )
         );
         let i;
@@ -12027,13 +12051,13 @@ function create_each_block_13(key_1, ctx) {
         each_blocks.length = each_value_2.length;
       }
       if (dirty[0] & /*dragId, columns*/
-      68) {
+      136) {
         toggle_class(
           div5,
           "pos-dragging-source",
           /*dragId*/
-          ctx[2] === /*task*/
-          ctx[41].id
+          ctx[3] === /*task*/
+          ctx[42].id
         );
       }
     },
@@ -12053,7 +12077,7 @@ function create_each_block_13(key_1, ctx) {
     }
   };
 }
-function create_if_block5(ctx) {
+function create_if_block_19(ctx) {
   let div2;
   return {
     c() {
@@ -12063,7 +12087,7 @@ function create_if_block5(ctx) {
         div2,
         "height",
         /*dragHeight*/
-        ctx[5] + "px"
+        ctx[6] + "px"
       );
     },
     m(target, anchor) {
@@ -12071,12 +12095,12 @@ function create_if_block5(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*dragHeight*/
-      32) {
+      64) {
         set_style(
           div2,
           "height",
           /*dragHeight*/
-          ctx2[5] + "px"
+          ctx2[6] + "px"
         );
       }
     },
@@ -12088,41 +12112,48 @@ function create_if_block5(ctx) {
   };
 }
 function create_each_block5(key_1, ctx) {
+  let first;
+  let t0;
   let div2;
   let h4;
   let span;
-  let t0_value = (
+  let t1_value = (
     /*col*/
-    ctx[38].name + ""
+    ctx[39].name + ""
   );
-  let t0;
   let t1;
-  let t2_value = (
-    /*col*/
-    ctx[38].tasks.length + ""
-  );
   let t2;
+  let t3_value = (
+    /*col*/
+    ctx[39].tasks.length + ""
+  );
   let t3;
   let t4;
+  let t5;
   let input;
   let input_value_value;
-  let t5;
+  let t6;
   let div1;
   let div0;
   let each_blocks = [];
   let each_1_lookup = /* @__PURE__ */ new Map();
-  let t6;
   let t7;
+  let t8;
   let button;
-  let t9;
   let mounted;
   let dispose;
+  let if_block0 = (
+    /*dragOverColId*/
+    ctx[1] && /*dragOverColIndex*/
+    ctx[2] === /*colIdx*/
+    ctx[41] && create_if_block_54(ctx)
+  );
   function change_handler(...args) {
     return (
       /*change_handler*/
-      ctx[26](
+      ctx[27](
         /*col*/
-        ctx[38],
+        ctx[39],
         ...args
       )
     );
@@ -12130,9 +12161,9 @@ function create_each_block5(key_1, ctx) {
   function dragstart_handler(...args) {
     return (
       /*dragstart_handler*/
-      ctx[27](
+      ctx[28](
         /*col*/
-        ctx[38],
+        ctx[39],
         ...args
       )
     );
@@ -12140,9 +12171,9 @@ function create_each_block5(key_1, ctx) {
   function dragover_handler(...args) {
     return (
       /*dragover_handler*/
-      ctx[28](
+      ctx[29](
         /*col*/
-        ctx[38],
+        ctx[39],
         ...args
       )
     );
@@ -12150,48 +12181,48 @@ function create_each_block5(key_1, ctx) {
   function drop_handler(...args) {
     return (
       /*drop_handler*/
-      ctx[29](
+      ctx[30](
         /*col*/
-        ctx[38],
+        ctx[39],
         ...args
       )
     );
   }
   let each_value_1 = ensure_array_like(
     /*col*/
-    ctx[38].tasks
+    ctx[39].tasks
   );
   const get_key = (ctx2) => (
     /*task*/
-    ctx2[41].id
+    ctx2[42].id
   );
   for (let i = 0; i < each_value_1.length; i += 1) {
     let child_ctx = get_each_context_13(ctx, each_value_1, i);
     let key = get_key(child_ctx);
     each_1_lookup.set(key, each_blocks[i] = create_each_block_13(key, child_ctx));
   }
-  let if_block = (
+  let if_block1 = (
     /*dragOverStatus*/
-    ctx[3] === /*col*/
-    ctx[38].id && /*dragOverIndex*/
-    ctx[4] >= /*col*/
-    ctx[38].tasks.length && create_if_block5(ctx)
+    ctx[4] === /*col*/
+    ctx[39].id && /*dragOverIndex*/
+    ctx[5] >= /*col*/
+    ctx[39].tasks.length && create_if_block_19(ctx)
   );
   function click_handler_2() {
     return (
       /*click_handler_2*/
-      ctx[33](
+      ctx[34](
         /*col*/
-        ctx[38]
+        ctx[39]
       )
     );
   }
   function dragover_handler_1(...args) {
     return (
       /*dragover_handler_1*/
-      ctx[34](
+      ctx[35](
         /*col*/
-        ctx[38],
+        ctx[39],
         ...args
       )
     );
@@ -12199,9 +12230,9 @@ function create_each_block5(key_1, ctx) {
   function drop_handler_1(...args) {
     return (
       /*drop_handler_1*/
-      ctx[35](
+      ctx[36](
         /*col*/
-        ctx[38],
+        ctx[39],
         ...args
       )
     );
@@ -12210,32 +12241,35 @@ function create_each_block5(key_1, ctx) {
     key: key_1,
     first: null,
     c() {
+      first = empty();
+      if (if_block0)
+        if_block0.c();
+      t0 = space();
       div2 = element("div");
       h4 = element("h4");
       span = element("span");
-      t0 = text(t0_value);
-      t1 = text(" (");
-      t2 = text(t2_value);
-      t3 = text(")");
-      t4 = space();
-      input = element("input");
+      t1 = text(t1_value);
+      t2 = text(" (");
+      t3 = text(t3_value);
+      t4 = text(")");
       t5 = space();
+      input = element("input");
+      t6 = space();
       div1 = element("div");
       div0 = element("div");
       for (let i = 0; i < each_blocks.length; i += 1) {
         each_blocks[i].c();
       }
-      t6 = space();
-      if (if_block)
-        if_block.c();
       t7 = space();
+      if (if_block1)
+        if_block1.c();
+      t8 = space();
       button = element("button");
       button.textContent = "+ Add Task";
-      t9 = space();
       set_style(span, "cursor", "grab");
       attr(input, "type", "color");
       input.value = input_value_value = /*col*/
-      ctx[38].color;
+      ctx[39].color;
       set_style(input, "width", "20px");
       set_style(input, "height", "20px");
       set_style(input, "padding", "0");
@@ -12248,10 +12282,10 @@ function create_each_block5(key_1, ctx) {
         h4,
         "color",
         /*col*/
-        ctx[38].color
+        ctx[39].color
       );
       set_style(h4, "border-bottom", "2px solid " + /*col*/
-      ctx[38].color + "40");
+      ctx[39].color + "40");
       set_style(h4, "display", "flex");
       set_style(h4, "align-items", "center");
       set_style(h4, "justify-content", "space-between");
@@ -12265,28 +12299,25 @@ function create_each_block5(key_1, ctx) {
         "pos-dragging-source",
         /*dragColId*/
         ctx[0] === /*col*/
-        ctx[38].id
+        ctx[39].id
       );
-      toggle_class(
-        div2,
-        "pos-drag-over",
-        /*dragOverColId*/
-        ctx[1] === /*col*/
-        ctx[38].id
-      );
-      this.first = div2;
+      this.first = first;
     },
     m(target, anchor) {
+      insert(target, first, anchor);
+      if (if_block0)
+        if_block0.m(target, anchor);
+      insert(target, t0, anchor);
       insert(target, div2, anchor);
       append(div2, h4);
       append(h4, span);
-      append(span, t0);
       append(span, t1);
       append(span, t2);
       append(span, t3);
-      append(h4, t4);
+      append(span, t4);
+      append(h4, t5);
       append(h4, input);
-      append(div2, t5);
+      append(div2, t6);
       append(div2, div1);
       append(div1, div0);
       for (let i = 0; i < each_blocks.length; i += 1) {
@@ -12294,12 +12325,11 @@ function create_each_block5(key_1, ctx) {
           each_blocks[i].m(div0, null);
         }
       }
-      append(div0, t6);
-      if (if_block)
-        if_block.m(div0, null);
       append(div0, t7);
+      if (if_block1)
+        if_block1.m(div0, null);
+      append(div0, t8);
       append(div0, button);
-      append(div2, t9);
       if (!mounted) {
         dispose = [
           listen(input, "change", change_handler),
@@ -12308,7 +12338,7 @@ function create_each_block5(key_1, ctx) {
             h4,
             "dragend",
             /*handleColDragEnd*/
-            ctx[9]
+            ctx[10]
           ),
           listen(h4, "dragover", dragover_handler),
           listen(h4, "drop", drop_handler),
@@ -12321,91 +12351,124 @@ function create_each_block5(key_1, ctx) {
     },
     p(new_ctx, dirty) {
       ctx = new_ctx;
+      if (
+        /*dragOverColId*/
+        ctx[1] && /*dragOverColIndex*/
+        ctx[2] === /*colIdx*/
+        ctx[41]
+      ) {
+        if (if_block0) {
+        } else {
+          if_block0 = create_if_block_54(ctx);
+          if_block0.c();
+          if_block0.m(t0.parentNode, t0);
+        }
+      } else if (if_block0) {
+        if_block0.d(1);
+        if_block0 = null;
+      }
       if (dirty[0] & /*columns*/
-      64 && t0_value !== (t0_value = /*col*/
-      ctx[38].name + ""))
-        set_data(t0, t0_value);
+      128 && t1_value !== (t1_value = /*col*/
+      ctx[39].name + ""))
+        set_data(t1, t1_value);
       if (dirty[0] & /*columns*/
-      64 && t2_value !== (t2_value = /*col*/
-      ctx[38].tasks.length + ""))
-        set_data(t2, t2_value);
+      128 && t3_value !== (t3_value = /*col*/
+      ctx[39].tasks.length + ""))
+        set_data(t3, t3_value);
       if (dirty[0] & /*columns*/
-      64 && input_value_value !== (input_value_value = /*col*/
-      ctx[38].color)) {
+      128 && input_value_value !== (input_value_value = /*col*/
+      ctx[39].color)) {
         input.value = input_value_value;
       }
       if (dirty[0] & /*columns*/
-      64) {
+      128) {
         set_style(
           h4,
           "color",
           /*col*/
-          ctx[38].color
+          ctx[39].color
         );
       }
       if (dirty[0] & /*columns*/
-      64) {
+      128) {
         set_style(h4, "border-bottom", "2px solid " + /*col*/
-        ctx[38].color + "40");
+        ctx[39].color + "40");
       }
       if (dirty[0] & /*dragId, columns, handleDragStart, handleDragEnd, deleteTask, editTask, getCustomProps, dragHeight, dragOverStatus, dragOverIndex*/
-      811260) {
+      1622520) {
         each_value_1 = ensure_array_like(
           /*col*/
-          ctx[38].tasks
+          ctx[39].tasks
         );
-        each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx, each_value_1, each_1_lookup, div0, destroy_block, create_each_block_13, t6, get_each_context_13);
+        each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx, each_value_1, each_1_lookup, div0, destroy_block, create_each_block_13, t7, get_each_context_13);
       }
       if (
         /*dragOverStatus*/
-        ctx[3] === /*col*/
-        ctx[38].id && /*dragOverIndex*/
-        ctx[4] >= /*col*/
-        ctx[38].tasks.length
+        ctx[4] === /*col*/
+        ctx[39].id && /*dragOverIndex*/
+        ctx[5] >= /*col*/
+        ctx[39].tasks.length
       ) {
-        if (if_block) {
-          if_block.p(ctx, dirty);
+        if (if_block1) {
+          if_block1.p(ctx, dirty);
         } else {
-          if_block = create_if_block5(ctx);
-          if_block.c();
-          if_block.m(div0, t7);
+          if_block1 = create_if_block_19(ctx);
+          if_block1.c();
+          if_block1.m(div0, t8);
         }
-      } else if (if_block) {
-        if_block.d(1);
-        if_block = null;
+      } else if (if_block1) {
+        if_block1.d(1);
+        if_block1 = null;
       }
       if (dirty[0] & /*dragColId, columns*/
-      65) {
+      129) {
         toggle_class(
           div2,
           "pos-dragging-source",
           /*dragColId*/
           ctx[0] === /*col*/
-          ctx[38].id
-        );
-      }
-      if (dirty[0] & /*dragOverColId, columns*/
-      66) {
-        toggle_class(
-          div2,
-          "pos-drag-over",
-          /*dragOverColId*/
-          ctx[1] === /*col*/
-          ctx[38].id
+          ctx[39].id
         );
       }
     },
     d(detaching) {
       if (detaching) {
+        detach(first);
+        detach(t0);
         detach(div2);
       }
+      if (if_block0)
+        if_block0.d(detaching);
       for (let i = 0; i < each_blocks.length; i += 1) {
         each_blocks[i].d();
       }
-      if (if_block)
-        if_block.d();
+      if (if_block1)
+        if_block1.d();
       mounted = false;
       run_all(dispose);
+    }
+  };
+}
+function create_if_block5(ctx) {
+  let div2;
+  return {
+    c() {
+      div2 = element("div");
+      attr(div2, "class", "pos-board-col-placeholder");
+      set_style(div2, "width", "300px");
+      set_style(div2, "min-width", "300px");
+      set_style(div2, "border", "2px dashed var(--interactive-accent)");
+      set_style(div2, "border-radius", "8px");
+      set_style(div2, "margin", "0 10px");
+      set_style(div2, "background", "rgba(var(--interactive-accent-rgb), 0.05)");
+    },
+    m(target, anchor) {
+      insert(target, div2, anchor);
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div2);
+      }
     }
   };
 }
@@ -12413,25 +12476,35 @@ function create_fragment6(ctx) {
   let div2;
   let each_blocks = [];
   let each_1_lookup = /* @__PURE__ */ new Map();
+  let t;
   let each_value = ensure_array_like(
     /*columns*/
-    ctx[6]
+    ctx[7]
   );
   const get_key = (ctx2) => (
     /*col*/
-    ctx2[38].id
+    ctx2[39].id
   );
   for (let i = 0; i < each_value.length; i += 1) {
     let child_ctx = get_each_context5(ctx, each_value, i);
     let key = get_key(child_ctx);
     each_1_lookup.set(key, each_blocks[i] = create_each_block5(key, child_ctx));
   }
+  let if_block = (
+    /*dragOverColId*/
+    ctx[1] && /*dragOverColIndex*/
+    ctx[2] >= /*columns*/
+    ctx[7].length && create_if_block5(ctx)
+  );
   return {
     c() {
       div2 = element("div");
       for (let i = 0; i < each_blocks.length; i += 1) {
         each_blocks[i].c();
       }
+      t = space();
+      if (if_block)
+        if_block.c();
       attr(div2, "class", "pos-board-workspace");
     },
     m(target, anchor) {
@@ -12441,15 +12514,34 @@ function create_fragment6(ctx) {
           each_blocks[i].m(div2, null);
         }
       }
+      append(div2, t);
+      if (if_block)
+        if_block.m(div2, null);
     },
     p(ctx2, dirty) {
-      if (dirty[0] & /*dragColId, columns, dragOverColId, handleDragOver, handleDrop, createPlannedTask, dragHeight, dragOverStatus, dragOverIndex, dragId, handleDragStart, handleDragEnd, deleteTask, editTask, getCustomProps, handleColDragStart, handleColDragEnd, handleColDragOver, handleColDrop, updateColumnColor*/
-      1048575) {
+      if (dirty[0] & /*dragColId, columns, handleDragOver, handleDrop, createPlannedTask, dragHeight, dragOverStatus, dragOverIndex, dragId, handleDragStart, handleDragEnd, deleteTask, editTask, getCustomProps, handleColDragStart, handleColDragEnd, handleColDragOver, handleColDrop, updateColumnColor, dragOverColId, dragOverColIndex*/
+      2097151) {
         each_value = ensure_array_like(
           /*columns*/
-          ctx2[6]
+          ctx2[7]
         );
-        each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx2, each_value, each_1_lookup, div2, destroy_block, create_each_block5, null, get_each_context5);
+        each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx2, each_value, each_1_lookup, div2, destroy_block, create_each_block5, t, get_each_context5);
+      }
+      if (
+        /*dragOverColId*/
+        ctx2[1] && /*dragOverColIndex*/
+        ctx2[2] >= /*columns*/
+        ctx2[7].length
+      ) {
+        if (if_block) {
+        } else {
+          if_block = create_if_block5(ctx2);
+          if_block.c();
+          if_block.m(div2, null);
+        }
+      } else if (if_block) {
+        if_block.d(1);
+        if_block = null;
       }
     },
     i: noop,
@@ -12461,6 +12553,8 @@ function create_fragment6(ctx) {
       for (let i = 0; i < each_blocks.length; i += 1) {
         each_blocks[i].d();
       }
+      if (if_block)
+        if_block.d();
     }
   };
 }
@@ -12472,7 +12566,11 @@ function instance6($$self, $$props, $$invalidate) {
   let { fileManager } = $$props;
   let { projectId } = $$props;
   let { projectTasks } = $$props;
-  const sortTasks = (tasks) => tasks.sort((a, b) => a.priority - b.priority || a.orderIndex - b.orderIndex);
+  const sortTasks = (tasks) => tasks.sort((a, b) => {
+    const pA = a.properties && a.properties["priority"] ? parseInt(a.properties["priority"], 10) : 3;
+    const pB = b.properties && b.properties["priority"] ? parseInt(b.properties["priority"], 10) : 3;
+    return pA - pB || a.orderIndex - b.orderIndex;
+  });
   function getCustomProps(task) {
     if (!task.properties || !fileManager.plugin.settings.taskSchema)
       return [];
@@ -12510,6 +12608,7 @@ function instance6($$self, $$props, $$invalidate) {
   }
   let dragColId = null;
   let dragOverColId = null;
+  let dragOverColIndex = -1;
   function handleColDragStart(e, id) {
     if (e.dataTransfer) {
       e.dataTransfer.effectAllowed = "move";
@@ -12525,19 +12624,34 @@ function instance6($$self, $$props, $$invalidate) {
   function handleColDragEnd() {
     $$invalidate(0, dragColId = null);
     $$invalidate(1, dragOverColId = null);
+    $$invalidate(2, dragOverColIndex = -1);
   }
   function handleColDragOver(e, id) {
+    var _a;
     e.preventDefault();
     if (dragColId && dragColId !== id) {
       if (e.dataTransfer)
         e.dataTransfer.dropEffect = "move";
+      const cols = Array.from(((_a = e.currentTarget.parentNode) == null ? void 0 : _a.children) || []).filter((c) => c.classList.contains("pos-board-col") && !c.classList.contains("pos-dragging-source"));
+      const mouseX = e.clientX;
+      let targetIndex = cols.length;
+      for (let i = 0; i < cols.length; i++) {
+        const rect = cols[i].getBoundingClientRect();
+        const middle = rect.left + rect.width / 2;
+        if (mouseX < middle) {
+          targetIndex = i;
+          break;
+        }
+      }
       $$invalidate(1, dragOverColId = id);
+      $$invalidate(2, dragOverColIndex = targetIndex);
     }
   }
   async function handleColDrop(e, id) {
     e.preventDefault();
     if (!dragColId || dragColId === id)
       return;
+    const targetIdx = dragOverColIndex;
     const settings = fileManager.plugin.settings;
     if (!settings.statuses)
       settings.statuses = [];
@@ -12558,12 +12672,11 @@ function instance6($$self, $$props, $$invalidate) {
       });
     }
     const fromIndex = settings.statuses.findIndex((s) => s.id === dragColId);
-    let toIndex = settings.statuses.findIndex((s) => s.id === id);
     const [movedItem] = settings.statuses.splice(fromIndex, 1);
-    toIndex = settings.statuses.findIndex((s) => s.id === id);
+    let toIndex = settings.statuses.findIndex((s) => s.id === id);
     settings.statuses.splice(toIndex, 0, movedItem);
     await fileManager.plugin.saveSettings();
-    $$invalidate(20, fileManager.plugin.settings = settings, fileManager);
+    $$invalidate(21, fileManager.plugin.settings = settings, fileManager);
     $$invalidate(0, dragColId = null);
     $$invalidate(1, dragOverColId = null);
   }
@@ -12582,7 +12695,7 @@ function instance6($$self, $$props, $$invalidate) {
       col.color = newColor;
     }
     await fileManager.plugin.saveSettings();
-    $$invalidate(20, fileManager.plugin.settings = settings, fileManager);
+    $$invalidate(21, fileManager.plugin.settings = settings, fileManager);
   }
   let dragId = null;
   let dragOverStatus = null;
@@ -12592,7 +12705,7 @@ function instance6($$self, $$props, $$invalidate) {
     const target = e.target.closest(".pos-board-card");
     if (target) {
       const rect = target.getBoundingClientRect();
-      $$invalidate(5, dragHeight = rect.height);
+      $$invalidate(6, dragHeight = rect.height);
       if (e.dataTransfer) {
         e.dataTransfer.effectAllowed = "move";
         e.dataTransfer.setData("text/plain", id);
@@ -12620,17 +12733,19 @@ function instance6($$self, $$props, $$invalidate) {
     }
     setTimeout(
       () => {
-        $$invalidate(2, dragId = id);
+        $$invalidate(3, dragId = id);
       },
       0
     );
   }
   function handleDragEnd() {
-    $$invalidate(2, dragId = null);
-    $$invalidate(3, dragOverStatus = null);
-    $$invalidate(4, dragOverIndex = -1);
+    $$invalidate(3, dragId = null);
+    $$invalidate(4, dragOverStatus = null);
+    $$invalidate(5, dragOverIndex = -1);
   }
   function handleDragOver(e, status) {
+    if (dragColId)
+      return;
     e.preventDefault();
     if (e.dataTransfer)
       e.dataTransfer.dropEffect = "move";
@@ -12648,8 +12763,8 @@ function instance6($$self, $$props, $$invalidate) {
         break;
       }
     }
-    $$invalidate(3, dragOverStatus = status);
-    $$invalidate(4, dragOverIndex = targetIndex);
+    $$invalidate(4, dragOverStatus = status);
+    $$invalidate(5, dragOverIndex = targetIndex);
   }
   async function handleDrop(e, status) {
     var _a;
@@ -12658,9 +12773,9 @@ function instance6($$self, $$props, $$invalidate) {
       return;
     const targetIndex = dragOverIndex === -1 ? ((_a = columns.find((c) => c.id === status)) == null ? void 0 : _a.tasks.length) || 0 : dragOverIndex;
     const task = projectTasks.find((t) => t.id === dragId);
-    $$invalidate(2, dragId = null);
-    $$invalidate(3, dragOverStatus = null);
-    $$invalidate(4, dragOverIndex = -1);
+    $$invalidate(3, dragId = null);
+    $$invalidate(4, dragOverStatus = null);
+    $$invalidate(5, dragOverIndex = -1);
     if (!task)
       return;
     const oldStatus = task.status;
@@ -12724,24 +12839,24 @@ function instance6($$self, $$props, $$invalidate) {
   const drop_handler_1 = (col, e) => handleDrop(e, col.id);
   $$self.$$set = ($$props2) => {
     if ("app" in $$props2)
-      $$invalidate(21, app = $$props2.app);
+      $$invalidate(22, app = $$props2.app);
     if ("fileManager" in $$props2)
-      $$invalidate(20, fileManager = $$props2.fileManager);
+      $$invalidate(21, fileManager = $$props2.fileManager);
     if ("projectId" in $$props2)
-      $$invalidate(22, projectId = $$props2.projectId);
+      $$invalidate(23, projectId = $$props2.projectId);
     if ("projectTasks" in $$props2)
-      $$invalidate(23, projectTasks = $$props2.projectTasks);
+      $$invalidate(24, projectTasks = $$props2.projectTasks);
   };
   $$self.$$.update = () => {
     if ($$self.$$.dirty[0] & /*fileManager*/
-    1048576) {
+    2097152) {
       $:
-        $$invalidate(25, settingsStatuses = fileManager.plugin.settings.statuses || []);
+        $$invalidate(26, settingsStatuses = fileManager.plugin.settings.statuses || []);
     }
     if ($$self.$$.dirty[0] & /*settingsStatuses, projectTasks*/
-    41943040) {
+    83886080) {
       $:
-        $$invalidate(24, statuses = (() => {
+        $$invalidate(25, statuses = (() => {
           const cols = [
             {
               id: "backlog",
@@ -12780,9 +12895,9 @@ function instance6($$self, $$props, $$invalidate) {
         })());
     }
     if ($$self.$$.dirty[0] & /*statuses, projectTasks*/
-    25165824) {
+    50331648) {
       $:
-        $$invalidate(6, columns = statuses.map((s) => ({
+        $$invalidate(7, columns = statuses.map((s) => ({
           ...s,
           tasks: sortTasks(projectTasks.filter((t) => t.status === s.id))
         })));
@@ -12791,6 +12906,7 @@ function instance6($$self, $$props, $$invalidate) {
   return [
     dragColId,
     dragOverColId,
+    dragOverColIndex,
     dragId,
     dragOverStatus,
     dragOverIndex,
@@ -12837,10 +12953,10 @@ var ProjectTaskBoard = class extends SvelteComponent {
       create_fragment6,
       safe_not_equal,
       {
-        app: 21,
-        fileManager: 20,
-        projectId: 22,
-        projectTasks: 23
+        app: 22,
+        fileManager: 21,
+        projectId: 23,
+        projectTasks: 24
       },
       null,
       [-1, -1]
@@ -13025,7 +13141,7 @@ function create_each_block_24(ctx) {
     }
   };
 }
-function create_if_block_54(ctx) {
+function create_if_block_55(ctx) {
   let div1;
   let span;
   let t0_value = (
@@ -13201,7 +13317,7 @@ function create_if_block6(ctx) {
     }
   };
 }
-function create_if_block_44(ctx) {
+function create_if_block_45(ctx) {
   let span;
   let t_value = (
     /*task*/
@@ -13461,7 +13577,7 @@ function create_each_block6(key_1, ctx) {
   }
   let if_block0 = (
     /*task*/
-    ctx[38].description && create_if_block_44(ctx)
+    ctx[38].description && create_if_block_45(ctx)
   );
   function select_block_type_1(ctx2, dirty) {
     if (
@@ -13633,7 +13749,7 @@ function create_each_block6(key_1, ctx) {
         if (if_block0) {
           if_block0.p(ctx, dirty);
         } else {
-          if_block0 = create_if_block_44(ctx);
+          if_block0 = create_if_block_45(ctx);
           if_block0.c();
           if_block0.m(div0, null);
         }
@@ -13825,7 +13941,7 @@ function create_fragment7(ctx) {
   );
   let if_block1 = (
     /*selectedTaskIds*/
-    ctx[7].size > 0 && create_if_block_54(ctx)
+    ctx[7].size > 0 && create_if_block_55(ctx)
   );
   function select_block_type(ctx2, dirty) {
     if (
@@ -14147,7 +14263,7 @@ function create_fragment7(ctx) {
         if (if_block1) {
           if_block1.p(ctx2, dirty);
         } else {
-          if_block1 = create_if_block_54(ctx2);
+          if_block1 = create_if_block_55(ctx2);
           if_block1.c();
           if_block1.m(div2, t12);
         }
@@ -14526,7 +14642,7 @@ function create_else_block5(ctx) {
   let current;
   let mounted;
   let dispose;
-  const if_block_creators = [create_if_block_111, create_if_block_45, create_else_block_22];
+  const if_block_creators = [create_if_block_111, create_if_block_46, create_else_block_22];
   const if_blocks = [];
   function select_block_type_1(ctx2, dirty) {
     if (
@@ -14828,7 +14944,7 @@ function create_else_block_22(ctx) {
   let if_block;
   let if_block_anchor;
   let current;
-  const if_block_creators = [create_if_block_55, create_else_block_3];
+  const if_block_creators = [create_if_block_56, create_else_block_3];
   const if_blocks = [];
   function select_block_type_3(ctx2, dirty) {
     if (
@@ -14890,7 +15006,7 @@ function create_else_block_22(ctx) {
     }
   };
 }
-function create_if_block_45(ctx) {
+function create_if_block_46(ctx) {
   let div2;
   let projectdeadlines;
   let current;
@@ -15192,7 +15308,7 @@ function create_else_block_3(ctx) {
     }
   };
 }
-function create_if_block_55(ctx) {
+function create_if_block_56(ctx) {
   let projecttaskboard;
   let current;
   projecttaskboard = new ProjectTaskBoard_default({

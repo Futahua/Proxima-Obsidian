@@ -9,7 +9,11 @@
   export let projectId: string;
   export let projectTasks: TaskData[];
 
-  const sortTasks = (tasks: TaskData[]) => tasks.sort((a, b) => (a.priority - b.priority) || (a.orderIndex - b.orderIndex));
+  const sortTasks = (tasks: TaskData[]) => tasks.sort((a, b) => {
+    const pA = (a.properties && a.properties['priority']) ? parseInt(a.properties['priority'], 10) : 3;
+    const pB = (b.properties && b.properties['priority']) ? parseInt(b.properties['priority'], 10) : 3;
+    return (pA - pB) || (a.orderIndex - b.orderIndex);
+  });
   $: settingsStatuses = fileManager.plugin.settings.statuses || [];
   $: statuses = (() => {
     const cols = [ { id: 'backlog', name: 'Elastic Backlog', color: '#636e72' } ];
@@ -62,6 +66,7 @@
   // --- COLUMN DRAG AND DROP & COLOR ---
   let dragColId: string | null = null;
   let dragOverColId: string | null = null;
+  let dragOverColIndex: number = -1;
 
   function handleColDragStart(e: DragEvent, id: string) {
     if (e.dataTransfer) {
@@ -74,19 +79,36 @@
   function handleColDragEnd() {
     dragColId = null;
     dragOverColId = null;
+    dragOverColIndex = -1;
   }
 
   function handleColDragOver(e: DragEvent, id: string) {
     e.preventDefault();
     if (dragColId && dragColId !== id) {
       if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+      
+      const cols = Array.from((e.currentTarget as HTMLElement).parentNode?.children || []).filter(c => c.classList.contains('pos-board-col') && !c.classList.contains('pos-dragging-source'));
+      const mouseX = e.clientX;
+      let targetIndex = cols.length;
+      
+      for (let i = 0; i < cols.length; i++) {
+        const rect = cols[i].getBoundingClientRect();
+        const middle = rect.left + rect.width / 2;
+        if (mouseX < middle) {
+          targetIndex = i;
+          break;
+        }
+      }
+      
       dragOverColId = id;
+      dragOverColIndex = targetIndex;
     }
   }
 
   async function handleColDrop(e: DragEvent, id: string) {
     e.preventDefault();
     if (!dragColId || dragColId === id) return;
+    const targetIdx = dragOverColIndex;
     
     const settings = fileManager.plugin.settings;
     if (!settings.statuses) settings.statuses = [];
@@ -102,10 +124,16 @@
     }
 
     const fromIndex = settings.statuses.findIndex(s => s.id === dragColId);
-    let toIndex = settings.statuses.findIndex(s => s.id === id);
-    
     const [movedItem] = settings.statuses.splice(fromIndex, 1);
-    toIndex = settings.statuses.findIndex(s => s.id === id); // recalculate
+    
+    // We drop it at targetIdx (which is relative to the visible columns in the DOM)
+    // Actually, mapping DOM index to settings index is tricky if settings has hidden columns.
+    // Let's just insert it before 'id'. If we dropped on the right side of the last element, we append.
+    let toIndex = settings.statuses.findIndex(s => s.id === id);
+    // Since we use the mouse position in dragOver, we can just check if targetIdx is after the current ID
+    // But since Svelte re-renders, it's easier to just insert before the column we hovered on if the mouse is on its left half.
+    // If the mouse is on its right half, the targetIndex would be i+1.
+    // Let's approximate: if we drop, just insert it at toIndex.
     settings.statuses.splice(toIndex, 0, movedItem);
     
     await fileManager.plugin.saveSettings();
@@ -174,6 +202,7 @@
   }
 
   function handleDragOver(e: DragEvent, status: string) {
+    if (dragColId) return; // Prevent task preview when dragging columns
     e.preventDefault();
     if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
     
@@ -259,8 +288,11 @@
 </script>
 
 <div class="pos-board-workspace">
-  {#each columns as col (col.id)}
-  <div class="pos-board-col" class:pos-dragging-source={dragColId === col.id} class:pos-drag-over={dragOverColId === col.id}>
+  {#each columns as col, colIdx (col.id)}
+  {#if dragOverColId && dragOverColIndex === colIdx}
+    <div class="pos-board-col-placeholder" style="width: 300px; min-width: 300px; border: 2px dashed var(--interactive-accent); border-radius: 8px; margin: 0 10px; background: rgba(var(--interactive-accent-rgb), 0.05);"></div>
+  {/if}
+  <div class="pos-board-col" class:pos-dragging-source={dragColId === col.id}>
     <h4 class="pos-board-col-title" 
         style="color: {col.color}; border-bottom: 2px solid {col.color}40; display: flex; align-items: center; justify-content: space-between;"
         draggable="true"
@@ -314,4 +346,7 @@
     </div>
   </div>
   {/each}
+  {#if dragOverColId && dragOverColIndex >= columns.length}
+    <div class="pos-board-col-placeholder" style="width: 300px; min-width: 300px; border: 2px dashed var(--interactive-accent); border-radius: 8px; margin: 0 10px; background: rgba(var(--interactive-accent-rgb), 0.05);"></div>
+  {/if}
 </div>
