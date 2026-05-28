@@ -3359,8 +3359,9 @@ var QuickEditTaskModal = class extends import_obsidian2.Modal {
   }
 };
 var ProjectSchemaModal = class extends import_obsidian2.Modal {
-  constructor(app, plugin, projectId) {
+  constructor(app, plugin, projectId, onCloseCallback) {
     super(app);
+    this.onCloseCallback = onCloseCallback;
     __publicField(this, "projectId");
     __publicField(this, "plugin");
     this.plugin = plugin;
@@ -3810,7 +3811,8 @@ function create_if_block_3(ctx) {
   };
 }
 function create_else_block(ctx) {
-  let span;
+  let span1;
+  let span0;
   let t0_value = (
     /*prop*/
     ctx[55].name + ""
@@ -3825,21 +3827,31 @@ function create_else_block(ctx) {
   let t3;
   return {
     c() {
-      span = element("span");
+      span1 = element("span");
+      span0 = element("span");
       t0 = text(t0_value);
-      t1 = text(": ");
+      t1 = text(":");
       t2 = text(t2_value);
       t3 = space();
-      attr(span, "class", "pos-tag-pill");
-      set_style(span, "background-color", "var(--background-modifier-border)");
-      set_style(span, "color", "var(--text-muted)");
+      set_style(span0, "opacity", "0.7");
+      set_style(span0, "font-size", "0.9em");
+      set_style(span0, "margin-right", "4px");
+      attr(span1, "class", "pos-tag-pill");
+      set_style(span1, "background-color", "var(--background-modifier-border)");
+      set_style(span1, "color", "var(--text-normal)");
+      set_style(span1, "display", "inline-block");
+      set_style(span1, "white-space", "normal");
+      set_style(span1, "text-align", "left");
+      set_style(span1, "line-height", "1.2");
+      set_style(span1, "border", "1px solid var(--background-modifier-border-hover)");
     },
     m(target, anchor) {
-      insert(target, span, anchor);
-      append(span, t0);
-      append(span, t1);
-      append(span, t2);
-      append(span, t3);
+      insert(target, span1, anchor);
+      append(span1, span0);
+      append(span0, t0);
+      append(span0, t1);
+      append(span1, t2);
+      append(span1, t3);
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*columns*/
@@ -3853,54 +3865,78 @@ function create_else_block(ctx) {
     },
     d(detaching) {
       if (detaching) {
-        detach(span);
+        detach(span1);
       }
     }
   };
 }
 function create_if_block_2(ctx) {
-  let span;
+  let span1;
+  let span0;
   let t0_value = (
     /*prop*/
-    ctx[55].value + ""
+    ctx[55].name + ""
   );
   let t0;
   let t1;
+  let t2_value = (
+    /*prop*/
+    ctx[55].value + ""
+  );
+  let t2;
+  let t3;
   return {
     c() {
-      span = element("span");
+      span1 = element("span");
+      span0 = element("span");
       t0 = text(t0_value);
-      t1 = space();
-      attr(span, "class", "pos-tag-pill");
+      t1 = text(":");
+      t2 = text(t2_value);
+      t3 = space();
+      set_style(span0, "opacity", "0.7");
+      set_style(span0, "font-size", "0.9em");
+      set_style(span0, "margin-right", "4px");
+      attr(span1, "class", "pos-tag-pill");
       set_style(
-        span,
+        span1,
         "background-color",
         /*prop*/
         ctx[55].color + "20"
       );
       set_style(
-        span,
+        span1,
         "color",
         /*prop*/
         ctx[55].color
       );
-      set_style(span, "border", "1px solid " + /*prop*/
+      set_style(span1, "border", "1px solid " + /*prop*/
       ctx[55].color + "40");
+      set_style(span1, "display", "inline-block");
+      set_style(span1, "white-space", "normal");
+      set_style(span1, "text-align", "left");
+      set_style(span1, "line-height", "1.2");
     },
     m(target, anchor) {
-      insert(target, span, anchor);
-      append(span, t0);
-      append(span, t1);
+      insert(target, span1, anchor);
+      append(span1, span0);
+      append(span0, t0);
+      append(span0, t1);
+      append(span1, t2);
+      append(span1, t3);
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*columns*/
       1024 && t0_value !== (t0_value = /*prop*/
-      ctx2[55].value + ""))
+      ctx2[55].name + ""))
         set_data(t0, t0_value);
+      if (dirty[0] & /*columns*/
+      1024 && t2_value !== (t2_value = /*prop*/
+      ctx2[55].value + ""))
+        set_data(t2, t2_value);
       if (dirty[0] & /*columns*/
       1024) {
         set_style(
-          span,
+          span1,
           "background-color",
           /*prop*/
           ctx2[55].color + "20"
@@ -3909,7 +3945,7 @@ function create_if_block_2(ctx) {
       if (dirty[0] & /*columns*/
       1024) {
         set_style(
-          span,
+          span1,
           "color",
           /*prop*/
           ctx2[55].color
@@ -3917,13 +3953,13 @@ function create_if_block_2(ctx) {
       }
       if (dirty[0] & /*columns*/
       1024) {
-        set_style(span, "border", "1px solid " + /*prop*/
+        set_style(span1, "border", "1px solid " + /*prop*/
         ctx2[55].color + "40");
       }
     },
     d(detaching) {
       if (detaching) {
-        detach(span);
+        detach(span1);
       }
     }
   };
@@ -4077,7 +4113,14 @@ function create_each_block_1(key_1, ctx) {
       button = element("button");
       button.textContent = "Delete";
       attr(div0, "class", "pos-card-name");
+      set_style(span, "font-size", "0.85em");
+      set_style(span, "opacity", "0.7");
       attr(div1, "class", "pos-ptc-meta");
+      set_style(div1, "display", "flex");
+      set_style(div1, "flex-direction", "column");
+      set_style(div1, "gap", "4px");
+      set_style(div1, "margin-top", "8px");
+      set_style(div1, "align-items", "flex-start");
       attr(div2, "class", "pos-ptc-body");
       set_style(div2, "cursor", "pointer");
       attr(div3, "class", "pos-ptc-header");
@@ -4682,12 +4725,13 @@ function create_if_block(ctx) {
   };
 }
 function create_fragment(ctx) {
+  let div0;
+  let button;
+  let t1;
   let div1;
   let each_blocks = [];
   let each_1_lookup = /* @__PURE__ */ new Map();
-  let t0;
-  let t1;
-  let div0;
+  let t2;
   let mounted;
   let dispose;
   let each_value = ensure_array_like(
@@ -4711,52 +4755,50 @@ function create_fragment(ctx) {
   );
   return {
     c() {
+      div0 = element("div");
+      button = element("button");
+      button.textContent = "+ Add Kanban Column";
+      t1 = space();
       div1 = element("div");
       for (let i = 0; i < each_blocks.length; i += 1) {
         each_blocks[i].c();
       }
-      t0 = space();
+      t2 = space();
       if (if_block)
         if_block.c();
-      t1 = space();
-      div0 = element("div");
-      div0.innerHTML = `<span style="font-size: 1.2em; font-weight: 600; color: var(--text-muted);">+ Add Column</span>`;
-      attr(div0, "class", "pos-board-col");
-      set_style(div0, "min-width", "300px");
-      set_style(div0, "background", "transparent");
-      set_style(div0, "border", "2px dashed var(--background-modifier-border)");
-      set_style(div0, "border-radius", "8px");
-      set_style(div0, "display", "flex");
-      set_style(div0, "align-items", "center");
-      set_style(div0, "justify-content", "center");
-      set_style(div0, "opacity", "0.7");
-      set_style(div0, "cursor", "pointer");
-      set_style(div0, "margin-left", "10px");
-      set_style(div0, "transition", "opacity 0.2s");
+      attr(button, "class", "pos-btn");
+      set_style(button, "padding", "4px 10px");
+      set_style(button, "font-weight", "bold");
+      set_style(button, "background", "var(--interactive-accent)");
+      set_style(button, "color", "var(--text-on-accent)");
+      attr(div0, "class", "pos-board-header-actions");
+      set_style(div0, "position", "absolute");
+      set_style(div0, "top", "10px");
+      set_style(div0, "right", "20px");
+      set_style(div0, "z-index", "10");
       attr(div1, "class", "pos-board-workspace");
     },
     m(target, anchor) {
+      insert(target, div0, anchor);
+      append(div0, button);
+      insert(target, t1, anchor);
       insert(target, div1, anchor);
       for (let i = 0; i < each_blocks.length; i += 1) {
         if (each_blocks[i]) {
           each_blocks[i].m(div1, null);
         }
       }
-      append(div1, t0);
+      append(div1, t2);
       if (if_block)
         if_block.m(div1, null);
-      append(div1, t1);
-      append(div1, div0);
       if (!mounted) {
         dispose = [
           listen(
-            div0,
+            button,
             "click",
             /*addColumn*/
             ctx[20]
           ),
-          listen(div0, "mouseenter", mouseenter_handler),
-          listen(div0, "mouseleave", mouseleave_handler),
           listen(
             div1,
             "dragover",
@@ -4780,7 +4822,7 @@ function create_fragment(ctx) {
           /*columns*/
           ctx2[10]
         );
-        each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx2, each_value, each_1_lookup, div1, destroy_block, create_each_block, t0, get_each_context);
+        each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx2, each_value, each_1_lookup, div1, destroy_block, create_each_block, t2, get_each_context);
       }
       if (
         /*dragOverColId*/
@@ -4792,7 +4834,7 @@ function create_fragment(ctx) {
         } else {
           if_block = create_if_block(ctx2);
           if_block.c();
-          if_block.m(div1, t1);
+          if_block.m(div1, null);
         }
       } else if (if_block) {
         if_block.d(1);
@@ -4803,6 +4845,8 @@ function create_fragment(ctx) {
     o: noop,
     d(detaching) {
       if (detaching) {
+        detach(div0);
+        detach(t1);
         detach(div1);
       }
       for (let i = 0; i < each_blocks.length; i += 1) {
@@ -4815,8 +4859,6 @@ function create_fragment(ctx) {
     }
   };
 }
-var mouseenter_handler = (e) => e.currentTarget.style.opacity = "1";
-var mouseleave_handler = (e) => e.currentTarget.style.opacity = "0.7";
 function instance($$self, $$props, $$invalidate) {
   let rawProjectStatuses;
   let statuses;
@@ -4934,6 +4976,7 @@ function instance($$self, $$props, $$invalidate) {
       }
       await fileManager.plugin.saveSettings();
       $$invalidate(0, fileManager.plugin.settings = settings, fileManager);
+      $$invalidate(0, fileManager);
     }
     $$invalidate(6, dragColId = null);
     $$invalidate(7, dragOverColId = null);
@@ -4954,6 +4997,7 @@ function instance($$self, $$props, $$invalidate) {
     }
     await fileManager.plugin.saveSettings();
     $$invalidate(0, fileManager.plugin.settings = settings, fileManager);
+    $$invalidate(0, fileManager);
   }
   async function updateColumnName(colId, newName) {
     const settings = await ensureProjectStatuses();
@@ -4970,9 +5014,16 @@ function instance($$self, $$props, $$invalidate) {
     }
     await fileManager.plugin.saveSettings();
     $$invalidate(0, fileManager.plugin.settings = settings, fileManager);
+    $$invalidate(0, fileManager);
     $$invalidate(9, editingColId = null);
   }
   async function deleteColumn(colId) {
+    if (!confirm("Are you sure you want to delete this column? ALL TASKS inside this column will also be permanently deleted!"))
+      return;
+    const tasksToDelete = projectTasks.filter((t) => t.status === colId);
+    for (const t of tasksToDelete) {
+      await fileManager.deleteTask(t.id);
+    }
     const settings = await ensureProjectStatuses();
     const ps = settings.projectStatuses[projectId];
     const idx = ps.findIndex((s) => s.id === colId);
@@ -4980,6 +5031,7 @@ function instance($$self, $$props, $$invalidate) {
       ps.splice(idx, 1);
       await fileManager.plugin.saveSettings();
       $$invalidate(0, fileManager.plugin.settings = settings, fileManager);
+      $$invalidate(0, fileManager);
     }
   }
   async function addColumn() {
@@ -4992,6 +5044,7 @@ function instance($$self, $$props, $$invalidate) {
     });
     await fileManager.plugin.saveSettings();
     $$invalidate(0, fileManager.plugin.settings = settings, fileManager);
+    $$invalidate(0, fileManager);
     $$invalidate(9, editingColId = newId);
   }
   function handleDragStart(e, id) {
@@ -5153,6 +5206,7 @@ function instance($$self, $$props, $$invalidate) {
         }
         await fileManager.plugin.saveSettings();
         $$invalidate(0, fileManager.plugin.settings = settings, fileManager);
+        $$invalidate(0, fileManager);
       }
       $$invalidate(6, dragColId = null);
       $$invalidate(7, dragOverColId = null);
@@ -12844,18 +12898,18 @@ var AgingView_default = AgingView;
 // src/ui/views/ProjectsView.svelte
 function get_each_context5(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[33] = list[i];
+  child_ctx[34] = list[i];
   return child_ctx;
 }
 function get_else_ctx2(ctx) {
   const child_ctx = ctx.slice();
   const constants_0 = (
     /*$tasksStore*/
-    child_ctx[10].filter((t) => t.project === /*selectedProject*/
+    child_ctx[11].filter((t) => t.project === /*selectedProject*/
     child_ctx[5].id && /*selectedProject*/
     child_ctx[5].status !== "archived").sort((a, b) => a.orderIndex - b.orderIndex)
   );
-  child_ctx[36] = constants_0;
+  child_ctx[37] = constants_0;
   return child_ctx;
 }
 function create_else_block5(ctx) {
@@ -13014,31 +13068,31 @@ function create_else_block5(ctx) {
             button0,
             "click",
             /*click_handler_1*/
-            ctx[19]
+            ctx[20]
           ),
           listen(
             button1,
             "click",
             /*click_handler_2*/
-            ctx[20]
+            ctx[21]
           ),
           listen(
             button2,
             "click",
             /*click_handler_3*/
-            ctx[21]
+            ctx[22]
           ),
           listen(
             button3,
             "click",
             /*click_handler_4*/
-            ctx[22]
+            ctx[23]
           ),
           listen(
             button4,
             "click",
             /*click_handler_5*/
-            ctx[23]
+            ctx[24]
           )
         ];
         mounted = true;
@@ -13161,7 +13215,7 @@ function create_if_block5(ctx) {
       isFullPage: true,
       onSelect: (
         /*func*/
-        ctx[17]
+        ctx[18]
       )
     }
   });
@@ -13190,7 +13244,7 @@ function create_if_block5(ctx) {
       if (dirty[0] & /*selectedProjectId*/
       1)
         projectshub_changes.onSelect = /*func*/
-        ctx2[17];
+        ctx2[18];
       projectshub.$set(projectshub_changes);
     },
     i(local) {
@@ -13225,7 +13279,7 @@ function create_if_block_65(ctx) {
           button,
           "click",
           /*click_handler*/
-          ctx[18]
+          ctx[19]
         );
         mounted = true;
       }
@@ -13469,7 +13523,7 @@ function create_if_block_16(ctx) {
       append(div3, t3);
       append(div3, div2);
       append(div2, div1);
-      ctx[24](div1);
+      ctx[25](div1);
       append(div8, t4);
       append(div8, div7);
       append(div7, div5);
@@ -13489,13 +13543,13 @@ function create_if_block_16(ctx) {
             button0,
             "click",
             /*handleOpenNoteNatively*/
-            ctx[11]
+            ctx[12]
           ),
           listen(
             button1,
             "click",
             /*click_handler_6*/
-            ctx[25]
+            ctx[26]
           )
         ];
         mounted = true;
@@ -13534,7 +13588,7 @@ function create_if_block_16(ctx) {
       if (detaching) {
         detach(div8);
       }
-      ctx[24](null);
+      ctx[25](null);
       if (if_block0)
         if_block0.d();
       if_block1.d();
@@ -13562,7 +13616,7 @@ function create_else_block_32(ctx) {
       ),
       projectTasks: (
         /*projectTasks*/
-        ctx[36]
+        ctx[37]
       )
     }
   });
@@ -13589,9 +13643,9 @@ function create_else_block_32(ctx) {
         projecttaskgrid_changes.projectId = /*selectedProject*/
         ctx2[5].id;
       if (dirty[0] & /*$tasksStore, selectedProject*/
-      1056)
+      2080)
         projecttaskgrid_changes.projectTasks = /*projectTasks*/
-        ctx2[36];
+        ctx2[37];
       projecttaskgrid.$set(projecttaskgrid_changes);
     },
     i(local) {
@@ -13610,6 +13664,57 @@ function create_else_block_32(ctx) {
   };
 }
 function create_if_block_55(ctx) {
+  let previous_key = (
+    /*settingsVersion*/
+    ctx[10]
+  );
+  let key_block_anchor;
+  let current;
+  let key_block = create_key_block(ctx);
+  return {
+    c() {
+      key_block.c();
+      key_block_anchor = empty();
+    },
+    m(target, anchor) {
+      key_block.m(target, anchor);
+      insert(target, key_block_anchor, anchor);
+      current = true;
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*settingsVersion*/
+      1024 && safe_not_equal(previous_key, previous_key = /*settingsVersion*/
+      ctx2[10])) {
+        group_outros();
+        transition_out(key_block, 1, 1, noop);
+        check_outros();
+        key_block = create_key_block(ctx2);
+        key_block.c();
+        transition_in(key_block, 1);
+        key_block.m(key_block_anchor.parentNode, key_block_anchor);
+      } else {
+        key_block.p(ctx2, dirty);
+      }
+    },
+    i(local) {
+      if (current)
+        return;
+      transition_in(key_block);
+      current = true;
+    },
+    o(local) {
+      transition_out(key_block);
+      current = false;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(key_block_anchor);
+      }
+      key_block.d(detaching);
+    }
+  };
+}
+function create_key_block(ctx) {
   let projecttaskboard;
   let current;
   projecttaskboard = new ProjectTaskBoard_default({
@@ -13628,7 +13733,7 @@ function create_if_block_55(ctx) {
       ),
       projectTasks: (
         /*projectTasks*/
-        ctx[36]
+        ctx[37]
       )
     }
   });
@@ -13655,9 +13760,9 @@ function create_if_block_55(ctx) {
         projecttaskboard_changes.projectId = /*selectedProject*/
         ctx2[5].id;
       if (dirty[0] & /*$tasksStore, selectedProject*/
-      1056)
+      2080)
         projecttaskboard_changes.projectTasks = /*projectTasks*/
-        ctx2[36];
+        ctx2[37];
       projecttaskboard.$set(projecttaskboard_changes);
     },
     i(local) {
@@ -13710,19 +13815,19 @@ function create_if_block_35(ctx) {
             button0,
             "click",
             /*click_handler_7*/
-            ctx[26]
+            ctx[27]
           ),
           listen(
             button1,
             "click",
             /*click_handler_8*/
-            ctx[27]
+            ctx[28]
           ),
           listen(
             button2,
             "click",
             /*click_handler_9*/
-            ctx[28]
+            ctx[29]
           )
         ];
         mounted = true;
@@ -13765,7 +13870,7 @@ function create_else_block_14(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*projectFiles, openFile*/
-      4224) {
+      8320) {
         each_value = ensure_array_like(
           /*projectFiles*/
           ctx2[7]
@@ -13819,7 +13924,7 @@ function create_each_block5(ctx) {
   let span0;
   let t0_value = fileIcon(
     /*f*/
-    ctx[33].extension
+    ctx[34].extension
   ) + "";
   let t0;
   let t1;
@@ -13827,20 +13932,20 @@ function create_each_block5(ctx) {
   let span1;
   let t2_value = (
     /*f*/
-    ctx[33].name + ""
+    ctx[34].name + ""
   );
   let t2;
   let t3;
   let span2;
   let t4_value = formatFileSize(
     /*f*/
-    ctx[33].size
+    ctx[34].size
   ) + "";
   let t4;
   let t5;
   let t6_value = formatFileDate(
     /*f*/
-    ctx[33].mtime
+    ctx[34].mtime
   ) + "";
   let t6;
   let t7;
@@ -13850,9 +13955,9 @@ function create_each_block5(ctx) {
   function click_handler_10() {
     return (
       /*click_handler_10*/
-      ctx[29](
+      ctx[30](
         /*f*/
-        ctx[33]
+        ctx[34]
       )
     );
   }
@@ -13877,7 +13982,7 @@ function create_each_block5(ctx) {
       attr(div2, "class", "pos-fb-info");
       attr(button, "class", "pos-fb-item");
       attr(button, "title", button_title_value = /*f*/
-      ctx[33].path);
+      ctx[34].path);
     },
     m(target, anchor) {
       insert(target, button, anchor);
@@ -13903,28 +14008,28 @@ function create_each_block5(ctx) {
       if (dirty[0] & /*projectFiles*/
       128 && t0_value !== (t0_value = fileIcon(
         /*f*/
-        ctx[33].extension
+        ctx[34].extension
       ) + ""))
         set_data(t0, t0_value);
       if (dirty[0] & /*projectFiles*/
       128 && t2_value !== (t2_value = /*f*/
-      ctx[33].name + ""))
+      ctx[34].name + ""))
         set_data(t2, t2_value);
       if (dirty[0] & /*projectFiles*/
       128 && t4_value !== (t4_value = formatFileSize(
         /*f*/
-        ctx[33].size
+        ctx[34].size
       ) + ""))
         set_data(t4, t4_value);
       if (dirty[0] & /*projectFiles*/
       128 && t6_value !== (t6_value = formatFileDate(
         /*f*/
-        ctx[33].mtime
+        ctx[34].mtime
       ) + ""))
         set_data(t6, t6_value);
       if (dirty[0] & /*projectFiles*/
       128 && button_title_value !== (button_title_value = /*f*/
-      ctx[33].path)) {
+      ctx[34].path)) {
         attr(button, "title", button_title_value);
       }
     },
@@ -14042,8 +14147,8 @@ function instance5($$self, $$props, $$invalidate) {
   let activeProjects;
   let $projectsStore;
   let $tasksStore;
-  component_subscribe($$self, projectsStore, ($$value) => $$invalidate(16, $projectsStore = $$value));
-  component_subscribe($$self, tasksStore, ($$value) => $$invalidate(10, $tasksStore = $$value));
+  component_subscribe($$self, projectsStore, ($$value) => $$invalidate(17, $projectsStore = $$value));
+  component_subscribe($$self, tasksStore, ($$value) => $$invalidate(11, $tasksStore = $$value));
   let { app } = $$props;
   let { fileManager } = $$props;
   let { plugin } = $$props;
@@ -14055,8 +14160,9 @@ function instance5($$self, $$props, $$invalidate) {
   let projectFiles = [];
   let showNewFileMenu = false;
   let projectTab = "notes";
+  let settingsVersion = 0;
   async function loadProjectContent(id) {
-    $$invalidate(14, projectContent = await fileManager.getProjectContent(id));
+    $$invalidate(15, projectContent = await fileManager.getProjectContent(id));
   }
   function refreshProjectFiles(id) {
     $$invalidate(7, projectFiles = fileManager.getProjectFiles(id));
@@ -14138,7 +14244,14 @@ tags: [excalidraw]
   const click_handler_3 = () => $$invalidate(9, projectTab = "grid");
   const click_handler_4 = () => $$invalidate(9, projectTab = "deadlines");
   const click_handler_5 = () => {
-    new ProjectSchemaModal(app, plugin, selectedProjectId).open();
+    new ProjectSchemaModal(
+      app,
+      plugin,
+      selectedProjectId,
+      () => {
+        $$invalidate(10, settingsVersion++, settingsVersion);
+      }
+    ).open();
   };
   function div1_binding($$value) {
     binding_callbacks[$$value ? "unshift" : "push"](() => {
@@ -14165,12 +14278,12 @@ tags: [excalidraw]
   };
   $$self.$$.update = () => {
     if ($$self.$$.dirty[0] & /*$projectsStore*/
-    65536) {
+    131072) {
       $:
-        $$invalidate(15, activeProjects = $projectsStore.filter((p) => p.status === "active"));
+        $$invalidate(16, activeProjects = $projectsStore.filter((p) => p.status === "active"));
     }
     if ($$self.$$.dirty[0] & /*selectedProjectId, activeProjects*/
-    32769) {
+    65537) {
       $: {
         if (selectedProjectId) {
           const proj = activeProjects.find((p) => p.id === selectedProjectId);
@@ -14180,19 +14293,19 @@ tags: [excalidraw]
             refreshProjectFiles(selectedProjectId);
           } else {
             $$invalidate(5, selectedProject = null);
-            $$invalidate(14, projectContent = "");
+            $$invalidate(15, projectContent = "");
             $$invalidate(7, projectFiles = []);
           }
         } else {
           $$invalidate(5, selectedProject = null);
-          $$invalidate(14, projectContent = "");
+          $$invalidate(15, projectContent = "");
           $$invalidate(9, projectTab = "notes");
           $$invalidate(7, projectFiles = []);
         }
       }
     }
     if ($$self.$$.dirty[0] & /*previewEl, projectContent, selectedProject, fileManager, plugin*/
-    16492) {
+    32876) {
       $: {
         if (previewEl && projectContent !== void 0 && selectedProject) {
           previewEl.empty();
@@ -14212,6 +14325,7 @@ tags: [excalidraw]
     projectFiles,
     showNewFileMenu,
     projectTab,
+    settingsVersion,
     $tasksStore,
     handleOpenNoteNatively,
     openFile,

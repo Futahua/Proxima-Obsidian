@@ -26,6 +26,7 @@
   let showNewFileMenu = false;
 
   let projectTab: 'notes' | 'board' | 'grid' | 'deadlines' = 'notes';
+  let settingsVersion = 0;
 
   $: {
     if (selectedProjectId) {
@@ -277,13 +278,9 @@
         {#if projectTab === 'board'}
           <!-- 📋 TASK BOARD VIEW (KANBAN) -->
           {#key settingsVersion}
-        <ProjectTaskBoard 
-            {app} 
-            {fileManager} 
-            projectId={selectedProject.id} 
-            {projectTasks} 
-          />
-        {:else}
+<ProjectTaskBoard {app} {fileManager} projectId={selectedProject.id} {projectTasks} />
+{/key}
+{:else}
           <!-- 📊 BACKLOG GRID VIEW (SPREADSHEET) -->
           <ProjectTaskGrid 
             {app} 
@@ -296,3 +293,4 @@
     </div>
   </div>
 {/if}
+
