@@ -62,3 +62,10 @@ export interface ColorRule {
   value: 'overdue' | 'today' | 'next 2 days' | 'next 3 days' | 'next week' | 'next month';
   color: string;
 }
+
+export interface FilterRule {
+  id: string;
+  property: string;
+  operator: 'is' | 'is-not' | 'contains' | 'not-contains' | 'gt' | 'lt' | 'is-empty' | 'not-empty';
+  value: any;
+}

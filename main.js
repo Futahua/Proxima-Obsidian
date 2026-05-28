@@ -326,6 +326,9 @@ function tick() {
 function add_render_callback(fn) {
   render_callbacks.push(fn);
 }
+function add_flush_callback(fn) {
+  flush_callbacks.push(fn);
+}
 var seen_callbacks = /* @__PURE__ */ new Set();
 var flushidx = 0;
 function flush() {
@@ -539,6 +542,13 @@ var _boolean_attributes = (
 var boolean_attributes = /* @__PURE__ */ new Set([..._boolean_attributes]);
 
 // node_modules/svelte/src/runtime/internal/Component.js
+function bind(component, name, callback) {
+  const index = component.$$.props[name];
+  if (index !== void 0) {
+    component.$$.bound[index] = callback;
+    callback(component.$$.ctx[index]);
+  }
+}
 function create_component(block) {
   block && block.c();
 }
@@ -3017,91 +3027,8 @@ var FileManager = class {
 if (typeof window !== "undefined")
   (window.__svelte || (window.__svelte = { v: /* @__PURE__ */ new Set() })).v.add(PUBLIC_VERSION);
 
-// src/ui/views/AgingView.svelte
-var import_obsidian3 = require("obsidian");
-
-// src/utils.ts
-function calculateLiquidTimeline(tasks, startTime, deadline) {
-  const totalMin = (deadline.getTime() - startTime.getTime()) / 6e4;
-  if (totalMin <= 0)
-    return [];
-  let remaining = totalMin;
-  const durMap = /* @__PURE__ */ new Map();
-  for (const t of tasks) {
-    if (t.isFixedDuration && t.fixedDuration && t.fixedDuration > 0) {
-      durMap.set(t.id, t.fixedDuration);
-      remaining -= t.fixedDuration;
-    }
-  }
-  const elastic = tasks.filter((t) => !(t.isFixedDuration && t.fixedDuration && t.fixedDuration > 0));
-  if (elastic.length && remaining > 0) {
-    const tw = elastic.reduce((s, t) => s + t.weight, 0) || 1;
-    for (const t of elastic) {
-      let d = t.weight / tw * remaining;
-      if (t.maxDuration && d > t.maxDuration)
-        d = t.maxDuration;
-      durMap.set(t.id, d);
-    }
-  }
-  let cur = startTime.getTime();
-  const tl = [];
-  for (const t of tasks) {
-    const dur = durMap.get(t.id) || 0;
-    const end = new Date(cur + dur * 6e4);
-    tl.push({
-      id: t.id,
-      startTime: new Date(cur).toISOString(),
-      endTime: end.toISOString(),
-      calculatedDuration: dur
-    });
-    cur = end.getTime();
-  }
-  return tl;
-}
-function formatAge(createdAtIso, now2 = Date.now()) {
-  const diff = now2 - new Date(createdAtIso).getTime();
-  const mins = Math.floor(diff / 6e4);
-  if (mins < 1)
-    return "just now";
-  if (mins < 60)
-    return `${mins}m ago`;
-  const hours = Math.floor(mins / 60);
-  if (hours < 24)
-    return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  if (days < 30)
-    return `${days}d ago`;
-  const months = Math.floor(days / 30);
-  return `${months}mo ago`;
-}
-function formatCountdown(diffMs) {
-  const isPast = diffMs < 0;
-  const abs = Math.abs(diffMs);
-  const totalSecs = Math.floor(abs / 1e3);
-  const days = Math.floor(totalSecs / 86400);
-  const hours = Math.floor(totalSecs % 86400 / 3600);
-  const mins = Math.floor(totalSecs % 3600 / 60);
-  const secs = totalSecs % 60;
-  let str = "";
-  if (days > 0)
-    str += `${days}d `;
-  if (hours > 0)
-    str += `${hours}h `;
-  str += `${mins}m ${secs}s`;
-  return isPast ? `overdue by ${str}` : str;
-}
-function fmtDate(iso) {
-  return iso ? new Date(iso).toISOString().slice(0, 10) : "";
-}
-function fmtTime(iso) {
-  if (!iso)
-    return "";
-  const d = new Date(iso);
-  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
-}
-function fmtDur(m) {
-  return m >= 60 ? `${Math.floor(m / 60)}h ${m % 60}m` : `${m}m`;
-}
+// src/ui/views/ProjectsView.svelte
+var import_obsidian5 = require("obsidian");
 
 // src/modals/Modals.ts
 var import_obsidian2 = require("obsidian");
@@ -3423,204 +3350,39 @@ var QuickEditTaskModal = class extends import_obsidian2.Modal {
   }
 };
 
-// src/ui/views/AgingView.svelte
+// src/ui/views/components/ProjectTaskBoard.svelte
 function get_each_context(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[29] = list[i];
-  const constants_0 = (
-    /*tasks*/
-    child_ctx[5].filter(function func2(...args) {
-      return (
-        /*func*/
-        ctx[27](
-          /*p*/
-          child_ctx[29],
-          ...args
-        )
-      );
-    })
-  );
-  child_ctx[30] = constants_0;
-  const constants_1 = (
-    /*pTasks*/
-    child_ctx[30].length
-  );
-  child_ctx[31] = constants_1;
-  const constants_2 = (
-    /*pTasks*/
-    child_ctx[30].filter((t) => t.status === "review").length
-  );
-  child_ctx[32] = constants_2;
-  const constants_3 = (
-    /*pTasks*/
-    child_ctx[30].filter((t) => t.status === "running").length
-  );
-  child_ctx[33] = constants_3;
-  const constants_4 = (
-    /*pTasks*/
-    child_ctx[30].filter((t) => t.status !== "review" && t.deadline && new Date(t.deadline).getTime() < /*now*/
-    child_ctx[3]).length
-  );
-  child_ctx[34] = constants_4;
-  const constants_5 = (
-    /*pTasks*/
-    child_ctx[30].filter((t) => t.status !== "review").length
-  );
-  child_ctx[35] = constants_5;
-  const constants_6 = (
-    /*pTasks*/
-    child_ctx[30].filter((t) => t.status !== "review" && t.properties && t.properties["priority"] === "1").length
-  );
-  child_ctx[36] = constants_6;
-  const constants_7 = (
-    /*pTasks*/
-    child_ctx[30].filter((t) => t.status !== "review" && t.deadline && new Date(t.deadline).getTime() > /*now*/
-    child_ctx[3]).map((t) => new Date(t.deadline || "").getTime())
-  );
-  child_ctx[37] = constants_7;
-  const constants_8 = (
-    /*futureDeadlines*/
-    child_ctx[37].length > 0 ? Math.min(.../*futureDeadlines*/
-    child_ctx[37]) : null
-  );
-  child_ctx[38] = constants_8;
-  const constants_9 = (
-    /*total*/
-    child_ctx[31] > 0 ? Math.round(
-      /*completed*/
-      child_ctx[32] / /*total*/
-      child_ctx[31] * 100
-    ) : 0
-  );
-  child_ctx[39] = constants_9;
+  child_ctx[38] = list[i];
+  child_ctx[40] = i;
   return child_ctx;
 }
-function create_else_block(ctx) {
-  let each_blocks = [];
-  let each_1_lookup = /* @__PURE__ */ new Map();
-  let each_1_anchor;
-  let each_value = ensure_array_like(
-    /*displayProjects*/
-    ctx[2]
-  );
-  const get_key = (ctx2) => (
-    /*p*/
-    ctx2[29].id
-  );
-  for (let i = 0; i < each_value.length; i += 1) {
-    let child_ctx = get_each_context(ctx, each_value, i);
-    let key = get_key(child_ctx);
-    each_1_lookup.set(key, each_blocks[i] = create_each_block(key, child_ctx));
-  }
-  return {
-    c() {
-      for (let i = 0; i < each_blocks.length; i += 1) {
-        each_blocks[i].c();
-      }
-      each_1_anchor = empty();
-    },
-    m(target, anchor) {
-      for (let i = 0; i < each_blocks.length; i += 1) {
-        if (each_blocks[i]) {
-          each_blocks[i].m(target, anchor);
-        }
-      }
-      insert(target, each_1_anchor, anchor);
-    },
-    p(ctx2, dirty) {
-      if (dirty[0] & /*showArchived, getHue, displayProjects, range, minTime, handleDeleteProject, handleArchiveProject, handleUnarchiveProject, handleSelectProject, tasks, now*/
-      3967) {
-        each_value = ensure_array_like(
-          /*displayProjects*/
-          ctx2[2]
-        );
-        each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx2, each_value, each_1_lookup, each_1_anchor.parentNode, destroy_block, create_each_block, each_1_anchor, get_each_context);
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(each_1_anchor);
-      }
-      for (let i = 0; i < each_blocks.length; i += 1) {
-        each_blocks[i].d(detaching);
-      }
-    }
-  };
+function get_each_context_1(ctx, list, i) {
+  const child_ctx = ctx.slice();
+  child_ctx[41] = list[i];
+  child_ctx[43] = i;
+  return child_ctx;
 }
-function create_if_block(ctx) {
-  let p_1;
-  let t_value = (
-    /*showArchived*/
-    ctx[0] ? "No archived projects." : 'No active projects yet. Click "+ New Project" above to build your first project workspace!'
-  );
-  let t;
-  return {
-    c() {
-      p_1 = element("p");
-      t = text(t_value);
-      attr(p_1, "class", "pos-empty");
-    },
-    m(target, anchor) {
-      insert(target, p_1, anchor);
-      append(p_1, t);
-    },
-    p(ctx2, dirty) {
-      if (dirty[0] & /*showArchived*/
-      1 && t_value !== (t_value = /*showArchived*/
-      ctx2[0] ? "No archived projects." : 'No active projects yet. Click "+ New Project" above to build your first project workspace!'))
-        set_data(t, t_value);
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(p_1);
-      }
-    }
-  };
-}
-function create_if_block_6(ctx) {
-  let span;
-  return {
-    c() {
-      span = element("span");
-      span.textContent = "ARCHIVED";
-      set_style(span, "font-size", "0.7em");
-      set_style(span, "margin-left", "8px");
-      set_style(span, "padding", "2px 6px");
-      set_style(span, "background", "rgba(0,0,0,0.1)");
-      set_style(span, "border-radius", "4px");
-    },
-    m(target, anchor) {
-      insert(target, span, anchor);
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(span);
-      }
-    }
-  };
+function get_each_context_2(ctx, list, i) {
+  const child_ctx = ctx.slice();
+  child_ctx[44] = list[i];
+  return child_ctx;
 }
 function create_if_block_5(ctx) {
   let div2;
-  let t_value = (
-    /*p*/
-    ctx[29].description + ""
-  );
-  let t;
   return {
     c() {
       div2 = element("div");
-      t = text(t_value);
-      attr(div2, "class", "pos-card-desc");
+      attr(div2, "class", "pos-board-col-placeholder");
+      set_style(div2, "width", "300px");
+      set_style(div2, "min-width", "300px");
+      set_style(div2, "border", "2px dashed var(--interactive-accent)");
+      set_style(div2, "border-radius", "8px");
+      set_style(div2, "margin", "0 10px");
+      set_style(div2, "background", "rgba(var(--interactive-accent-rgb), 0.05)");
     },
     m(target, anchor) {
       insert(target, div2, anchor);
-      append(div2, t);
-    },
-    p(ctx2, dirty) {
-      if (dirty[0] & /*displayProjects*/
-      4 && t_value !== (t_value = /*p*/
-      ctx2[29].description + ""))
-        set_data(t, t_value);
     },
     d(detaching) {
       if (detaching) {
@@ -3630,1057 +3392,44 @@ function create_if_block_5(ctx) {
   };
 }
 function create_if_block_4(ctx) {
-  let span;
-  let t0;
-  let t1_value = (
-    /*overdue*/
-    ctx[34] + ""
-  );
-  let t1;
-  let t2;
+  let div2;
   return {
     c() {
-      span = element("span");
-      t0 = text("\u26A0\uFE0F ");
-      t1 = text(t1_value);
-      t2 = text(" Overdue");
-      attr(span, "title", "Overdue Tasks");
-      set_style(span, "color", "#dc3545");
+      div2 = element("div");
+      attr(div2, "class", "pos-drag-placeholder");
+      set_style(
+        div2,
+        "height",
+        /*dragHeight*/
+        ctx[6] + "px"
+      );
     },
     m(target, anchor) {
-      insert(target, span, anchor);
-      append(span, t0);
-      append(span, t1);
-      append(span, t2);
+      insert(target, div2, anchor);
     },
     p(ctx2, dirty) {
-      if (dirty[0] & /*tasks, displayProjects, now*/
-      44 && t1_value !== (t1_value = /*overdue*/
-      ctx2[34] + ""))
-        set_data(t1, t1_value);
+      if (dirty[0] & /*dragHeight*/
+      64) {
+        set_style(
+          div2,
+          "height",
+          /*dragHeight*/
+          ctx2[6] + "px"
+        );
+      }
     },
     d(detaching) {
       if (detaching) {
-        detach(span);
+        detach(div2);
       }
     }
   };
 }
 function create_if_block_3(ctx) {
-  let span;
-  let t0;
-  let t1_value = (
-    /*highPriority*/
-    ctx[36] + ""
-  );
-  let t1;
-  let t2;
-  return {
-    c() {
-      span = element("span");
-      t0 = text("\u{1F525} ");
-      t1 = text(t1_value);
-      t2 = text(" P1");
-      attr(span, "title", "High Priority Tasks");
-      set_style(span, "color", "#ff6b6b");
-    },
-    m(target, anchor) {
-      insert(target, span, anchor);
-      append(span, t0);
-      append(span, t1);
-      append(span, t2);
-    },
-    p(ctx2, dirty) {
-      if (dirty[0] & /*tasks, displayProjects*/
-      36 && t1_value !== (t1_value = /*highPriority*/
-      ctx2[36] + ""))
-        set_data(t1, t1_value);
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(span);
-      }
-    }
-  };
-}
-function create_else_block_2(ctx) {
-  let t;
-  return {
-    c() {
-      t = text("No upcoming deadlines");
-    },
-    m(target, anchor) {
-      insert(target, t, anchor);
-    },
-    p: noop,
-    d(detaching) {
-      if (detaching) {
-        detach(t);
-      }
-    }
-  };
-}
-function create_if_block_2(ctx) {
-  let t0;
-  let t1_value = new Date(
-    /*nearestDeadline*/
-    ctx[38]
-  ).toLocaleDateString() + "";
-  let t1;
-  return {
-    c() {
-      t0 = text("Next Deadline: ");
-      t1 = text(t1_value);
-    },
-    m(target, anchor) {
-      insert(target, t0, anchor);
-      insert(target, t1, anchor);
-    },
-    p(ctx2, dirty) {
-      if (dirty[0] & /*tasks, displayProjects, now*/
-      44 && t1_value !== (t1_value = new Date(
-        /*nearestDeadline*/
-        ctx2[38]
-      ).toLocaleDateString() + ""))
-        set_data(t1, t1_value);
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(t0);
-        detach(t1);
-      }
-    }
-  };
-}
-function create_else_block_1(ctx) {
-  let button;
-  let mounted;
-  let dispose;
-  function click_handler_3() {
-    return (
-      /*click_handler_3*/
-      ctx[25](
-        /*p*/
-        ctx[29]
-      )
-    );
-  }
-  return {
-    c() {
-      button = element("button");
-      button.textContent = "Restore";
-      attr(button, "title", "Restore project");
-    },
-    m(target, anchor) {
-      insert(target, button, anchor);
-      if (!mounted) {
-        dispose = listen(button, "click", click_handler_3);
-        mounted = true;
-      }
-    },
-    p(new_ctx, dirty) {
-      ctx = new_ctx;
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(button);
-      }
-      mounted = false;
-      dispose();
-    }
-  };
-}
-function create_if_block_1(ctx) {
-  let button;
-  let mounted;
-  let dispose;
-  function click_handler_2() {
-    return (
-      /*click_handler_2*/
-      ctx[24](
-        /*p*/
-        ctx[29]
-      )
-    );
-  }
-  return {
-    c() {
-      button = element("button");
-      button.textContent = "Archive";
-      attr(button, "title", "Archive project");
-    },
-    m(target, anchor) {
-      insert(target, button, anchor);
-      if (!mounted) {
-        dispose = listen(button, "click", click_handler_2);
-        mounted = true;
-      }
-    },
-    p(new_ctx, dirty) {
-      ctx = new_ctx;
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(button);
-      }
-      mounted = false;
-      dispose();
-    }
-  };
-}
-function create_each_block(key_1, ctx) {
-  let div8;
-  let div0;
-  let t0_value = (
-    /*p*/
-    ctx[29].name + ""
-  );
-  let t0;
-  let t1;
-  let t2;
-  let t3;
-  let div1;
-  let t4;
-  let t5_value = formatAge(
-    /*p*/
-    ctx[29].createdAt,
-    /*now*/
-    ctx[3]
-  ) + "";
-  let t5;
-  let t6;
-  let div6;
-  let div2;
-  let span0;
-  let t7_value = (
-    /*total*/
-    ctx[31] + ""
-  );
-  let t7;
-  let t8;
-  let t9;
-  let span1;
-  let t10;
-  let t11_value = (
-    /*completionPct*/
-    ctx[39] + ""
-  );
-  let t11;
-  let t12;
-  let t13;
-  let t14;
-  let t15;
-  let div3;
-  let t16;
-  let div5;
-  let div4;
-  let t17;
-  let div7;
-  let button0;
-  let t19;
-  let t20;
-  let button1;
-  let t22;
-  let mounted;
-  let dispose;
-  let if_block0 = (
-    /*showArchived*/
-    ctx[0] && create_if_block_6(ctx)
-  );
-  function click_handler() {
-    return (
-      /*click_handler*/
-      ctx[22](
-        /*p*/
-        ctx[29]
-      )
-    );
-  }
-  let if_block1 = (
-    /*p*/
-    ctx[29].description && create_if_block_5(ctx)
-  );
-  let if_block2 = (
-    /*overdue*/
-    ctx[34] > 0 && create_if_block_4(ctx)
-  );
-  let if_block3 = (
-    /*highPriority*/
-    ctx[36] > 0 && create_if_block_3(ctx)
-  );
-  function select_block_type_1(ctx2, dirty) {
-    if (
-      /*nearestDeadline*/
-      ctx2[38]
-    )
-      return create_if_block_2;
-    return create_else_block_2;
-  }
-  let current_block_type = select_block_type_1(ctx, [-1, -1]);
-  let if_block4 = current_block_type(ctx);
-  function click_handler_1() {
-    return (
-      /*click_handler_1*/
-      ctx[23](
-        /*p*/
-        ctx[29]
-      )
-    );
-  }
-  function select_block_type_2(ctx2, dirty) {
-    if (!/*showArchived*/
-    ctx2[0])
-      return create_if_block_1;
-    return create_else_block_1;
-  }
-  let current_block_type_1 = select_block_type_2(ctx, [-1, -1]);
-  let if_block5 = current_block_type_1(ctx);
-  function click_handler_4() {
-    return (
-      /*click_handler_4*/
-      ctx[26](
-        /*p*/
-        ctx[29]
-      )
-    );
-  }
-  return {
-    key: key_1,
-    first: null,
-    c() {
-      div8 = element("div");
-      div0 = element("div");
-      t0 = text(t0_value);
-      t1 = space();
-      if (if_block0)
-        if_block0.c();
-      t2 = space();
-      if (if_block1)
-        if_block1.c();
-      t3 = space();
-      div1 = element("div");
-      t4 = text("Age: ");
-      t5 = text(t5_value);
-      t6 = space();
-      div6 = element("div");
-      div2 = element("div");
-      span0 = element("span");
-      t7 = text(t7_value);
-      t8 = text(" Tasks");
-      t9 = space();
-      span1 = element("span");
-      t10 = text("\u2705 ");
-      t11 = text(t11_value);
-      t12 = text("%");
-      t13 = space();
-      if (if_block2)
-        if_block2.c();
-      t14 = space();
-      if (if_block3)
-        if_block3.c();
-      t15 = space();
-      div3 = element("div");
-      if_block4.c();
-      t16 = space();
-      div5 = element("div");
-      div4 = element("div");
-      t17 = space();
-      div7 = element("div");
-      button0 = element("button");
-      button0.textContent = "Open Workspace";
-      t19 = space();
-      if_block5.c();
-      t20 = space();
-      button1 = element("button");
-      button1.textContent = "Delete";
-      t22 = space();
-      attr(div0, "class", "pos-card-name");
-      set_style(div0, "cursor", "pointer");
-      set_style(div0, "font-weight", "bold");
-      set_style(div0, "font-size", "1.15em");
-      attr(div1, "class", "pos-age");
-      attr(span0, "title", "Total Tasks");
-      attr(span1, "title", "Completion");
-      set_style(div2, "display", "flex");
-      set_style(div2, "align-items", "center");
-      set_style(div2, "gap", "12px");
-      set_style(div2, "font-weight", "600");
-      set_style(div3, "font-size", "0.9em");
-      set_style(div3, "opacity", "0.8");
-      set_style(div4, "height", "100%");
-      set_style(
-        div4,
-        "width",
-        /*completionPct*/
-        ctx[39] + "%"
-      );
-      set_style(div4, "background", "#28a745");
-      set_style(div4, "transition", "width 0.3s");
-      set_style(div5, "width", "100%");
-      set_style(div5, "height", "6px");
-      set_style(div5, "background", "rgba(0,0,0,0.1)");
-      set_style(div5, "border-radius", "3px");
-      set_style(div5, "overflow", "hidden");
-      set_style(div5, "margin-top", "4px");
-      attr(div6, "class", "pos-card-meta");
-      set_style(div6, "display", "flex");
-      set_style(div6, "flex-direction", "column");
-      set_style(div6, "gap", "8px");
-      set_style(div6, "margin-top", "12px");
-      attr(button0, "class", "pos-ptc-start-btn");
-      attr(button1, "class", "pos-del");
-      attr(button1, "title", "Delete project");
-      attr(div7, "class", "pos-card-acts");
-      set_style(div7, "margin-top", "16px");
-      set_style(div7, "display", "flex");
-      set_style(div7, "gap", "8px");
-      set_style(div7, "flex-wrap", "wrap");
-      attr(div8, "class", "pos-card pos-project-card");
-      set_style(div8, "background-color", "hsl(" + /*showArchived*/
-      (ctx[0] ? "0, 0%, 90%" : (
-        /*getHue*/
-        ctx[6](
-          /*p*/
-          ctx[29].createdAt,
-          /*range*/
-          ctx[4],
-          /*minTime*/
-          ctx[1]
-        ) + ", 70%, 90%"
-      )) + ")");
-      this.first = div8;
-    },
-    m(target, anchor) {
-      insert(target, div8, anchor);
-      append(div8, div0);
-      append(div0, t0);
-      append(div0, t1);
-      if (if_block0)
-        if_block0.m(div0, null);
-      append(div8, t2);
-      if (if_block1)
-        if_block1.m(div8, null);
-      append(div8, t3);
-      append(div8, div1);
-      append(div1, t4);
-      append(div1, t5);
-      append(div8, t6);
-      append(div8, div6);
-      append(div6, div2);
-      append(div2, span0);
-      append(span0, t7);
-      append(span0, t8);
-      append(div2, t9);
-      append(div2, span1);
-      append(span1, t10);
-      append(span1, t11);
-      append(span1, t12);
-      append(div2, t13);
-      if (if_block2)
-        if_block2.m(div2, null);
-      append(div2, t14);
-      if (if_block3)
-        if_block3.m(div2, null);
-      append(div6, t15);
-      append(div6, div3);
-      if_block4.m(div3, null);
-      append(div6, t16);
-      append(div6, div5);
-      append(div5, div4);
-      append(div8, t17);
-      append(div8, div7);
-      append(div7, button0);
-      append(div7, t19);
-      if_block5.m(div7, null);
-      append(div7, t20);
-      append(div7, button1);
-      append(div8, t22);
-      if (!mounted) {
-        dispose = [
-          listen(div0, "click", click_handler),
-          listen(button0, "click", click_handler_1),
-          listen(button1, "click", click_handler_4)
-        ];
-        mounted = true;
-      }
-    },
-    p(new_ctx, dirty) {
-      ctx = new_ctx;
-      if (dirty[0] & /*displayProjects*/
-      4 && t0_value !== (t0_value = /*p*/
-      ctx[29].name + ""))
-        set_data(t0, t0_value);
-      if (
-        /*showArchived*/
-        ctx[0]
-      ) {
-        if (if_block0) {
-        } else {
-          if_block0 = create_if_block_6(ctx);
-          if_block0.c();
-          if_block0.m(div0, null);
-        }
-      } else if (if_block0) {
-        if_block0.d(1);
-        if_block0 = null;
-      }
-      if (
-        /*p*/
-        ctx[29].description
-      ) {
-        if (if_block1) {
-          if_block1.p(ctx, dirty);
-        } else {
-          if_block1 = create_if_block_5(ctx);
-          if_block1.c();
-          if_block1.m(div8, t3);
-        }
-      } else if (if_block1) {
-        if_block1.d(1);
-        if_block1 = null;
-      }
-      if (dirty[0] & /*displayProjects, now*/
-      12 && t5_value !== (t5_value = formatAge(
-        /*p*/
-        ctx[29].createdAt,
-        /*now*/
-        ctx[3]
-      ) + ""))
-        set_data(t5, t5_value);
-      if (dirty[0] & /*tasks, displayProjects*/
-      36 && t7_value !== (t7_value = /*total*/
-      ctx[31] + ""))
-        set_data(t7, t7_value);
-      if (dirty[0] & /*tasks, displayProjects*/
-      36 && t11_value !== (t11_value = /*completionPct*/
-      ctx[39] + ""))
-        set_data(t11, t11_value);
-      if (
-        /*overdue*/
-        ctx[34] > 0
-      ) {
-        if (if_block2) {
-          if_block2.p(ctx, dirty);
-        } else {
-          if_block2 = create_if_block_4(ctx);
-          if_block2.c();
-          if_block2.m(div2, t14);
-        }
-      } else if (if_block2) {
-        if_block2.d(1);
-        if_block2 = null;
-      }
-      if (
-        /*highPriority*/
-        ctx[36] > 0
-      ) {
-        if (if_block3) {
-          if_block3.p(ctx, dirty);
-        } else {
-          if_block3 = create_if_block_3(ctx);
-          if_block3.c();
-          if_block3.m(div2, null);
-        }
-      } else if (if_block3) {
-        if_block3.d(1);
-        if_block3 = null;
-      }
-      if (current_block_type === (current_block_type = select_block_type_1(ctx, dirty)) && if_block4) {
-        if_block4.p(ctx, dirty);
-      } else {
-        if_block4.d(1);
-        if_block4 = current_block_type(ctx);
-        if (if_block4) {
-          if_block4.c();
-          if_block4.m(div3, null);
-        }
-      }
-      if (dirty[0] & /*tasks, displayProjects*/
-      36) {
-        set_style(
-          div4,
-          "width",
-          /*completionPct*/
-          ctx[39] + "%"
-        );
-      }
-      if (current_block_type_1 === (current_block_type_1 = select_block_type_2(ctx, dirty)) && if_block5) {
-        if_block5.p(ctx, dirty);
-      } else {
-        if_block5.d(1);
-        if_block5 = current_block_type_1(ctx);
-        if (if_block5) {
-          if_block5.c();
-          if_block5.m(div7, t20);
-        }
-      }
-      if (dirty[0] & /*showArchived, displayProjects, range, minTime*/
-      23) {
-        set_style(div8, "background-color", "hsl(" + /*showArchived*/
-        (ctx[0] ? "0, 0%, 90%" : (
-          /*getHue*/
-          ctx[6](
-            /*p*/
-            ctx[29].createdAt,
-            /*range*/
-            ctx[4],
-            /*minTime*/
-            ctx[1]
-          ) + ", 70%, 90%"
-        )) + ")");
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(div8);
-      }
-      if (if_block0)
-        if_block0.d();
-      if (if_block1)
-        if_block1.d();
-      if (if_block2)
-        if_block2.d();
-      if (if_block3)
-        if_block3.d();
-      if_block4.d();
-      if_block5.d();
-      mounted = false;
-      run_all(dispose);
-    }
-  };
-}
-function create_fragment(ctx) {
-  let div4;
-  let div3;
-  let div0;
-  let h2;
-  let t1;
-  let button;
-  let t3;
-  let div1;
-  let p_1;
-  let t5;
-  let label;
-  let input;
-  let t6;
-  let span;
-  let t8;
-  let div2;
-  let mounted;
-  let dispose;
-  function select_block_type(ctx2, dirty) {
-    if (
-      /*displayProjects*/
-      ctx2[2].length === 0
-    )
-      return create_if_block;
-    return create_else_block;
-  }
-  let current_block_type = select_block_type(ctx, [-1, -1]);
-  let if_block = current_block_type(ctx);
-  return {
-    c() {
-      div4 = element("div");
-      div3 = element("div");
-      div0 = element("div");
-      h2 = element("h2");
-      h2.textContent = "Projects Hub";
-      t1 = space();
-      button = element("button");
-      button.textContent = "+ New Project";
-      t3 = space();
-      div1 = element("div");
-      p_1 = element("p");
-      p_1.textContent = "Select or create a workspace to manage project notes and tasks modularly in a central tab.";
-      t5 = space();
-      label = element("label");
-      input = element("input");
-      t6 = space();
-      span = element("span");
-      span.textContent = "Show Archived Projects";
-      t8 = space();
-      div2 = element("div");
-      if_block.c();
-      attr(h2, "class", "pos-workspace-title");
-      set_style(h2, "margin", "0");
-      attr(button, "class", "pos-modal-primary pos-create-new-project-btn");
-      attr(div0, "class", "pos-workspace-header-row");
-      set_style(div0, "display", "flex");
-      set_style(div0, "justify-content", "space-between");
-      set_style(div0, "align-items", "center");
-      set_style(div0, "margin-bottom", "12px");
-      attr(p_1, "class", "pos-subtitle");
-      set_style(p_1, "margin-bottom", "0");
-      attr(input, "type", "checkbox");
-      set_style(label, "display", "flex");
-      set_style(label, "align-items", "center");
-      set_style(label, "gap", "8px");
-      set_style(label, "cursor", "pointer");
-      set_style(label, "font-size", "0.9em");
-      set_style(div1, "display", "flex");
-      set_style(div1, "justify-content", "space-between");
-      set_style(div1, "align-items", "center");
-      set_style(div1, "margin-bottom", "20px");
-      attr(div2, "class", "pos-project-list");
-      attr(div3, "class", "pos-projects-central-pane");
-      attr(div4, "class", "pos-projects-selection-layout");
-    },
-    m(target, anchor) {
-      insert(target, div4, anchor);
-      append(div4, div3);
-      append(div3, div0);
-      append(div0, h2);
-      append(div0, t1);
-      append(div0, button);
-      append(div3, t3);
-      append(div3, div1);
-      append(div1, p_1);
-      append(div1, t5);
-      append(div1, label);
-      append(label, input);
-      input.checked = /*showArchived*/
-      ctx[0];
-      append(label, t6);
-      append(label, span);
-      append(div3, t8);
-      append(div3, div2);
-      if_block.m(div2, null);
-      if (!mounted) {
-        dispose = [
-          listen(
-            button,
-            "click",
-            /*handleCreateProject*/
-            ctx[7]
-          ),
-          listen(
-            input,
-            "change",
-            /*input_change_handler*/
-            ctx[21]
-          )
-        ];
-        mounted = true;
-      }
-    },
-    p(ctx2, dirty) {
-      if (dirty[0] & /*showArchived*/
-      1) {
-        input.checked = /*showArchived*/
-        ctx2[0];
-      }
-      if (current_block_type === (current_block_type = select_block_type(ctx2, dirty)) && if_block) {
-        if_block.p(ctx2, dirty);
-      } else {
-        if_block.d(1);
-        if_block = current_block_type(ctx2);
-        if (if_block) {
-          if_block.c();
-          if_block.m(div2, null);
-        }
-      }
-    },
-    i: noop,
-    o: noop,
-    d(detaching) {
-      if (detaching) {
-        detach(div4);
-      }
-      if_block.d();
-      mounted = false;
-      run_all(dispose);
-    }
-  };
-}
-function instance($$self, $$props, $$invalidate) {
-  let displayProjects;
-  let tasks;
-  let allTimes;
-  let minTime;
-  let maxTime;
-  let range;
-  let $tasksStore;
-  let $projectsStore;
-  component_subscribe($$self, tasksStore, ($$value) => $$invalidate(19, $tasksStore = $$value));
-  component_subscribe($$self, projectsStore, ($$value) => $$invalidate(20, $projectsStore = $$value));
-  let { app } = $$props;
-  let { fileManager } = $$props;
-  let { plugin } = $$props;
-  let { isFullPage = false } = $$props;
-  let { onSelect } = $$props;
-  let showArchived = false;
-  let timer;
-  let now2 = Date.now();
-  onMount(() => {
-    timer = window.setInterval(
-      () => {
-        $$invalidate(3, now2 = Date.now());
-      },
-      6e4
-    );
-  });
-  onDestroy(() => {
-    window.clearInterval(timer);
-  });
-  function getHue(createdAt, range2, minTime2) {
-    const tMs = new Date(createdAt).getTime();
-    const ratio = range2 > 1 ? (tMs - minTime2) / range2 : 0;
-    return 120 * (1 - ratio);
-  }
-  function handleCreateProject() {
-    new NewProjectModal(
-      app,
-      async (name, desc) => {
-        const id = `proj-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`;
-        const fm = {
-          type: "project",
-          name,
-          description: desc || "",
-          createdAt: (/* @__PURE__ */ new Date()).toISOString(),
-          status: "active"
-        };
-        const content = "---\n" + Object.entries(fm).map(([k, v]) => `${k}: ${v}`).join("\n") + "\n---\n\n# " + name + "\n";
-        await fileManager.ensureFolder(`projects/${id}`);
-        await app.vault.create(`projects/${id}/index.md`, content);
-        await fileManager.loadAll();
-        if (isFullPage) {
-          onSelect(id, "elastic");
-        } else {
-          plugin.activateWorkspaceView(id);
-        }
-        new import_obsidian3.Notice("Project created successfully!");
-      }
-    ).open();
-  }
-  async function handleDeleteProject(id) {
-    if (confirm("Delete project and ALL its child tasks? This will permanently delete the Markdown files of all tasks inside this project.")) {
-      const file = app.vault.getAbstractFileByPath(`projects/${id}.md`) || app.vault.getAbstractFileByPath(`projects/${id}/index.md`);
-      if (file) {
-        await app.vault.delete(file);
-        const linked = tasks.filter((t) => t.project === id);
-        for (const t of linked) {
-          await fileManager.deleteTask(t.id);
-        }
-        await fileManager.loadAll();
-        new import_obsidian3.Notice("Project deleted.");
-      }
-    }
-  }
-  async function handleArchiveProject(id) {
-    if (confirm("Archive this project?")) {
-      await fileManager.archiveProject(id);
-      new import_obsidian3.Notice("Project archived.");
-    }
-  }
-  async function handleUnarchiveProject(id) {
-    if (confirm("Restore this project to active status?")) {
-      await fileManager.unarchiveProject(id);
-      new import_obsidian3.Notice("Project restored.");
-    }
-  }
-  function handleSelectProject(id) {
-    if (isFullPage) {
-      onSelect(id, "elastic");
-    } else {
-      plugin.activateWorkspaceView(id);
-    }
-  }
-  function input_change_handler() {
-    showArchived = this.checked;
-    $$invalidate(0, showArchived);
-  }
-  const click_handler = (p) => handleSelectProject(p.id);
-  const click_handler_1 = (p) => handleSelectProject(p.id);
-  const click_handler_2 = (p) => handleArchiveProject(p.id);
-  const click_handler_3 = (p) => handleUnarchiveProject(p.id);
-  const click_handler_4 = (p) => handleDeleteProject(p.id);
-  const func2 = (p, t) => t.project === p.id;
-  $$self.$$set = ($$props2) => {
-    if ("app" in $$props2)
-      $$invalidate(12, app = $$props2.app);
-    if ("fileManager" in $$props2)
-      $$invalidate(13, fileManager = $$props2.fileManager);
-    if ("plugin" in $$props2)
-      $$invalidate(14, plugin = $$props2.plugin);
-    if ("isFullPage" in $$props2)
-      $$invalidate(15, isFullPage = $$props2.isFullPage);
-    if ("onSelect" in $$props2)
-      $$invalidate(16, onSelect = $$props2.onSelect);
-  };
-  $$self.$$.update = () => {
-    if ($$self.$$.dirty[0] & /*$projectsStore, showArchived*/
-    1048577) {
-      $:
-        $$invalidate(2, displayProjects = $projectsStore.filter((p) => showArchived ? p.status === "archived" : p.status === "active"));
-    }
-    if ($$self.$$.dirty[0] & /*$tasksStore*/
-    524288) {
-      $:
-        $$invalidate(5, tasks = $tasksStore);
-    }
-    if ($$self.$$.dirty[0] & /*displayProjects*/
-    4) {
-      $:
-        $$invalidate(18, allTimes = displayProjects.map((p) => new Date(p.createdAt).getTime()));
-    }
-    if ($$self.$$.dirty[0] & /*allTimes*/
-    262144) {
-      $:
-        $$invalidate(1, minTime = Math.min(...allTimes));
-    }
-    if ($$self.$$.dirty[0] & /*allTimes*/
-    262144) {
-      $:
-        $$invalidate(17, maxTime = Math.max(...allTimes));
-    }
-    if ($$self.$$.dirty[0] & /*maxTime, minTime*/
-    131074) {
-      $:
-        $$invalidate(4, range = maxTime - minTime || 1);
-    }
-  };
-  return [
-    showArchived,
-    minTime,
-    displayProjects,
-    now2,
-    range,
-    tasks,
-    getHue,
-    handleCreateProject,
-    handleDeleteProject,
-    handleArchiveProject,
-    handleUnarchiveProject,
-    handleSelectProject,
-    app,
-    fileManager,
-    plugin,
-    isFullPage,
-    onSelect,
-    maxTime,
-    allTimes,
-    $tasksStore,
-    $projectsStore,
-    input_change_handler,
-    click_handler,
-    click_handler_1,
-    click_handler_2,
-    click_handler_3,
-    click_handler_4,
-    func2
-  ];
-}
-var AgingView = class extends SvelteComponent {
-  constructor(options) {
-    super();
-    init(
-      this,
-      options,
-      instance,
-      create_fragment,
-      safe_not_equal,
-      {
-        app: 12,
-        fileManager: 13,
-        plugin: 14,
-        isFullPage: 15,
-        onSelect: 16
-      },
-      null,
-      [-1, -1]
-    );
-  }
-};
-var AgingView_default = AgingView;
-
-// src/ui/views/ElasticView.svelte
-var import_obsidian4 = require("obsidian");
-function get_each_context2(ctx, list, i) {
-  const child_ctx = ctx.slice();
-  child_ctx[77] = list[i];
-  child_ctx[79] = i;
-  return child_ctx;
-}
-function get_each_context_1(ctx, list, i) {
-  const child_ctx = ctx.slice();
-  child_ctx[80] = list[i];
-  return child_ctx;
-}
-function get_each_context_2(ctx, list, i) {
-  const child_ctx = ctx.slice();
-  child_ctx[77] = list[i];
-  child_ctx[79] = i;
-  const constants_0 = (
-    /*timeline*/
-    child_ctx[8].find(function func2(...args) {
-      return (
-        /*func*/
-        ctx[59](
-          /*task*/
-          child_ctx[77],
-          ...args
-        )
-      );
-    })
-  );
-  child_ctx[83] = constants_0;
-  return child_ctx;
-}
-function get_each_context_3(ctx, list, i) {
-  const child_ctx = ctx.slice();
-  child_ctx[80] = list[i];
-  return child_ctx;
-}
-function get_each_context_4(ctx, list, i) {
-  const child_ctx = ctx.slice();
-  child_ctx[77] = list[i];
-  child_ctx[79] = i;
-  return child_ctx;
-}
-function get_each_context_5(ctx, list, i) {
-  const child_ctx = ctx.slice();
-  child_ctx[80] = list[i];
-  return child_ctx;
-}
-function create_if_block_15(ctx) {
-  let div2;
-  return {
-    c() {
-      div2 = element("div");
-      attr(div2, "class", "pos-drag-placeholder");
-      set_style(
-        div2,
-        "height",
-        /*dragHeight*/
-        ctx[15] + "px"
-      );
-    },
-    m(target, anchor) {
-      insert(target, div2, anchor);
-    },
-    p(ctx2, dirty) {
-      if (dirty[0] & /*dragHeight*/
-      32768) {
-        set_style(
-          div2,
-          "height",
-          /*dragHeight*/
-          ctx2[15] + "px"
-        );
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(div2);
-      }
-    }
-  };
-}
-function create_if_block_14(ctx) {
   let div2;
   let t_value = (
     /*task*/
-    ctx[77].description + ""
+    ctx[41].description + ""
   );
   let t;
   return {
@@ -4694,442 +3443,9 @@ function create_if_block_14(ctx) {
       append(div2, t);
     },
     p(ctx2, dirty) {
-      if (dirty[0] & /*backlog*/
-      262144 && t_value !== (t_value = /*task*/
-      ctx2[77].description + ""))
-        set_data(t, t_value);
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(div2);
-      }
-    }
-  };
-}
-function create_if_block_13(ctx) {
-  let div2;
-  let each_value_5 = ensure_array_like(
-    /*getCustomProps*/
-    ctx[19](
-      /*task*/
-      ctx[77]
-    )
-  );
-  let each_blocks = [];
-  for (let i = 0; i < each_value_5.length; i += 1) {
-    each_blocks[i] = create_each_block_5(get_each_context_5(ctx, each_value_5, i));
-  }
-  return {
-    c() {
-      div2 = element("div");
-      for (let i = 0; i < each_blocks.length; i += 1) {
-        each_blocks[i].c();
-      }
-      attr(div2, "class", "pos-card-meta");
-    },
-    m(target, anchor) {
-      insert(target, div2, anchor);
-      for (let i = 0; i < each_blocks.length; i += 1) {
-        if (each_blocks[i]) {
-          each_blocks[i].m(div2, null);
-        }
-      }
-    },
-    p(ctx2, dirty) {
-      if (dirty[0] & /*getCustomProps, backlog*/
-      786432) {
-        each_value_5 = ensure_array_like(
-          /*getCustomProps*/
-          ctx2[19](
-            /*task*/
-            ctx2[77]
-          )
-        );
-        let i;
-        for (i = 0; i < each_value_5.length; i += 1) {
-          const child_ctx = get_each_context_5(ctx2, each_value_5, i);
-          if (each_blocks[i]) {
-            each_blocks[i].p(child_ctx, dirty);
-          } else {
-            each_blocks[i] = create_each_block_5(child_ctx);
-            each_blocks[i].c();
-            each_blocks[i].m(div2, null);
-          }
-        }
-        for (; i < each_blocks.length; i += 1) {
-          each_blocks[i].d(1);
-        }
-        each_blocks.length = each_value_5.length;
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(div2);
-      }
-      destroy_each(each_blocks, detaching);
-    }
-  };
-}
-function create_each_block_5(ctx) {
-  let span;
-  let t_value = (
-    /*cp*/
-    ctx[80].value + ""
-  );
-  let t;
-  let span_title_value;
-  let span_style_value;
-  return {
-    c() {
-      span = element("span");
-      t = text(t_value);
-      attr(span, "class", "pos-tag-pill");
-      attr(span, "title", span_title_value = /*cp*/
-      ctx[80].name);
-      attr(span, "style", span_style_value = /*cp*/
-      ctx[80].color ? `background-color: ${/*cp*/
-      ctx[80].color}; border-color: ${/*cp*/
-      ctx[80].color}; color: #fff;` : "");
-    },
-    m(target, anchor) {
-      insert(target, span, anchor);
-      append(span, t);
-    },
-    p(ctx2, dirty) {
-      if (dirty[0] & /*backlog*/
-      262144 && t_value !== (t_value = /*cp*/
-      ctx2[80].value + ""))
-        set_data(t, t_value);
-      if (dirty[0] & /*backlog*/
-      262144 && span_title_value !== (span_title_value = /*cp*/
-      ctx2[80].name)) {
-        attr(span, "title", span_title_value);
-      }
-      if (dirty[0] & /*backlog*/
-      262144 && span_style_value !== (span_style_value = /*cp*/
-      ctx2[80].color ? `background-color: ${/*cp*/
-      ctx2[80].color}; border-color: ${/*cp*/
-      ctx2[80].color}; color: #fff;` : "")) {
-        attr(span, "style", span_style_value);
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(span);
-      }
-    }
-  };
-}
-function create_each_block_4(key_1, ctx) {
-  let first;
-  let t0;
-  let div3;
-  let div1;
-  let div0;
-  let t1_value = (
-    /*task*/
-    ctx[77].name + ""
-  );
-  let t1;
-  let t2;
-  let t3;
-  let show_if = (
-    /*getCustomProps*/
-    ctx[19](
-      /*task*/
-      ctx[77]
-    ).length > 0
-  );
-  let t4;
-  let div2;
-  let button;
-  let mounted;
-  let dispose;
-  let if_block0 = (
-    /*dragOverStatus*/
-    ctx[13] === /*sBacklog*/
-    ctx[9].id && /*dragOverIndex*/
-    ctx[14] === /*i*/
-    ctx[79] && create_if_block_15(ctx)
-  );
-  let if_block1 = (
-    /*task*/
-    ctx[77].description && create_if_block_14(ctx)
-  );
-  let if_block2 = show_if && create_if_block_13(ctx);
-  function click_handler_3() {
-    return (
-      /*click_handler_3*/
-      ctx[47](
-        /*task*/
-        ctx[77]
-      )
-    );
-  }
-  function click_handler_4() {
-    return (
-      /*click_handler_4*/
-      ctx[48](
-        /*task*/
-        ctx[77]
-      )
-    );
-  }
-  function dragstart_handler(...args) {
-    return (
-      /*dragstart_handler*/
-      ctx[49](
-        /*task*/
-        ctx[77],
-        ...args
-      )
-    );
-  }
-  return {
-    key: key_1,
-    first: null,
-    c() {
-      first = empty();
-      if (if_block0)
-        if_block0.c();
-      t0 = space();
-      div3 = element("div");
-      div1 = element("div");
-      div0 = element("div");
-      t1 = text(t1_value);
-      t2 = space();
-      if (if_block1)
-        if_block1.c();
-      t3 = space();
-      if (if_block2)
-        if_block2.c();
-      t4 = space();
-      div2 = element("div");
-      button = element("button");
-      button.textContent = "Delete";
-      attr(div0, "class", "pos-card-name");
-      set_style(div1, "cursor", "pointer");
-      attr(button, "class", "pos-del");
-      attr(div2, "class", "pos-card-acts");
-      attr(div3, "class", "pos-card");
-      attr(div3, "draggable", "true");
-      toggle_class(
-        div3,
-        "pos-dragging-source",
-        /*dragId*/
-        ctx[12] === /*task*/
-        ctx[77].id
-      );
-      this.first = first;
-    },
-    m(target, anchor) {
-      insert(target, first, anchor);
-      if (if_block0)
-        if_block0.m(target, anchor);
-      insert(target, t0, anchor);
-      insert(target, div3, anchor);
-      append(div3, div1);
-      append(div1, div0);
-      append(div0, t1);
-      append(div1, t2);
-      if (if_block1)
-        if_block1.m(div1, null);
-      append(div1, t3);
-      if (if_block2)
-        if_block2.m(div1, null);
-      append(div3, t4);
-      append(div3, div2);
-      append(div2, button);
-      if (!mounted) {
-        dispose = [
-          listen(div1, "click", click_handler_3),
-          listen(button, "click", click_handler_4),
-          listen(div3, "dragstart", dragstart_handler),
-          listen(
-            div3,
-            "dragend",
-            /*handleDragEnd*/
-            ctx[29]
-          )
-        ];
-        mounted = true;
-      }
-    },
-    p(new_ctx, dirty) {
-      ctx = new_ctx;
-      if (
-        /*dragOverStatus*/
-        ctx[13] === /*sBacklog*/
-        ctx[9].id && /*dragOverIndex*/
-        ctx[14] === /*i*/
-        ctx[79]
-      ) {
-        if (if_block0) {
-          if_block0.p(ctx, dirty);
-        } else {
-          if_block0 = create_if_block_15(ctx);
-          if_block0.c();
-          if_block0.m(t0.parentNode, t0);
-        }
-      } else if (if_block0) {
-        if_block0.d(1);
-        if_block0 = null;
-      }
-      if (dirty[0] & /*backlog*/
-      262144 && t1_value !== (t1_value = /*task*/
-      ctx[77].name + ""))
-        set_data(t1, t1_value);
-      if (
-        /*task*/
-        ctx[77].description
-      ) {
-        if (if_block1) {
-          if_block1.p(ctx, dirty);
-        } else {
-          if_block1 = create_if_block_14(ctx);
-          if_block1.c();
-          if_block1.m(div1, t3);
-        }
-      } else if (if_block1) {
-        if_block1.d(1);
-        if_block1 = null;
-      }
-      if (dirty[0] & /*backlog*/
-      262144)
-        show_if = /*getCustomProps*/
-        ctx[19](
-          /*task*/
-          ctx[77]
-        ).length > 0;
-      if (show_if) {
-        if (if_block2) {
-          if_block2.p(ctx, dirty);
-        } else {
-          if_block2 = create_if_block_13(ctx);
-          if_block2.c();
-          if_block2.m(div1, null);
-        }
-      } else if (if_block2) {
-        if_block2.d(1);
-        if_block2 = null;
-      }
-      if (dirty[0] & /*dragId, backlog*/
-      266240) {
-        toggle_class(
-          div3,
-          "pos-dragging-source",
-          /*dragId*/
-          ctx[12] === /*task*/
-          ctx[77].id
-        );
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(first);
-        detach(t0);
-        detach(div3);
-      }
-      if (if_block0)
-        if_block0.d(detaching);
-      if (if_block1)
-        if_block1.d();
-      if (if_block2)
-        if_block2.d();
-      mounted = false;
-      run_all(dispose);
-    }
-  };
-}
-function create_if_block_12(ctx) {
-  let div2;
-  return {
-    c() {
-      div2 = element("div");
-      attr(div2, "class", "pos-drag-placeholder");
-      set_style(
-        div2,
-        "height",
-        /*dragHeight*/
-        ctx[15] + "px"
-      );
-    },
-    m(target, anchor) {
-      insert(target, div2, anchor);
-    },
-    p(ctx2, dirty) {
-      if (dirty[0] & /*dragHeight*/
-      32768) {
-        set_style(
-          div2,
-          "height",
-          /*dragHeight*/
-          ctx2[15] + "px"
-        );
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(div2);
-      }
-    }
-  };
-}
-function create_if_block_11(ctx) {
-  let div2;
-  return {
-    c() {
-      div2 = element("div");
-      attr(div2, "class", "pos-drag-placeholder");
-      set_style(
-        div2,
-        "height",
-        /*dragHeight*/
-        ctx[15] + "px"
-      );
-    },
-    m(target, anchor) {
-      insert(target, div2, anchor);
-    },
-    p(ctx2, dirty) {
-      if (dirty[0] & /*dragHeight*/
-      32768) {
-        set_style(
-          div2,
-          "height",
-          /*dragHeight*/
-          ctx2[15] + "px"
-        );
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(div2);
-      }
-    }
-  };
-}
-function create_if_block_10(ctx) {
-  let div2;
-  let t_value = (
-    /*task*/
-    ctx[77].description + ""
-  );
-  let t;
-  return {
-    c() {
-      div2 = element("div");
-      t = text(t_value);
-      attr(div2, "class", "pos-card-desc");
-    },
-    m(target, anchor) {
-      insert(target, div2, anchor);
-      append(div2, t);
-    },
-    p(ctx2, dirty) {
-      if (dirty[0] & /*running*/
+      if (dirty[0] & /*columns*/
       128 && t_value !== (t_value = /*task*/
-      ctx2[77].description + ""))
+      ctx2[41].description + ""))
         set_data(t, t_value);
     },
     d(detaching) {
@@ -5139,175 +3455,30 @@ function create_if_block_10(ctx) {
     }
   };
 }
-function create_if_block_9(ctx) {
-  let each_1_anchor;
-  let each_value_3 = ensure_array_like(
-    /*getCustomProps*/
-    ctx[19](
-      /*task*/
-      ctx[77]
-    )
-  );
-  let each_blocks = [];
-  for (let i = 0; i < each_value_3.length; i += 1) {
-    each_blocks[i] = create_each_block_3(get_each_context_3(ctx, each_value_3, i));
-  }
-  return {
-    c() {
-      for (let i = 0; i < each_blocks.length; i += 1) {
-        each_blocks[i].c();
-      }
-      each_1_anchor = empty();
-    },
-    m(target, anchor) {
-      for (let i = 0; i < each_blocks.length; i += 1) {
-        if (each_blocks[i]) {
-          each_blocks[i].m(target, anchor);
-        }
-      }
-      insert(target, each_1_anchor, anchor);
-    },
-    p(ctx2, dirty) {
-      if (dirty[0] & /*getCustomProps, running*/
-      524416) {
-        each_value_3 = ensure_array_like(
-          /*getCustomProps*/
-          ctx2[19](
-            /*task*/
-            ctx2[77]
-          )
-        );
-        let i;
-        for (i = 0; i < each_value_3.length; i += 1) {
-          const child_ctx = get_each_context_3(ctx2, each_value_3, i);
-          if (each_blocks[i]) {
-            each_blocks[i].p(child_ctx, dirty);
-          } else {
-            each_blocks[i] = create_each_block_3(child_ctx);
-            each_blocks[i].c();
-            each_blocks[i].m(each_1_anchor.parentNode, each_1_anchor);
-          }
-        }
-        for (; i < each_blocks.length; i += 1) {
-          each_blocks[i].d(1);
-        }
-        each_blocks.length = each_value_3.length;
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(each_1_anchor);
-      }
-      destroy_each(each_blocks, detaching);
-    }
-  };
-}
-function create_each_block_3(ctx) {
+function create_else_block(ctx) {
   let span;
-  let t_value = (
-    /*cp*/
-    ctx[80].value + ""
+  let t0_value = (
+    /*prop*/
+    ctx[44].name + ""
   );
-  let t;
-  let span_title_value;
-  let span_style_value;
-  return {
-    c() {
-      span = element("span");
-      t = text(t_value);
-      attr(span, "class", "pos-tag-pill");
-      attr(span, "title", span_title_value = /*cp*/
-      ctx[80].name);
-      attr(span, "style", span_style_value = /*cp*/
-      ctx[80].color ? `background-color: ${/*cp*/
-      ctx[80].color}; border-color: ${/*cp*/
-      ctx[80].color}; color: #fff;` : "");
-    },
-    m(target, anchor) {
-      insert(target, span, anchor);
-      append(span, t);
-    },
-    p(ctx2, dirty) {
-      if (dirty[0] & /*running*/
-      128 && t_value !== (t_value = /*cp*/
-      ctx2[80].value + ""))
-        set_data(t, t_value);
-      if (dirty[0] & /*running*/
-      128 && span_title_value !== (span_title_value = /*cp*/
-      ctx2[80].name)) {
-        attr(span, "title", span_title_value);
-      }
-      if (dirty[0] & /*running*/
-      128 && span_style_value !== (span_style_value = /*cp*/
-      ctx2[80].color ? `background-color: ${/*cp*/
-      ctx2[80].color}; border-color: ${/*cp*/
-      ctx2[80].color}; color: #fff;` : "")) {
-        attr(span, "style", span_style_value);
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(span);
-      }
-    }
-  };
-}
-function create_if_block_8(ctx) {
-  let span;
-  let t0;
-  let t1_value = (
-    /*task*/
-    ctx[77].fixedDuration + ""
-  );
-  let t1;
-  let t2;
-  return {
-    c() {
-      span = element("span");
-      t0 = text("Fixed ");
-      t1 = text(t1_value);
-      t2 = text("m");
-    },
-    m(target, anchor) {
-      insert(target, span, anchor);
-      append(span, t0);
-      append(span, t1);
-      append(span, t2);
-    },
-    p(ctx2, dirty) {
-      if (dirty[0] & /*running*/
-      128 && t1_value !== (t1_value = /*task*/
-      ctx2[77].fixedDuration + ""))
-        set_data(t1, t1_value);
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(span);
-      }
-    }
-  };
-}
-function create_if_block_7(ctx) {
-  let span;
-  let t0_value = fmtTime(
-    /*ti*/
-    ctx[83].endTime
-  ) + "";
   let t0;
   let t1;
-  let t2_value = fmtDur(Math.round(
-    /*ti*/
-    ctx[83].calculatedDuration
-  )) + "";
+  let t2_value = (
+    /*prop*/
+    ctx[44].value + ""
+  );
   let t2;
   let t3;
   return {
     c() {
       span = element("span");
       t0 = text(t0_value);
-      t1 = text(" (");
+      t1 = text(": ");
       t2 = text(t2_value);
-      t3 = text(")");
+      t3 = space();
+      attr(span, "class", "pos-tag-pill");
+      set_style(span, "background-color", "var(--background-modifier-border)");
+      set_style(span, "color", "var(--text-muted)");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -5317,17 +3488,13 @@ function create_if_block_7(ctx) {
       append(span, t3);
     },
     p(ctx2, dirty) {
-      if (dirty[0] & /*timeline, running*/
-      384 && t0_value !== (t0_value = fmtTime(
-        /*ti*/
-        ctx2[83].endTime
-      ) + ""))
+      if (dirty[0] & /*columns*/
+      128 && t0_value !== (t0_value = /*prop*/
+      ctx2[44].name + ""))
         set_data(t0, t0_value);
-      if (dirty[0] & /*timeline, running*/
-      384 && t2_value !== (t2_value = fmtDur(Math.round(
-        /*ti*/
-        ctx2[83].calculatedDuration
-      )) + ""))
+      if (dirty[0] & /*columns*/
+      128 && t2_value !== (t2_value = /*prop*/
+      ctx2[44].value + ""))
         set_data(t2, t2_value);
     },
     d(detaching) {
@@ -5337,744 +3504,67 @@ function create_if_block_7(ctx) {
     }
   };
 }
-function create_if_block_62(ctx) {
-  let input;
-  let input_value_value;
-  let mounted;
-  let dispose;
-  function change_handler_1(...args) {
-    return (
-      /*change_handler_1*/
-      ctx[56](
-        /*task*/
-        ctx[77],
-        ...args
-      )
-    );
-  }
-  return {
-    c() {
-      input = element("input");
-      attr(input, "type", "number");
-      attr(input, "min", "1");
-      attr(input, "class", "pos-fixed-input");
-      input.value = input_value_value = /*task*/
-      ctx[77].fixedDuration || 30;
-    },
-    m(target, anchor) {
-      insert(target, input, anchor);
-      if (!mounted) {
-        dispose = [
-          listen(input, "click", stop_propagation(
-            /*click_handler_1*/
-            ctx[39]
-          )),
-          listen(input, "keydown", stop_propagation(
-            /*keydown_handler*/
-            ctx[40]
-          )),
-          listen(input, "keypress", stop_propagation(
-            /*keypress_handler*/
-            ctx[41]
-          )),
-          listen(input, "keyup", stop_propagation(
-            /*keyup_handler*/
-            ctx[42]
-          )),
-          listen(input, "change", change_handler_1)
-        ];
-        mounted = true;
-      }
-    },
-    p(new_ctx, dirty) {
-      ctx = new_ctx;
-      if (dirty[0] & /*running*/
-      128 && input_value_value !== (input_value_value = /*task*/
-      ctx[77].fixedDuration || 30) && input.value !== input_value_value) {
-        input.value = input_value_value;
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(input);
-      }
-      mounted = false;
-      run_all(dispose);
-    }
-  };
-}
-function create_each_block_2(key_1, ctx) {
-  let first;
-  let t0;
-  let div4;
-  let div2;
-  let div0;
-  let t1_value = (
-    /*task*/
-    ctx[77].name + ""
-  );
-  let t1;
-  let t2;
-  let t3;
-  let div1;
-  let show_if = (
-    /*getCustomProps*/
-    ctx[19](
-      /*task*/
-      ctx[77]
-    ).length > 0
-  );
-  let t4;
-  let t5;
-  let t6;
-  let div3;
-  let span1;
-  let button0;
-  let t8;
-  let span0;
-  let t9_value = (
-    /*task*/
-    ctx[77].weight + ""
-  );
-  let t9;
-  let t10;
-  let button1;
-  let t12;
-  let label;
-  let input;
-  let input_checked_value;
-  let t13;
-  let span2;
-  let t15;
-  let t16;
-  let button2;
-  let mounted;
-  let dispose;
-  let if_block0 = (
-    /*dragOverStatus*/
-    ctx[13] === /*sRunning*/
-    ctx[6].id && /*dragOverIndex*/
-    ctx[14] === /*i*/
-    ctx[79] && create_if_block_11(ctx)
-  );
-  let if_block1 = (
-    /*task*/
-    ctx[77].description && create_if_block_10(ctx)
-  );
-  let if_block2 = show_if && create_if_block_9(ctx);
-  let if_block3 = (
-    /*task*/
-    ctx[77].isFixedDuration && /*task*/
-    ctx[77].fixedDuration && create_if_block_8(ctx)
-  );
-  let if_block4 = (
-    /*ti*/
-    ctx[83] && create_if_block_7(ctx)
-  );
-  function click_handler_5() {
-    return (
-      /*click_handler_5*/
-      ctx[52](
-        /*task*/
-        ctx[77]
-      )
-    );
-  }
-  function click_handler_6() {
-    return (
-      /*click_handler_6*/
-      ctx[53](
-        /*task*/
-        ctx[77]
-      )
-    );
-  }
-  function click_handler_7() {
-    return (
-      /*click_handler_7*/
-      ctx[54](
-        /*task*/
-        ctx[77]
-      )
-    );
-  }
-  function change_handler(...args) {
-    return (
-      /*change_handler*/
-      ctx[55](
-        /*task*/
-        ctx[77],
-        ...args
-      )
-    );
-  }
-  let if_block5 = (
-    /*task*/
-    ctx[77].isFixedDuration && create_if_block_62(ctx)
-  );
-  function click_handler_8() {
-    return (
-      /*click_handler_8*/
-      ctx[57](
-        /*task*/
-        ctx[77]
-      )
-    );
-  }
-  function dragstart_handler_1(...args) {
-    return (
-      /*dragstart_handler_1*/
-      ctx[58](
-        /*task*/
-        ctx[77],
-        ...args
-      )
-    );
-  }
-  return {
-    key: key_1,
-    first: null,
-    c() {
-      first = empty();
-      if (if_block0)
-        if_block0.c();
-      t0 = space();
-      div4 = element("div");
-      div2 = element("div");
-      div0 = element("div");
-      t1 = text(t1_value);
-      t2 = space();
-      if (if_block1)
-        if_block1.c();
-      t3 = space();
-      div1 = element("div");
-      if (if_block2)
-        if_block2.c();
-      t4 = space();
-      if (if_block3)
-        if_block3.c();
-      t5 = space();
-      if (if_block4)
-        if_block4.c();
-      t6 = space();
-      div3 = element("div");
-      span1 = element("span");
-      button0 = element("button");
-      button0.textContent = "\u2212";
-      t8 = space();
-      span0 = element("span");
-      t9 = text(t9_value);
-      t10 = space();
-      button1 = element("button");
-      button1.textContent = "+";
-      t12 = space();
-      label = element("label");
-      input = element("input");
-      t13 = space();
-      span2 = element("span");
-      span2.textContent = "Fixed";
-      t15 = space();
-      if (if_block5)
-        if_block5.c();
-      t16 = space();
-      button2 = element("button");
-      button2.textContent = "Delete";
-      attr(div0, "class", "pos-card-name");
-      attr(div1, "class", "pos-card-meta");
-      set_style(div2, "cursor", "pointer");
-      attr(span1, "class", "pos-wg");
-      attr(input, "type", "checkbox");
-      input.checked = input_checked_value = /*task*/
-      ctx[77].isFixedDuration;
-      attr(label, "class", "pos-fixed");
-      attr(button2, "class", "pos-del");
-      attr(div3, "class", "pos-card-acts");
-      attr(div4, "class", "pos-card");
-      set_style(
-        div4,
-        "height",
-        /*taskHeights*/
-        ctx[17][
-          /*task*/
-          ctx[77].id
-        ] ? (
-          /*taskHeights*/
-          ctx[17][
-            /*task*/
-            ctx[77].id
-          ] + "px"
-        ) : "auto"
-      );
-      attr(div4, "draggable", "true");
-      toggle_class(
-        div4,
-        "pos-dragging-source",
-        /*dragId*/
-        ctx[12] === /*task*/
-        ctx[77].id
-      );
-      this.first = first;
-    },
-    m(target, anchor) {
-      insert(target, first, anchor);
-      if (if_block0)
-        if_block0.m(target, anchor);
-      insert(target, t0, anchor);
-      insert(target, div4, anchor);
-      append(div4, div2);
-      append(div2, div0);
-      append(div0, t1);
-      append(div2, t2);
-      if (if_block1)
-        if_block1.m(div2, null);
-      append(div2, t3);
-      append(div2, div1);
-      if (if_block2)
-        if_block2.m(div1, null);
-      append(div1, t4);
-      if (if_block3)
-        if_block3.m(div1, null);
-      append(div1, t5);
-      if (if_block4)
-        if_block4.m(div1, null);
-      append(div4, t6);
-      append(div4, div3);
-      append(div3, span1);
-      append(span1, button0);
-      append(span1, t8);
-      append(span1, span0);
-      append(span0, t9);
-      append(span1, t10);
-      append(span1, button1);
-      append(div3, t12);
-      append(div3, label);
-      append(label, input);
-      append(label, t13);
-      append(label, span2);
-      append(div3, t15);
-      if (if_block5)
-        if_block5.m(div3, null);
-      append(div3, t16);
-      append(div3, button2);
-      if (!mounted) {
-        dispose = [
-          listen(div2, "click", click_handler_5),
-          listen(button0, "click", click_handler_6),
-          listen(button1, "click", click_handler_7),
-          listen(input, "change", change_handler),
-          listen(label, "click", stop_propagation(
-            /*click_handler*/
-            ctx[43]
-          )),
-          listen(button2, "click", click_handler_8),
-          listen(div4, "dragstart", dragstart_handler_1),
-          listen(
-            div4,
-            "dragend",
-            /*handleDragEnd*/
-            ctx[29]
-          )
-        ];
-        mounted = true;
-      }
-    },
-    p(new_ctx, dirty) {
-      ctx = new_ctx;
-      if (
-        /*dragOverStatus*/
-        ctx[13] === /*sRunning*/
-        ctx[6].id && /*dragOverIndex*/
-        ctx[14] === /*i*/
-        ctx[79]
-      ) {
-        if (if_block0) {
-          if_block0.p(ctx, dirty);
-        } else {
-          if_block0 = create_if_block_11(ctx);
-          if_block0.c();
-          if_block0.m(t0.parentNode, t0);
-        }
-      } else if (if_block0) {
-        if_block0.d(1);
-        if_block0 = null;
-      }
-      if (dirty[0] & /*running*/
-      128 && t1_value !== (t1_value = /*task*/
-      ctx[77].name + ""))
-        set_data(t1, t1_value);
-      if (
-        /*task*/
-        ctx[77].description
-      ) {
-        if (if_block1) {
-          if_block1.p(ctx, dirty);
-        } else {
-          if_block1 = create_if_block_10(ctx);
-          if_block1.c();
-          if_block1.m(div2, t3);
-        }
-      } else if (if_block1) {
-        if_block1.d(1);
-        if_block1 = null;
-      }
-      if (dirty[0] & /*running*/
-      128)
-        show_if = /*getCustomProps*/
-        ctx[19](
-          /*task*/
-          ctx[77]
-        ).length > 0;
-      if (show_if) {
-        if (if_block2) {
-          if_block2.p(ctx, dirty);
-        } else {
-          if_block2 = create_if_block_9(ctx);
-          if_block2.c();
-          if_block2.m(div1, t4);
-        }
-      } else if (if_block2) {
-        if_block2.d(1);
-        if_block2 = null;
-      }
-      if (
-        /*task*/
-        ctx[77].isFixedDuration && /*task*/
-        ctx[77].fixedDuration
-      ) {
-        if (if_block3) {
-          if_block3.p(ctx, dirty);
-        } else {
-          if_block3 = create_if_block_8(ctx);
-          if_block3.c();
-          if_block3.m(div1, t5);
-        }
-      } else if (if_block3) {
-        if_block3.d(1);
-        if_block3 = null;
-      }
-      if (
-        /*ti*/
-        ctx[83]
-      ) {
-        if (if_block4) {
-          if_block4.p(ctx, dirty);
-        } else {
-          if_block4 = create_if_block_7(ctx);
-          if_block4.c();
-          if_block4.m(div1, null);
-        }
-      } else if (if_block4) {
-        if_block4.d(1);
-        if_block4 = null;
-      }
-      if (dirty[0] & /*running*/
-      128 && t9_value !== (t9_value = /*task*/
-      ctx[77].weight + ""))
-        set_data(t9, t9_value);
-      if (dirty[0] & /*running*/
-      128 && input_checked_value !== (input_checked_value = /*task*/
-      ctx[77].isFixedDuration)) {
-        input.checked = input_checked_value;
-      }
-      if (
-        /*task*/
-        ctx[77].isFixedDuration
-      ) {
-        if (if_block5) {
-          if_block5.p(ctx, dirty);
-        } else {
-          if_block5 = create_if_block_62(ctx);
-          if_block5.c();
-          if_block5.m(div3, t16);
-        }
-      } else if (if_block5) {
-        if_block5.d(1);
-        if_block5 = null;
-      }
-      if (dirty[0] & /*taskHeights, running*/
-      131200) {
-        set_style(
-          div4,
-          "height",
-          /*taskHeights*/
-          ctx[17][
-            /*task*/
-            ctx[77].id
-          ] ? (
-            /*taskHeights*/
-            ctx[17][
-              /*task*/
-              ctx[77].id
-            ] + "px"
-          ) : "auto"
-        );
-      }
-      if (dirty[0] & /*dragId, running*/
-      4224) {
-        toggle_class(
-          div4,
-          "pos-dragging-source",
-          /*dragId*/
-          ctx[12] === /*task*/
-          ctx[77].id
-        );
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(first);
-        detach(t0);
-        detach(div4);
-      }
-      if (if_block0)
-        if_block0.d(detaching);
-      if (if_block1)
-        if_block1.d();
-      if (if_block2)
-        if_block2.d();
-      if (if_block3)
-        if_block3.d();
-      if (if_block4)
-        if_block4.d();
-      if (if_block5)
-        if_block5.d();
-      mounted = false;
-      run_all(dispose);
-    }
-  };
-}
-function create_if_block_52(ctx) {
-  let div2;
-  return {
-    c() {
-      div2 = element("div");
-      attr(div2, "class", "pos-drag-placeholder");
-      set_style(
-        div2,
-        "height",
-        /*dragHeight*/
-        ctx[15] + "px"
-      );
-    },
-    m(target, anchor) {
-      insert(target, div2, anchor);
-    },
-    p(ctx2, dirty) {
-      if (dirty[0] & /*dragHeight*/
-      32768) {
-        set_style(
-          div2,
-          "height",
-          /*dragHeight*/
-          ctx2[15] + "px"
-        );
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(div2);
-      }
-    }
-  };
-}
-function create_if_block_42(ctx) {
-  let div0;
-  let t;
-  let div1;
-  return {
-    c() {
-      div0 = element("div");
-      t = space();
-      div1 = element("div");
-      attr(div0, "class", "pos-wipe");
-      set_style(div0, "top", "0px");
-      set_style(
-        div0,
-        "height",
-        /*lockWipeHeight*/
-        ctx[11] + "px"
-      );
-      attr(div1, "class", "pos-redline");
-      set_style(
-        div1,
-        "top",
-        /*lockLineTop*/
-        ctx[10] + "px"
-      );
-    },
-    m(target, anchor) {
-      insert(target, div0, anchor);
-      insert(target, t, anchor);
-      insert(target, div1, anchor);
-    },
-    p(ctx2, dirty) {
-      if (dirty[0] & /*lockWipeHeight*/
-      2048) {
-        set_style(
-          div0,
-          "height",
-          /*lockWipeHeight*/
-          ctx2[11] + "px"
-        );
-      }
-      if (dirty[0] & /*lockLineTop*/
-      1024) {
-        set_style(
-          div1,
-          "top",
-          /*lockLineTop*/
-          ctx2[10] + "px"
-        );
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(div0);
-        detach(t);
-        detach(div1);
-      }
-    }
-  };
-}
-function create_if_block_32(ctx) {
-  let div2;
-  return {
-    c() {
-      div2 = element("div");
-      attr(div2, "class", "pos-drag-placeholder");
-      set_style(
-        div2,
-        "height",
-        /*dragHeight*/
-        ctx[15] + "px"
-      );
-    },
-    m(target, anchor) {
-      insert(target, div2, anchor);
-    },
-    p(ctx2, dirty) {
-      if (dirty[0] & /*dragHeight*/
-      32768) {
-        set_style(
-          div2,
-          "height",
-          /*dragHeight*/
-          ctx2[15] + "px"
-        );
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(div2);
-      }
-    }
-  };
-}
-function create_if_block_22(ctx) {
-  let div2;
-  let each_value_1 = ensure_array_like(
-    /*getCustomProps*/
-    ctx[19](
-      /*task*/
-      ctx[77]
-    )
-  );
-  let each_blocks = [];
-  for (let i = 0; i < each_value_1.length; i += 1) {
-    each_blocks[i] = create_each_block_1(get_each_context_1(ctx, each_value_1, i));
-  }
-  return {
-    c() {
-      div2 = element("div");
-      for (let i = 0; i < each_blocks.length; i += 1) {
-        each_blocks[i].c();
-      }
-      attr(div2, "class", "pos-card-meta");
-    },
-    m(target, anchor) {
-      insert(target, div2, anchor);
-      for (let i = 0; i < each_blocks.length; i += 1) {
-        if (each_blocks[i]) {
-          each_blocks[i].m(div2, null);
-        }
-      }
-    },
-    p(ctx2, dirty) {
-      if (dirty[0] & /*getCustomProps, review*/
-      589824) {
-        each_value_1 = ensure_array_like(
-          /*getCustomProps*/
-          ctx2[19](
-            /*task*/
-            ctx2[77]
-          )
-        );
-        let i;
-        for (i = 0; i < each_value_1.length; i += 1) {
-          const child_ctx = get_each_context_1(ctx2, each_value_1, i);
-          if (each_blocks[i]) {
-            each_blocks[i].p(child_ctx, dirty);
-          } else {
-            each_blocks[i] = create_each_block_1(child_ctx);
-            each_blocks[i].c();
-            each_blocks[i].m(div2, null);
-          }
-        }
-        for (; i < each_blocks.length; i += 1) {
-          each_blocks[i].d(1);
-        }
-        each_blocks.length = each_value_1.length;
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(div2);
-      }
-      destroy_each(each_blocks, detaching);
-    }
-  };
-}
-function create_each_block_1(ctx) {
+function create_if_block_2(ctx) {
   let span;
-  let t_value = (
-    /*cp*/
-    ctx[80].value + ""
+  let t0_value = (
+    /*prop*/
+    ctx[44].value + ""
   );
-  let t;
-  let span_title_value;
-  let span_style_value;
+  let t0;
+  let t1;
   return {
     c() {
       span = element("span");
-      t = text(t_value);
+      t0 = text(t0_value);
+      t1 = space();
       attr(span, "class", "pos-tag-pill");
-      attr(span, "title", span_title_value = /*cp*/
-      ctx[80].name);
-      attr(span, "style", span_style_value = /*cp*/
-      ctx[80].color ? `background-color: ${/*cp*/
-      ctx[80].color}; border-color: ${/*cp*/
-      ctx[80].color}; color: #fff;` : "");
+      set_style(
+        span,
+        "background-color",
+        /*prop*/
+        ctx[44].color + "20"
+      );
+      set_style(
+        span,
+        "color",
+        /*prop*/
+        ctx[44].color
+      );
+      set_style(span, "border", "1px solid " + /*prop*/
+      ctx[44].color + "40");
     },
     m(target, anchor) {
       insert(target, span, anchor);
-      append(span, t);
+      append(span, t0);
+      append(span, t1);
     },
     p(ctx2, dirty) {
-      if (dirty[0] & /*review*/
-      65536 && t_value !== (t_value = /*cp*/
-      ctx2[80].value + ""))
-        set_data(t, t_value);
-      if (dirty[0] & /*review*/
-      65536 && span_title_value !== (span_title_value = /*cp*/
-      ctx2[80].name)) {
-        attr(span, "title", span_title_value);
+      if (dirty[0] & /*columns*/
+      128 && t0_value !== (t0_value = /*prop*/
+      ctx2[44].value + ""))
+        set_data(t0, t0_value);
+      if (dirty[0] & /*columns*/
+      128) {
+        set_style(
+          span,
+          "background-color",
+          /*prop*/
+          ctx2[44].color + "20"
+        );
       }
-      if (dirty[0] & /*review*/
-      65536 && span_style_value !== (span_style_value = /*cp*/
-      ctx2[80].color ? `background-color: ${/*cp*/
-      ctx2[80].color}; border-color: ${/*cp*/
-      ctx2[80].color}; color: #fff;` : "")) {
-        attr(span, "style", span_style_value);
+      if (dirty[0] & /*columns*/
+      128) {
+        set_style(
+          span,
+          "color",
+          /*prop*/
+          ctx2[44].color
+        );
+      }
+      if (dirty[0] & /*columns*/
+      128) {
+        set_style(span, "border", "1px solid " + /*prop*/
+        ctx2[44].color + "40");
       }
     },
     d(detaching) {
@@ -6084,62 +3574,121 @@ function create_each_block_1(ctx) {
     }
   };
 }
-function create_each_block2(key_1, ctx) {
+function create_each_block_2(ctx) {
+  let if_block_anchor;
+  function select_block_type(ctx2, dirty) {
+    if (
+      /*prop*/
+      ctx2[44].color
+    )
+      return create_if_block_2;
+    return create_else_block;
+  }
+  let current_block_type = select_block_type(ctx, [-1, -1]);
+  let if_block = current_block_type(ctx);
+  return {
+    c() {
+      if_block.c();
+      if_block_anchor = empty();
+    },
+    m(target, anchor) {
+      if_block.m(target, anchor);
+      insert(target, if_block_anchor, anchor);
+    },
+    p(ctx2, dirty) {
+      if (current_block_type === (current_block_type = select_block_type(ctx2, dirty)) && if_block) {
+        if_block.p(ctx2, dirty);
+      } else {
+        if_block.d(1);
+        if_block = current_block_type(ctx2);
+        if (if_block) {
+          if_block.c();
+          if_block.m(if_block_anchor.parentNode, if_block_anchor);
+        }
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(if_block_anchor);
+      }
+      if_block.d(detaching);
+    }
+  };
+}
+function create_each_block_1(key_1, ctx) {
   let first;
   let t0;
+  let div5;
   let div3;
-  let div1;
+  let div2;
   let div0;
   let t1_value = (
     /*task*/
-    ctx[77].name + ""
+    ctx[41].name + ""
   );
   let t1;
   let t2;
-  let show_if = (
-    /*getCustomProps*/
-    ctx[19](
-      /*task*/
-      ctx[77]
-    ).length > 0
-  );
   let t3;
-  let div2;
+  let div1;
+  let span;
+  let t4;
+  let t5_value = (
+    /*task*/
+    (ctx[41].weight || 1) + ""
+  );
+  let t5;
+  let t6;
+  let t7;
+  let div4;
   let button;
   let mounted;
   let dispose;
   let if_block0 = (
     /*dragOverStatus*/
-    ctx[13] === /*sReview*/
-    ctx[5].id && /*dragOverIndex*/
-    ctx[14] === /*i*/
-    ctx[79] && create_if_block_32(ctx)
+    ctx[4] === /*col*/
+    ctx[38].id && /*dragOverIndex*/
+    ctx[5] === /*i*/
+    ctx[43] && create_if_block_4(ctx)
   );
-  let if_block1 = show_if && create_if_block_22(ctx);
-  function click_handler_9() {
+  let if_block1 = (
+    /*task*/
+    ctx[41].description && create_if_block_3(ctx)
+  );
+  let each_value_2 = ensure_array_like(
+    /*getCustomProps*/
+    ctx[8](
+      /*task*/
+      ctx[41]
+    )
+  );
+  let each_blocks = [];
+  for (let i = 0; i < each_value_2.length; i += 1) {
+    each_blocks[i] = create_each_block_2(get_each_context_2(ctx, each_value_2, i));
+  }
+  function click_handler() {
     return (
-      /*click_handler_9*/
-      ctx[63](
+      /*click_handler*/
+      ctx[30](
         /*task*/
-        ctx[77]
+        ctx[41]
       )
     );
   }
-  function click_handler_10() {
+  function click_handler_1() {
     return (
-      /*click_handler_10*/
-      ctx[64](
+      /*click_handler_1*/
+      ctx[31](
         /*task*/
-        ctx[77]
+        ctx[41]
       )
     );
   }
-  function dragstart_handler_2(...args) {
+  function dragstart_handler_1(...args) {
     return (
-      /*dragstart_handler_2*/
-      ctx[65](
+      /*dragstart_handler_1*/
+      ctx[32](
         /*task*/
-        ctx[77],
+        ctx[41],
         ...args
       )
     );
@@ -6152,29 +3701,42 @@ function create_each_block2(key_1, ctx) {
       if (if_block0)
         if_block0.c();
       t0 = space();
+      div5 = element("div");
       div3 = element("div");
-      div1 = element("div");
+      div2 = element("div");
       div0 = element("div");
       t1 = text(t1_value);
       t2 = space();
       if (if_block1)
         if_block1.c();
       t3 = space();
-      div2 = element("div");
+      div1 = element("div");
+      span = element("span");
+      t4 = text("W:");
+      t5 = text(t5_value);
+      t6 = space();
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        each_blocks[i].c();
+      }
+      t7 = space();
+      div4 = element("div");
       button = element("button");
       button.textContent = "Delete";
       attr(div0, "class", "pos-card-name");
-      set_style(div1, "cursor", "pointer");
+      attr(div1, "class", "pos-ptc-meta");
+      attr(div2, "class", "pos-ptc-body");
+      set_style(div2, "cursor", "pointer");
+      attr(div3, "class", "pos-ptc-header");
       attr(button, "class", "pos-del");
-      attr(div2, "class", "pos-card-acts");
-      attr(div3, "class", "pos-card pos-completed");
-      attr(div3, "draggable", "true");
+      attr(div4, "class", "pos-ptc-acts");
+      attr(div5, "class", "pos-card pos-board-card");
+      attr(div5, "draggable", "true");
       toggle_class(
-        div3,
+        div5,
         "pos-dragging-source",
         /*dragId*/
-        ctx[12] === /*task*/
-        ctx[77].id
+        ctx[3] === /*task*/
+        ctx[41].id
       );
       this.first = first;
     },
@@ -6183,26 +3745,38 @@ function create_each_block2(key_1, ctx) {
       if (if_block0)
         if_block0.m(target, anchor);
       insert(target, t0, anchor);
-      insert(target, div3, anchor);
-      append(div3, div1);
-      append(div1, div0);
-      append(div0, t1);
-      append(div1, t2);
-      if (if_block1)
-        if_block1.m(div1, null);
-      append(div3, t3);
+      insert(target, div5, anchor);
+      append(div5, div3);
       append(div3, div2);
-      append(div2, button);
+      append(div2, div0);
+      append(div0, t1);
+      append(div2, t2);
+      if (if_block1)
+        if_block1.m(div2, null);
+      append(div2, t3);
+      append(div2, div1);
+      append(div1, span);
+      append(span, t4);
+      append(span, t5);
+      append(div1, t6);
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        if (each_blocks[i]) {
+          each_blocks[i].m(div1, null);
+        }
+      }
+      append(div5, t7);
+      append(div5, div4);
+      append(div4, button);
       if (!mounted) {
         dispose = [
-          listen(div1, "click", click_handler_9),
-          listen(button, "click", click_handler_10),
-          listen(div3, "dragstart", dragstart_handler_2),
+          listen(div2, "click", click_handler),
+          listen(button, "click", click_handler_1),
+          listen(div5, "dragstart", dragstart_handler_1),
           listen(
-            div3,
+            div5,
             "dragend",
             /*handleDragEnd*/
-            ctx[29]
+            ctx[14]
           )
         ];
         mounted = true;
@@ -6212,15 +3786,15 @@ function create_each_block2(key_1, ctx) {
       ctx = new_ctx;
       if (
         /*dragOverStatus*/
-        ctx[13] === /*sReview*/
-        ctx[5].id && /*dragOverIndex*/
-        ctx[14] === /*i*/
-        ctx[79]
+        ctx[4] === /*col*/
+        ctx[38].id && /*dragOverIndex*/
+        ctx[5] === /*i*/
+        ctx[43]
       ) {
         if (if_block0) {
           if_block0.p(ctx, dirty);
         } else {
-          if_block0 = create_if_block_32(ctx);
+          if_block0 = create_if_block_4(ctx);
           if_block0.c();
           if_block0.m(t0.parentNode, t0);
         }
@@ -6228,37 +3802,62 @@ function create_each_block2(key_1, ctx) {
         if_block0.d(1);
         if_block0 = null;
       }
-      if (dirty[0] & /*review*/
-      65536 && t1_value !== (t1_value = /*task*/
-      ctx[77].name + ""))
+      if (dirty[0] & /*columns*/
+      128 && t1_value !== (t1_value = /*task*/
+      ctx[41].name + ""))
         set_data(t1, t1_value);
-      if (dirty[0] & /*review*/
-      65536)
-        show_if = /*getCustomProps*/
-        ctx[19](
-          /*task*/
-          ctx[77]
-        ).length > 0;
-      if (show_if) {
+      if (
+        /*task*/
+        ctx[41].description
+      ) {
         if (if_block1) {
           if_block1.p(ctx, dirty);
         } else {
-          if_block1 = create_if_block_22(ctx);
+          if_block1 = create_if_block_3(ctx);
           if_block1.c();
-          if_block1.m(div1, null);
+          if_block1.m(div2, t3);
         }
       } else if (if_block1) {
         if_block1.d(1);
         if_block1 = null;
       }
-      if (dirty[0] & /*dragId, review*/
-      69632) {
+      if (dirty[0] & /*columns*/
+      128 && t5_value !== (t5_value = /*task*/
+      (ctx[41].weight || 1) + ""))
+        set_data(t5, t5_value);
+      if (dirty[0] & /*getCustomProps, columns*/
+      384) {
+        each_value_2 = ensure_array_like(
+          /*getCustomProps*/
+          ctx[8](
+            /*task*/
+            ctx[41]
+          )
+        );
+        let i;
+        for (i = 0; i < each_value_2.length; i += 1) {
+          const child_ctx = get_each_context_2(ctx, each_value_2, i);
+          if (each_blocks[i]) {
+            each_blocks[i].p(child_ctx, dirty);
+          } else {
+            each_blocks[i] = create_each_block_2(child_ctx);
+            each_blocks[i].c();
+            each_blocks[i].m(div1, null);
+          }
+        }
+        for (; i < each_blocks.length; i += 1) {
+          each_blocks[i].d(1);
+        }
+        each_blocks.length = each_value_2.length;
+      }
+      if (dirty[0] & /*dragId, columns*/
+      136) {
         toggle_class(
-          div3,
+          div5,
           "pos-dragging-source",
           /*dragId*/
-          ctx[12] === /*task*/
-          ctx[77].id
+          ctx[3] === /*task*/
+          ctx[41].id
         );
       }
     },
@@ -6266,18 +3865,19 @@ function create_each_block2(key_1, ctx) {
       if (detaching) {
         detach(first);
         detach(t0);
-        detach(div3);
+        detach(div5);
       }
       if (if_block0)
         if_block0.d(detaching);
       if (if_block1)
         if_block1.d();
+      destroy_each(each_blocks, detaching);
       mounted = false;
       run_all(dispose);
     }
   };
 }
-function create_if_block_16(ctx) {
+function create_if_block_1(ctx) {
   let div2;
   return {
     c() {
@@ -6287,7 +3887,7 @@ function create_if_block_16(ctx) {
         div2,
         "height",
         /*dragHeight*/
-        ctx[15] + "px"
+        ctx[6] + "px"
       );
     },
     m(target, anchor) {
@@ -6295,12 +3895,12 @@ function create_if_block_16(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*dragHeight*/
-      32768) {
+      64) {
         set_style(
           div2,
           "height",
           /*dragHeight*/
-          ctx2[15] + "px"
+          ctx2[6] + "px"
         );
       }
     },
@@ -6311,736 +3911,474 @@ function create_if_block_16(ctx) {
     }
   };
 }
-function create_if_block2(ctx) {
-  let div2;
-  let button0;
-  let t1;
-  let button1;
-  let mounted;
-  let dispose;
-  return {
-    c() {
-      div2 = element("div");
-      button0 = element("button");
-      button0.textContent = "Restore All";
-      t1 = space();
-      button1 = element("button");
-      button1.textContent = "Delete All";
-      attr(div2, "class", "pos-bulk-row");
-    },
-    m(target, anchor) {
-      insert(target, div2, anchor);
-      append(div2, button0);
-      append(div2, t1);
-      append(div2, button1);
-      if (!mounted) {
-        dispose = [
-          listen(
-            button0,
-            "click",
-            /*confirmRestoreAll*/
-            ctx[25]
-          ),
-          listen(
-            button1,
-            "click",
-            /*confirmDeleteAll*/
-            ctx[26]
-          )
-        ];
-        mounted = true;
-      }
-    },
-    p: noop,
-    d(detaching) {
-      if (detaching) {
-        detach(div2);
-      }
-      mounted = false;
-      run_all(dispose);
-    }
-  };
-}
-function create_fragment2(ctx) {
-  let div1;
-  let div0;
-  let input0;
+function create_each_block(key_1, ctx) {
+  let first;
   let t0;
-  let input1;
-  let t1;
-  let button0;
-  let t3;
-  let button1;
-  let t4_value = (
-    /*isLocked*/
-    ctx[3] ? "Unlock" : "Lock"
+  let div2;
+  let h4;
+  let span;
+  let t1_value = (
+    /*col*/
+    ctx[38].name + ""
   );
+  let t1;
+  let t2;
+  let t3_value = (
+    /*col*/
+    ctx[38].tasks.length + ""
+  );
+  let t3;
   let t4;
   let t5;
-  let div12;
-  let div5;
-  let h40;
-  let t6_value = (
-    /*sBacklog*/
-    ctx[9].name + ""
-  );
+  let input;
+  let input_value_value;
   let t6;
-  let t7;
-  let t8_value = (
-    /*backlog*/
-    ctx[18].length + ""
-  );
-  let t8;
-  let t9;
-  let t10;
-  let div4;
-  let div3;
-  let each_blocks_2 = [];
-  let each0_lookup = /* @__PURE__ */ new Map();
-  let t11;
-  let t12;
-  let div2;
-  let button2;
-  let t14;
-  let div8;
-  let h41;
-  let t15_value = (
-    /*sRunning*/
-    ctx[6].name + ""
-  );
-  let t15;
-  let t16;
-  let t17_value = (
-    /*running*/
-    ctx[7].length + ""
-  );
-  let t17;
-  let t18;
-  let t19;
-  let div7;
-  let div6;
-  let each_blocks_1 = [];
-  let each1_lookup = /* @__PURE__ */ new Map();
-  let t20;
-  let t21;
-  let div7_resize_listener;
-  let t22;
-  let div11;
-  let h42;
-  let t23_value = (
-    /*sReview*/
-    ctx[5].name + ""
-  );
-  let t23;
-  let t24;
-  let t25_value = (
-    /*review*/
-    ctx[16].length + ""
-  );
-  let t25;
-  let t26;
-  let t27;
-  let div10;
-  let div9;
+  let div1;
+  let div0;
   let each_blocks = [];
-  let each2_lookup = /* @__PURE__ */ new Map();
-  let t28;
-  let t29;
+  let each_1_lookup = /* @__PURE__ */ new Map();
+  let t7;
+  let t8;
+  let button;
   let mounted;
   let dispose;
-  let each_value_4 = ensure_array_like(
-    /*backlog*/
-    ctx[18]
+  let if_block0 = (
+    /*dragOverColId*/
+    ctx[1] && /*dragOverColIndex*/
+    ctx[2] === /*colIdx*/
+    ctx[40] && create_if_block_5(ctx)
+  );
+  function change_handler(...args) {
+    return (
+      /*change_handler*/
+      ctx[26](
+        /*col*/
+        ctx[38],
+        ...args
+      )
+    );
+  }
+  function dragstart_handler(...args) {
+    return (
+      /*dragstart_handler*/
+      ctx[27](
+        /*col*/
+        ctx[38],
+        ...args
+      )
+    );
+  }
+  function dragover_handler(...args) {
+    return (
+      /*dragover_handler*/
+      ctx[28](
+        /*col*/
+        ctx[38],
+        ...args
+      )
+    );
+  }
+  function drop_handler(...args) {
+    return (
+      /*drop_handler*/
+      ctx[29](
+        /*col*/
+        ctx[38],
+        ...args
+      )
+    );
+  }
+  let each_value_1 = ensure_array_like(
+    /*col*/
+    ctx[38].tasks
   );
   const get_key = (ctx2) => (
     /*task*/
-    ctx2[77].id
+    ctx2[41].id
   );
-  for (let i = 0; i < each_value_4.length; i += 1) {
-    let child_ctx = get_each_context_4(ctx, each_value_4, i);
+  for (let i = 0; i < each_value_1.length; i += 1) {
+    let child_ctx = get_each_context_1(ctx, each_value_1, i);
     let key = get_key(child_ctx);
-    each0_lookup.set(key, each_blocks_2[i] = create_each_block_4(key, child_ctx));
-  }
-  let if_block0 = (
-    /*dragOverStatus*/
-    ctx[13] === /*sBacklog*/
-    ctx[9].id && /*dragOverIndex*/
-    ctx[14] >= /*backlog*/
-    ctx[18].length && create_if_block_12(ctx)
-  );
-  let each_value_2 = ensure_array_like(
-    /*running*/
-    ctx[7]
-  );
-  const get_key_1 = (ctx2) => (
-    /*task*/
-    ctx2[77].id
-  );
-  for (let i = 0; i < each_value_2.length; i += 1) {
-    let child_ctx = get_each_context_2(ctx, each_value_2, i);
-    let key = get_key_1(child_ctx);
-    each1_lookup.set(key, each_blocks_1[i] = create_each_block_2(key, child_ctx));
+    each_1_lookup.set(key, each_blocks[i] = create_each_block_1(key, child_ctx));
   }
   let if_block1 = (
     /*dragOverStatus*/
-    ctx[13] === /*sRunning*/
-    ctx[6].id && /*dragOverIndex*/
-    ctx[14] >= /*running*/
-    ctx[7].length && create_if_block_52(ctx)
+    ctx[4] === /*col*/
+    ctx[38].id && /*dragOverIndex*/
+    ctx[5] >= /*col*/
+    ctx[38].tasks.length && create_if_block_1(ctx)
   );
-  let if_block2 = (
-    /*isLocked*/
-    ctx[3] && create_if_block_42(ctx)
-  );
-  let each_value = ensure_array_like(
-    /*review*/
-    ctx[16]
-  );
-  const get_key_2 = (ctx2) => (
-    /*task*/
-    ctx2[77].id
-  );
-  for (let i = 0; i < each_value.length; i += 1) {
-    let child_ctx = get_each_context2(ctx, each_value, i);
-    let key = get_key_2(child_ctx);
-    each2_lookup.set(key, each_blocks[i] = create_each_block2(key, child_ctx));
+  function click_handler_2() {
+    return (
+      /*click_handler_2*/
+      ctx[33](
+        /*col*/
+        ctx[38]
+      )
+    );
   }
-  let if_block3 = (
-    /*dragOverStatus*/
-    ctx[13] === /*sReview*/
-    ctx[5].id && /*dragOverIndex*/
-    ctx[14] >= /*review*/
-    ctx[16].length && create_if_block_16(ctx)
-  );
-  let if_block4 = (
-    /*review*/
-    ctx[16].length > 0 && create_if_block2(ctx)
-  );
+  function dragover_handler_1(...args) {
+    return (
+      /*dragover_handler_1*/
+      ctx[34](
+        /*col*/
+        ctx[38],
+        ...args
+      )
+    );
+  }
+  function drop_handler_1(...args) {
+    return (
+      /*drop_handler_1*/
+      ctx[35](
+        /*col*/
+        ctx[38],
+        ...args
+      )
+    );
+  }
   return {
+    key: key_1,
+    first: null,
     c() {
-      div1 = element("div");
-      div0 = element("div");
-      input0 = element("input");
-      t0 = space();
-      input1 = element("input");
-      t1 = space();
-      button0 = element("button");
-      button0.textContent = "Apply";
-      t3 = space();
-      button1 = element("button");
-      t4 = text(t4_value);
-      t5 = space();
-      div12 = element("div");
-      div5 = element("div");
-      h40 = element("h4");
-      t6 = text(t6_value);
-      t7 = text(" (");
-      t8 = text(t8_value);
-      t9 = text(")");
-      t10 = space();
-      div4 = element("div");
-      div3 = element("div");
-      for (let i = 0; i < each_blocks_2.length; i += 1) {
-        each_blocks_2[i].c();
-      }
-      t11 = space();
+      first = empty();
       if (if_block0)
         if_block0.c();
-      t12 = space();
+      t0 = space();
       div2 = element("div");
-      button2 = element("button");
-      button2.textContent = "+ New Task";
-      t14 = space();
-      div8 = element("div");
-      h41 = element("h4");
-      t15 = text(t15_value);
-      t16 = text(" (");
-      t17 = text(t17_value);
-      t18 = text(")");
-      t19 = space();
-      div7 = element("div");
-      div6 = element("div");
-      for (let i = 0; i < each_blocks_1.length; i += 1) {
-        each_blocks_1[i].c();
-      }
-      t20 = space();
-      if (if_block1)
-        if_block1.c();
-      t21 = space();
-      if (if_block2)
-        if_block2.c();
-      t22 = space();
-      div11 = element("div");
-      h42 = element("h4");
-      t23 = text(t23_value);
-      t24 = text(" (");
-      t25 = text(t25_value);
-      t26 = text(")");
-      t27 = space();
-      div10 = element("div");
-      div9 = element("div");
+      h4 = element("h4");
+      span = element("span");
+      t1 = text(t1_value);
+      t2 = text(" (");
+      t3 = text(t3_value);
+      t4 = text(")");
+      t5 = space();
+      input = element("input");
+      t6 = space();
+      div1 = element("div");
+      div0 = element("div");
       for (let i = 0; i < each_blocks.length; i += 1) {
         each_blocks[i].c();
       }
-      t28 = space();
-      if (if_block3)
-        if_block3.c();
-      t29 = space();
-      if (if_block4)
-        if_block4.c();
-      attr(input0, "type", "date");
-      attr(input1, "type", "time");
-      attr(input1, "step", "60");
-      attr(button1, "class", "pos-lock-btn");
+      t7 = space();
+      if (if_block1)
+        if_block1.c();
+      t8 = space();
+      button = element("button");
+      button.textContent = "+ Add Task";
+      set_style(span, "cursor", "grab");
+      attr(input, "type", "color");
+      input.value = input_value_value = /*col*/
+      ctx[38].color;
+      set_style(input, "width", "20px");
+      set_style(input, "height", "20px");
+      set_style(input, "padding", "0");
+      set_style(input, "border", "none");
+      set_style(input, "cursor", "pointer");
+      set_style(input, "background", "none");
+      attr(input, "title", "Change column color");
+      attr(h4, "class", "pos-board-col-title");
+      set_style(
+        h4,
+        "color",
+        /*col*/
+        ctx[38].color
+      );
+      set_style(h4, "border-bottom", "2px solid " + /*col*/
+      ctx[38].color + "40");
+      set_style(h4, "display", "flex");
+      set_style(h4, "align-items", "center");
+      set_style(h4, "justify-content", "space-between");
+      attr(h4, "draggable", "true");
+      attr(button, "class", "pos-board-add-btn");
+      attr(div0, "class", "pos-board-list");
+      attr(div1, "class", "pos-board-list-wrapper");
+      attr(div2, "class", "pos-board-col");
       toggle_class(
-        button1,
-        "locked",
-        /*isLocked*/
-        ctx[3]
+        div2,
+        "pos-dragging-source",
+        /*dragColId*/
+        ctx[0] === /*col*/
+        ctx[38].id
       );
-      attr(div0, "class", "pos-deadline-controls");
-      attr(div1, "class", "pos-header");
-      attr(h40, "class", "pos-col-title");
-      set_style(
-        h40,
-        "color",
-        /*sBacklog*/
-        ctx[9].color
-      );
-      attr(button2, "class", "pos-newtask-btn");
-      attr(div2, "class", "pos-newtask-row");
-      attr(div3, "class", "pos-list");
-      attr(div4, "class", "pos-list-wrapper");
-      attr(div5, "class", "pos-col");
-      attr(h41, "class", "pos-col-title");
-      set_style(
-        h41,
-        "color",
-        /*sRunning*/
-        ctx[6].color
-      );
-      attr(div6, "class", "pos-list");
-      attr(div7, "class", "pos-list-wrapper");
-      add_render_callback(() => (
-        /*div7_elementresize_handler*/
-        ctx[60].call(div7)
+      toggle_class(div2, "pos-col-elastic", ["backlog", "running", "review"].includes(
+        /*col*/
+        ctx[38].id
       ));
-      attr(div8, "class", "pos-col");
-      attr(h42, "class", "pos-col-title");
-      set_style(
-        h42,
-        "color",
-        /*sReview*/
-        ctx[5].color
-      );
-      attr(div9, "class", "pos-list");
-      attr(div10, "class", "pos-list-wrapper");
-      attr(div11, "class", "pos-col");
-      attr(div12, "class", "pos-columns");
+      this.first = first;
     },
     m(target, anchor) {
-      insert(target, div1, anchor);
-      append(div1, div0);
-      append(div0, input0);
-      set_input_value(
-        input0,
-        /*dDate*/
-        ctx[1]
-      );
-      append(div0, t0);
-      append(div0, input1);
-      set_input_value(
-        input1,
-        /*dTime*/
-        ctx[2]
-      );
-      append(div0, t1);
-      append(div0, button0);
-      append(div0, t3);
-      append(div0, button1);
-      append(button1, t4);
-      insert(target, t5, anchor);
-      insert(target, div12, anchor);
-      append(div12, div5);
-      append(div5, h40);
-      append(h40, t6);
-      append(h40, t7);
-      append(h40, t8);
-      append(h40, t9);
-      append(div5, t10);
-      append(div5, div4);
-      append(div4, div3);
-      for (let i = 0; i < each_blocks_2.length; i += 1) {
-        if (each_blocks_2[i]) {
-          each_blocks_2[i].m(div3, null);
-        }
-      }
-      append(div3, t11);
+      insert(target, first, anchor);
       if (if_block0)
-        if_block0.m(div3, null);
-      append(div3, t12);
-      append(div3, div2);
-      append(div2, button2);
-      append(div12, t14);
-      append(div12, div8);
-      append(div8, h41);
-      append(h41, t15);
-      append(h41, t16);
-      append(h41, t17);
-      append(h41, t18);
-      append(div8, t19);
-      append(div8, div7);
-      append(div7, div6);
-      for (let i = 0; i < each_blocks_1.length; i += 1) {
-        if (each_blocks_1[i]) {
-          each_blocks_1[i].m(div6, null);
-        }
-      }
-      append(div6, t20);
-      if (if_block1)
-        if_block1.m(div6, null);
-      append(div7, t21);
-      if (if_block2)
-        if_block2.m(div7, null);
-      div7_resize_listener = add_iframe_resize_listener(
-        div7,
-        /*div7_elementresize_handler*/
-        ctx[60].bind(div7)
-      );
-      append(div12, t22);
-      append(div12, div11);
-      append(div11, h42);
-      append(h42, t23);
-      append(h42, t24);
-      append(h42, t25);
-      append(h42, t26);
-      append(div11, t27);
-      append(div11, div10);
-      append(div10, div9);
+        if_block0.m(target, anchor);
+      insert(target, t0, anchor);
+      insert(target, div2, anchor);
+      append(div2, h4);
+      append(h4, span);
+      append(span, t1);
+      append(span, t2);
+      append(span, t3);
+      append(span, t4);
+      append(h4, t5);
+      append(h4, input);
+      append(div2, t6);
+      append(div2, div1);
+      append(div1, div0);
       for (let i = 0; i < each_blocks.length; i += 1) {
         if (each_blocks[i]) {
-          each_blocks[i].m(div9, null);
+          each_blocks[i].m(div0, null);
         }
       }
-      append(div9, t28);
-      if (if_block3)
-        if_block3.m(div9, null);
-      append(div9, t29);
-      if (if_block4)
-        if_block4.m(div9, null);
+      append(div0, t7);
+      if (if_block1)
+        if_block1.m(div0, null);
+      append(div0, t8);
+      append(div0, button);
       if (!mounted) {
         dispose = [
+          listen(input, "change", change_handler),
+          listen(h4, "dragstart", dragstart_handler),
           listen(
-            input0,
-            "input",
-            /*input0_input_handler*/
-            ctx[44]
+            h4,
+            "dragend",
+            /*handleColDragEnd*/
+            ctx[10]
           ),
-          listen(
-            input1,
-            "input",
-            /*input1_input_handler*/
-            ctx[45]
-          ),
-          listen(
-            button0,
-            "click",
-            /*click_handler_2*/
-            ctx[46]
-          ),
-          listen(
-            button1,
-            "click",
-            /*toggleLock*/
-            ctx[27]
-          ),
-          listen(
-            button2,
-            "click",
-            /*createTask*/
-            ctx[20]
-          ),
-          listen(
-            div4,
-            "dragover",
-            /*dragover_handler*/
-            ctx[50]
-          ),
-          listen(
-            div4,
-            "drop",
-            /*drop_handler*/
-            ctx[51]
-          ),
-          listen(
-            div7,
-            "dragover",
-            /*dragover_handler_1*/
-            ctx[61]
-          ),
-          listen(
-            div7,
-            "drop",
-            /*drop_handler_1*/
-            ctx[62]
-          ),
-          listen(
-            div10,
-            "dragover",
-            /*dragover_handler_2*/
-            ctx[66]
-          ),
-          listen(
-            div10,
-            "drop",
-            /*drop_handler_2*/
-            ctx[67]
-          )
+          listen(h4, "dragover", dragover_handler),
+          listen(h4, "drop", drop_handler),
+          listen(button, "click", click_handler_2),
+          listen(div1, "dragover", dragover_handler_1),
+          listen(div1, "drop", drop_handler_1)
         ];
         mounted = true;
       }
     },
-    p(ctx2, dirty) {
-      if (dirty[0] & /*dDate*/
-      2) {
-        set_input_value(
-          input0,
-          /*dDate*/
-          ctx2[1]
-        );
-      }
-      if (dirty[0] & /*dTime*/
-      4) {
-        set_input_value(
-          input1,
-          /*dTime*/
-          ctx2[2]
-        );
-      }
-      if (dirty[0] & /*isLocked*/
-      8 && t4_value !== (t4_value = /*isLocked*/
-      ctx2[3] ? "Unlock" : "Lock"))
-        set_data(t4, t4_value);
-      if (dirty[0] & /*isLocked*/
-      8) {
-        toggle_class(
-          button1,
-          "locked",
-          /*isLocked*/
-          ctx2[3]
-        );
-      }
-      if (dirty[0] & /*sBacklog*/
-      512 && t6_value !== (t6_value = /*sBacklog*/
-      ctx2[9].name + ""))
-        set_data(t6, t6_value);
-      if (dirty[0] & /*backlog*/
-      262144 && t8_value !== (t8_value = /*backlog*/
-      ctx2[18].length + ""))
-        set_data(t8, t8_value);
-      if (dirty[0] & /*sBacklog*/
-      512) {
-        set_style(
-          h40,
-          "color",
-          /*sBacklog*/
-          ctx2[9].color
-        );
-      }
-      if (dirty[0] & /*dragId, backlog, handleDragStart, handleDragEnd, deleteTask, editTask, getCustomProps, dragHeight, dragOverStatus, sBacklog, dragOverIndex*/
-      825029120) {
-        each_value_4 = ensure_array_like(
-          /*backlog*/
-          ctx2[18]
-        );
-        each_blocks_2 = update_keyed_each(each_blocks_2, dirty, get_key, 1, ctx2, each_value_4, each0_lookup, div3, destroy_block, create_each_block_4, t11, get_each_context_4);
-      }
+    p(new_ctx, dirty) {
+      ctx = new_ctx;
       if (
-        /*dragOverStatus*/
-        ctx2[13] === /*sBacklog*/
-        ctx2[9].id && /*dragOverIndex*/
-        ctx2[14] >= /*backlog*/
-        ctx2[18].length
+        /*dragOverColId*/
+        ctx[1] && /*dragOverColIndex*/
+        ctx[2] === /*colIdx*/
+        ctx[40]
       ) {
         if (if_block0) {
-          if_block0.p(ctx2, dirty);
         } else {
-          if_block0 = create_if_block_12(ctx2);
+          if_block0 = create_if_block_5(ctx);
           if_block0.c();
-          if_block0.m(div3, t12);
+          if_block0.m(t0.parentNode, t0);
         }
       } else if (if_block0) {
         if_block0.d(1);
         if_block0 = null;
       }
-      if (dirty[0] & /*sRunning*/
-      64 && t15_value !== (t15_value = /*sRunning*/
-      ctx2[6].name + ""))
-        set_data(t15, t15_value);
-      if (dirty[0] & /*running*/
-      128 && t17_value !== (t17_value = /*running*/
-      ctx2[7].length + ""))
-        set_data(t17, t17_value);
-      if (dirty[0] & /*sRunning*/
-      64) {
+      if (dirty[0] & /*columns*/
+      128 && t1_value !== (t1_value = /*col*/
+      ctx[38].name + ""))
+        set_data(t1, t1_value);
+      if (dirty[0] & /*columns*/
+      128 && t3_value !== (t3_value = /*col*/
+      ctx[38].tasks.length + ""))
+        set_data(t3, t3_value);
+      if (dirty[0] & /*columns*/
+      128 && input_value_value !== (input_value_value = /*col*/
+      ctx[38].color)) {
+        input.value = input_value_value;
+      }
+      if (dirty[0] & /*columns*/
+      128) {
         set_style(
-          h41,
+          h4,
           "color",
-          /*sRunning*/
-          ctx2[6].color
+          /*col*/
+          ctx[38].color
         );
       }
-      if (dirty[0] & /*taskHeights, running, dragId, handleDragStart, handleDragEnd, deleteTask, setFixed, toggleFixed, fileManager, editTask, timeline, getCustomProps, dragHeight, dragOverStatus, sRunning, dragOverIndex*/
-      837480897) {
-        each_value_2 = ensure_array_like(
-          /*running*/
-          ctx2[7]
+      if (dirty[0] & /*columns*/
+      128) {
+        set_style(h4, "border-bottom", "2px solid " + /*col*/
+        ctx[38].color + "40");
+      }
+      if (dirty[0] & /*dragId, columns, handleDragStart, handleDragEnd, deleteTask, editTask, getCustomProps, dragHeight, dragOverStatus, dragOverIndex*/
+      811512) {
+        each_value_1 = ensure_array_like(
+          /*col*/
+          ctx[38].tasks
         );
-        each_blocks_1 = update_keyed_each(each_blocks_1, dirty, get_key_1, 1, ctx2, each_value_2, each1_lookup, div6, destroy_block, create_each_block_2, t20, get_each_context_2);
+        each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx, each_value_1, each_1_lookup, div0, destroy_block, create_each_block_1, t7, get_each_context_1);
       }
       if (
         /*dragOverStatus*/
-        ctx2[13] === /*sRunning*/
-        ctx2[6].id && /*dragOverIndex*/
-        ctx2[14] >= /*running*/
-        ctx2[7].length
+        ctx[4] === /*col*/
+        ctx[38].id && /*dragOverIndex*/
+        ctx[5] >= /*col*/
+        ctx[38].tasks.length
       ) {
         if (if_block1) {
-          if_block1.p(ctx2, dirty);
+          if_block1.p(ctx, dirty);
         } else {
-          if_block1 = create_if_block_52(ctx2);
+          if_block1 = create_if_block_1(ctx);
           if_block1.c();
-          if_block1.m(div6, null);
+          if_block1.m(div0, t8);
         }
       } else if (if_block1) {
         if_block1.d(1);
         if_block1 = null;
       }
-      if (
-        /*isLocked*/
-        ctx2[3]
-      ) {
-        if (if_block2) {
-          if_block2.p(ctx2, dirty);
-        } else {
-          if_block2 = create_if_block_42(ctx2);
-          if_block2.c();
-          if_block2.m(div7, null);
-        }
-      } else if (if_block2) {
-        if_block2.d(1);
-        if_block2 = null;
-      }
-      if (dirty[0] & /*sReview*/
-      32 && t23_value !== (t23_value = /*sReview*/
-      ctx2[5].name + ""))
-        set_data(t23, t23_value);
-      if (dirty[0] & /*review*/
-      65536 && t25_value !== (t25_value = /*review*/
-      ctx2[16].length + ""))
-        set_data(t25, t25_value);
-      if (dirty[0] & /*sReview*/
-      32) {
-        set_style(
-          h42,
-          "color",
-          /*sReview*/
-          ctx2[5].color
+      if (dirty[0] & /*dragColId, columns*/
+      129) {
+        toggle_class(
+          div2,
+          "pos-dragging-source",
+          /*dragColId*/
+          ctx[0] === /*col*/
+          ctx[38].id
         );
       }
-      if (dirty[0] & /*dragId, review, handleDragStart, handleDragEnd, deleteTask, editTask, getCustomProps, dragHeight, dragOverStatus, sReview, dragOverIndex*/
-      824832032) {
+      if (dirty[0] & /*columns*/
+      128) {
+        toggle_class(div2, "pos-col-elastic", ["backlog", "running", "review"].includes(
+          /*col*/
+          ctx[38].id
+        ));
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(first);
+        detach(t0);
+        detach(div2);
+      }
+      if (if_block0)
+        if_block0.d(detaching);
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        each_blocks[i].d();
+      }
+      if (if_block1)
+        if_block1.d();
+      mounted = false;
+      run_all(dispose);
+    }
+  };
+}
+function create_if_block(ctx) {
+  let div2;
+  return {
+    c() {
+      div2 = element("div");
+      attr(div2, "class", "pos-board-col-placeholder");
+      set_style(div2, "width", "300px");
+      set_style(div2, "min-width", "300px");
+      set_style(div2, "border", "2px dashed var(--interactive-accent)");
+      set_style(div2, "border-radius", "8px");
+      set_style(div2, "margin", "0 10px");
+      set_style(div2, "background", "rgba(var(--interactive-accent-rgb), 0.05)");
+    },
+    m(target, anchor) {
+      insert(target, div2, anchor);
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div2);
+      }
+    }
+  };
+}
+function create_fragment(ctx) {
+  let div2;
+  let each_blocks = [];
+  let each_1_lookup = /* @__PURE__ */ new Map();
+  let t;
+  let each_value = ensure_array_like(
+    /*columns*/
+    ctx[7]
+  );
+  const get_key = (ctx2) => (
+    /*col*/
+    ctx2[38].id
+  );
+  for (let i = 0; i < each_value.length; i += 1) {
+    let child_ctx = get_each_context(ctx, each_value, i);
+    let key = get_key(child_ctx);
+    each_1_lookup.set(key, each_blocks[i] = create_each_block(key, child_ctx));
+  }
+  let if_block = (
+    /*dragOverColId*/
+    ctx[1] && /*dragOverColIndex*/
+    ctx[2] >= /*columns*/
+    ctx[7].length && create_if_block(ctx)
+  );
+  return {
+    c() {
+      div2 = element("div");
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        each_blocks[i].c();
+      }
+      t = space();
+      if (if_block)
+        if_block.c();
+      attr(div2, "class", "pos-board-workspace");
+    },
+    m(target, anchor) {
+      insert(target, div2, anchor);
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        if (each_blocks[i]) {
+          each_blocks[i].m(div2, null);
+        }
+      }
+      append(div2, t);
+      if (if_block)
+        if_block.m(div2, null);
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*dragColId, columns, handleDragOver, handleDrop, createPlannedTask, dragHeight, dragOverStatus, dragOverIndex, dragId, handleDragStart, handleDragEnd, deleteTask, editTask, getCustomProps, handleColDragStart, handleColDragEnd, handleColDrop, updateColumnColor, dragOverColId, dragOverColIndex*/
+      1048575) {
         each_value = ensure_array_like(
-          /*review*/
-          ctx2[16]
+          /*columns*/
+          ctx2[7]
         );
-        each_blocks = update_keyed_each(each_blocks, dirty, get_key_2, 1, ctx2, each_value, each2_lookup, div9, destroy_block, create_each_block2, t28, get_each_context2);
+        each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx2, each_value, each_1_lookup, div2, destroy_block, create_each_block, t, get_each_context);
       }
       if (
-        /*dragOverStatus*/
-        ctx2[13] === /*sReview*/
-        ctx2[5].id && /*dragOverIndex*/
-        ctx2[14] >= /*review*/
-        ctx2[16].length
+        /*dragOverColId*/
+        ctx2[1] && /*dragOverColIndex*/
+        ctx2[2] >= /*columns*/
+        ctx2[7].length
       ) {
-        if (if_block3) {
-          if_block3.p(ctx2, dirty);
+        if (if_block) {
         } else {
-          if_block3 = create_if_block_16(ctx2);
-          if_block3.c();
-          if_block3.m(div9, t29);
+          if_block = create_if_block(ctx2);
+          if_block.c();
+          if_block.m(div2, null);
         }
-      } else if (if_block3) {
-        if_block3.d(1);
-        if_block3 = null;
-      }
-      if (
-        /*review*/
-        ctx2[16].length > 0
-      ) {
-        if (if_block4) {
-          if_block4.p(ctx2, dirty);
-        } else {
-          if_block4 = create_if_block2(ctx2);
-          if_block4.c();
-          if_block4.m(div9, null);
-        }
-      } else if (if_block4) {
-        if_block4.d(1);
-        if_block4 = null;
+      } else if (if_block) {
+        if_block.d(1);
+        if_block = null;
       }
     },
     i: noop,
     o: noop,
     d(detaching) {
       if (detaching) {
-        detach(div1);
-        detach(t5);
-        detach(div12);
+        detach(div2);
       }
-      for (let i = 0; i < each_blocks_2.length; i += 1) {
-        each_blocks_2[i].d();
-      }
-      if (if_block0)
-        if_block0.d();
-      for (let i = 0; i < each_blocks_1.length; i += 1) {
-        each_blocks_1[i].d();
-      }
-      if (if_block1)
-        if_block1.d();
-      if (if_block2)
-        if_block2.d();
-      div7_resize_listener();
       for (let i = 0; i < each_blocks.length; i += 1) {
         each_blocks[i].d();
       }
-      if (if_block3)
-        if_block3.d();
-      if (if_block4)
-        if_block4.d();
-      mounted = false;
-      run_all(dispose);
+      if (if_block)
+        if_block.d();
     }
   };
 }
-function instance2($$self, $$props, $$invalidate) {
-  let projectTasks;
+function handleColDragOver(e, id) {
+}
+function instance($$self, $$props, $$invalidate) {
+  let settingsStatuses;
   let statuses;
-  let sBacklog;
-  let sRunning;
-  let sReview;
-  let backlog;
-  let running;
-  let review;
-  let timeline;
-  let taskHeights;
-  let $projectsStore;
-  let $tasksStore;
-  component_subscribe($$self, projectsStore, ($$value) => $$invalidate(37, $projectsStore = $$value));
-  component_subscribe($$self, tasksStore, ($$value) => $$invalidate(38, $tasksStore = $$value));
+  let columns;
   let { app } = $$props;
   let { fileManager } = $$props;
   let { projectId } = $$props;
+  let { projectTasks } = $$props;
   const sortTasks = (tasks) => tasks.sort((a, b) => {
     const pA = a.properties && a.properties["priority"] ? parseInt(a.properties["priority"], 10) : 3;
     const pB = b.properties && b.properties["priority"] ? parseInt(b.properties["priority"], 10) : 3;
@@ -7051,177 +4389,117 @@ function instance2($$self, $$props, $$invalidate) {
       return [];
     const res = [];
     fileManager.plugin.settings.taskSchema.forEach((schema) => {
-      var _a;
       const val = task.properties[schema.id];
-      if (val === void 0 || val === null || val === "")
-        return;
-      if (Array.isArray(val) && val.length === 0)
-        return;
-      if (schema.type === "select") {
-        const opt = (_a = schema.options) == null ? void 0 : _a.find((o) => o.id === val);
-        if (opt)
+      if (val) {
+        if (schema.type === "select" || schema.type === "multi-select") {
+          const vals = Array.isArray(val) ? val : [val];
+          vals.forEach((v) => {
+            const opt = (schema.options || []).find((o) => o.id === v);
+            if (opt)
+              res.push({
+                name: schema.name,
+                value: opt.name,
+                color: opt.color
+              });
+          });
+        } else if (schema.type === "checkbox") {
           res.push({
             name: schema.name,
-            value: opt.name,
-            color: opt.color
+            value: val ? "Yes" : "No"
           });
-      } else if (schema.type === "multi-select") {
-        val.forEach((v) => {
-          var _a2;
-          const opt = (_a2 = schema.options) == null ? void 0 : _a2.find((o) => o.id === v);
-          res.push({
-            name: schema.name,
-            value: opt ? opt.name : v,
-            color: opt == null ? void 0 : opt.color
-          });
-        });
-      } else if (schema.type === "date") {
-        const d = new Date(val);
-        if (!isNaN(d.getTime()))
-          res.push({
-            name: schema.name,
-            value: d.toLocaleDateString()
-          });
-      } else if (schema.type === "checkbox") {
-        res.push({
-          name: schema.name,
-          value: val ? "Yes" : "No"
-        });
-      } else {
-        res.push({ name: schema.name, value: String(val) });
+        } else if (schema.type === "relation") {
+          const vals = Array.isArray(val) ? val : [val];
+          vals.forEach((v) => res.push({ name: schema.name, value: v }));
+        } else if (schema.type === "formula" || schema.type === "rollup") {
+          res.push({ name: schema.name, value: String(val) });
+        } else {
+          res.push({ name: schema.name, value: String(val) });
+        }
       }
     });
     return res;
   }
-  let deadline = /* @__PURE__ */ new Date();
-  deadline.setHours(17, 0, 0, 0);
-  let dDate = fmtDate(deadline.toISOString());
-  let dTime = fmtTime(deadline.toISOString());
-  let isLocked = false;
-  let lockAt = null;
-  let lockDeadline = null;
-  let lockedTimeline = [];
-  let now2 = Date.now();
-  let timer;
-  let runningWrapperHeight = 300;
-  let lockLineTop = 0;
-  let lockWipeHeight = 0;
-  function updateLockProgress() {
-    if (!isLocked || !lockAt || !lockDeadline)
-      return;
-    const start = new Date(lockAt).getTime();
-    const end = new Date(lockDeadline).getTime();
-    const p = Math.min(1, Math.max(0, (Date.now() - start) / (end - start)));
-    const totalHeight = runningWrapperHeight;
-    $$invalidate(10, lockLineTop = p * totalHeight);
-    $$invalidate(11, lockWipeHeight = lockLineTop);
-  }
-  onMount(() => {
-    timer = window.setInterval(
+  let dragColId = null;
+  let dragOverColId = null;
+  let dragOverColIndex = -1;
+  function handleColDragStart(e, id) {
+    if (e.dataTransfer) {
+      e.dataTransfer.effectAllowed = "move";
+      e.dataTransfer.setData("col-id", id);
+    }
+    setTimeout(
       () => {
-        now2 = Date.now();
-        if (isLocked) {
-          updateLockProgress();
-        }
+        $$invalidate(0, dragColId = id);
       },
-      1e3
+      0
     );
-  });
-  onDestroy(() => {
-    window.clearInterval(timer);
-  });
-  function createTask() {
-    new NewTaskModal(
-      app,
-      async (name) => {
-        await fileManager.createTask({
-          name,
-          project: projectId === "all" ? null : projectId
-        });
-      }
-    ).open();
   }
-  function editTask(task) {
-    new QuickEditTaskModal(
-      app,
-      fileManager.plugin,
-      task,
-      async (updates) => {
-        await fileManager.updateTask(task.id, updates);
-      }
-    ).open();
+  function handleColDragEnd() {
+    $$invalidate(0, dragColId = null);
+    $$invalidate(1, dragOverColId = null);
+    $$invalidate(2, dragOverColIndex = -1);
   }
-  function openTaskFile(taskId) {
-    const file = app.vault.getAbstractFileByPath(`tasks/${taskId}.md`);
-    if (file instanceof import_obsidian4.TFile) {
-      app.workspace.getLeaf().openFile(file);
+  async function handleColDrop(e, id) {
+    e.preventDefault();
+    if (!dragColId || dragColId === id)
+      return;
+    const targetIdx = dragOverColIndex;
+    const settings = fileManager.plugin.settings;
+    if (!settings.statuses)
+      settings.statuses = [];
+    const sourceColObj = columns.find((c) => c.id === dragColId);
+    const destColObj = columns.find((c) => c.id === id);
+    if (!settings.statuses.find((s) => s.id === dragColId)) {
+      settings.statuses.push({
+        id: dragColId,
+        name: (sourceColObj == null ? void 0 : sourceColObj.name) || dragColId,
+        color: (sourceColObj == null ? void 0 : sourceColObj.color) || "#a29bfe"
+      });
     }
+    if (!settings.statuses.find((s) => s.id === id)) {
+      settings.statuses.push({
+        id,
+        name: (destColObj == null ? void 0 : destColObj.name) || id,
+        color: (destColObj == null ? void 0 : destColObj.color) || "#a29bfe"
+      });
+    }
+    const fromIndex = settings.statuses.findIndex((s) => s.id === dragColId);
+    const oldToIndex = settings.statuses.findIndex((s) => s.id === id);
+    const [movedItem] = settings.statuses.splice(fromIndex, 1);
+    const newToIndex = settings.statuses.findIndex((s) => s.id === id);
+    const finalIndex = fromIndex < oldToIndex ? newToIndex + 1 : newToIndex;
+    settings.statuses.splice(finalIndex, 0, movedItem);
+    await fileManager.plugin.saveSettings();
+    $$invalidate(20, fileManager.plugin.settings = settings, fileManager);
+    $$invalidate(0, dragColId = null);
+    $$invalidate(1, dragOverColId = null);
   }
-  async function updateStatus(task, status) {
-    await fileManager.updateTask(task.id, {
-      status,
-      isCompleted: status === sReview.id
-    });
-  }
-  async function toggleFixed(task, isFixed) {
-    await fileManager.updateTask(task.id, {
-      isFixedDuration: isFixed,
-      fixedDuration: isFixed ? task.fixedDuration || 30 : null
-    });
-  }
-  async function setFixed(task, duration) {
-    await fileManager.updateTask(task.id, {
-      isFixedDuration: true,
-      fixedDuration: duration
-    });
-  }
-  async function deleteTask(id) {
-    await fileManager.deleteTask(id);
-  }
-  function confirmRestoreAll() {
-    new ConfirmModal(
-      app,
-      "Restore All",
-      "Move all review tasks back to running?",
-      () => {
-        review.forEach((t) => fileManager.updateTask(t.id, { status: sRunning.id, isCompleted: false }));
-      }
-    ).open();
-  }
-  function confirmDeleteAll() {
-    new ConfirmModal(
-      app,
-      "Delete All",
-      "Permanently delete all tasks in review?",
-      () => {
-        review.forEach((t) => fileManager.deleteTask(t.id));
-      }
-    ).open();
-  }
-  function toggleLock() {
-    if (isLocked) {
-      $$invalidate(3, isLocked = false);
-      lockAt = null;
-      lockDeadline = null;
-      $$invalidate(34, lockedTimeline = []);
+  async function updateColumnColor(colId, newColor) {
+    const settings = fileManager.plugin.settings;
+    let col = settings.statuses.find((s) => s.id === colId);
+    if (!col) {
+      const colObj = columns.find((c) => c.id === colId);
+      col = {
+        id: colId,
+        name: (colObj == null ? void 0 : colObj.name) || colId,
+        color: newColor
+      };
+      settings.statuses.push(col);
     } else {
-      const dl = /* @__PURE__ */ new Date(`${dDate}T${dTime}`);
-      lockAt = (/* @__PURE__ */ new Date()).toISOString();
-      lockDeadline = dl.toISOString();
-      $$invalidate(34, lockedTimeline = calculateLiquidTimeline(running, /* @__PURE__ */ new Date(), dl));
-      $$invalidate(3, isLocked = true);
-      updateLockProgress();
+      col.color = newColor;
     }
+    await fileManager.plugin.saveSettings();
+    $$invalidate(20, fileManager.plugin.settings = settings, fileManager);
   }
   let dragId = null;
   let dragOverStatus = null;
   let dragOverIndex = -1;
   let dragHeight = 60;
   function handleDragStart(e, id) {
-    const target = e.target.closest(".pos-card");
+    const target = e.target.closest(".pos-board-card");
     if (target) {
       const rect = target.getBoundingClientRect();
-      $$invalidate(15, dragHeight = rect.height);
+      $$invalidate(6, dragHeight = rect.height);
       if (e.dataTransfer) {
         e.dataTransfer.effectAllowed = "move";
         e.dataTransfer.setData("text/plain", id);
@@ -7249,324 +4527,2355 @@ function instance2($$self, $$props, $$invalidate) {
     }
     setTimeout(
       () => {
-        $$invalidate(12, dragId = id);
+        $$invalidate(3, dragId = id);
       },
       0
     );
   }
   function handleDragEnd() {
-    $$invalidate(12, dragId = null);
-    $$invalidate(13, dragOverStatus = null);
-    $$invalidate(14, dragOverIndex = -1);
+    $$invalidate(3, dragId = null);
+    $$invalidate(4, dragOverStatus = null);
+    $$invalidate(5, dragOverIndex = -1);
   }
   function handleDragOver(e, status) {
+    if (dragColId)
+      return;
     e.preventDefault();
-    if (!dragId)
+    if (e.dataTransfer)
+      e.dataTransfer.dropEffect = "move";
+    const listWrapper = e.currentTarget.querySelector(".pos-board-list");
+    if (!listWrapper)
       return;
-    const task = $tasksStore.find((t) => t.id === dragId);
-    if (!task)
-      return;
-    if (isLocked && (task.status === sRunning.id || status === sRunning.id) && task.status !== status) {
-      if (e.dataTransfer)
-        e.dataTransfer.dropEffect = "none";
-      return;
-    }
-    const listEl = e.currentTarget.querySelector(".pos-list");
-    if (!listEl)
-      return;
-    const isPlaceholderInThisColumn = dragOverStatus === status && dragOverIndex !== -1;
-    const placeholderShift = dragHeight + 8;
-    const cards = Array.from(listEl.querySelectorAll(".pos-card"));
-    let index = 0;
+    const cards = Array.from(listWrapper.querySelectorAll(".pos-board-card:not(.pos-dragging-source)"));
+    const mouseY = e.clientY;
+    let targetIndex = cards.length;
     for (let i = 0; i < cards.length; i++) {
       const rect = cards[i].getBoundingClientRect();
-      let virtualTop = rect.top;
-      if (isPlaceholderInThisColumn && dragOverIndex <= i) {
-        virtualTop -= placeholderShift;
-      }
-      if (e.clientY < virtualTop + rect.height / 2) {
-        index = i;
+      const middle = rect.top + rect.height / 2;
+      if (mouseY < middle) {
+        targetIndex = i;
         break;
       }
-      index = i + 1;
     }
-    $$invalidate(13, dragOverStatus = status);
-    $$invalidate(14, dragOverIndex = index);
+    $$invalidate(4, dragOverStatus = status);
+    $$invalidate(5, dragOverIndex = targetIndex);
   }
   async function handleDrop(e, status) {
+    var _a;
     e.preventDefault();
     if (!dragId)
       return;
-    const task = $tasksStore.find((t) => t.id === dragId);
+    const targetIndex = dragOverIndex === -1 ? ((_a = columns.find((c) => c.id === status)) == null ? void 0 : _a.tasks.length) || 0 : dragOverIndex;
+    const task = projectTasks.find((t) => t.id === dragId);
+    $$invalidate(3, dragId = null);
+    $$invalidate(4, dragOverStatus = null);
+    $$invalidate(5, dragOverIndex = -1);
     if (!task)
       return;
     const oldStatus = task.status;
-    const targetIndex = dragOverIndex;
-    $$invalidate(12, dragId = null);
-    $$invalidate(13, dragOverStatus = null);
-    $$invalidate(14, dragOverIndex = -1);
-    const allTasksOfProject = getProjectTasks($tasksStore, projectId, $projectsStore);
-    if (oldStatus === status) {
-      const colTasks = allTasksOfProject.filter((t) => t.status === status);
-      const cardToMove = colTasks.find((t) => t.id === task.id);
-      if (!cardToMove)
-        return;
-      const oldIndex = colTasks.indexOf(cardToMove);
-      if (oldIndex === targetIndex || oldIndex === targetIndex - 1)
-        return;
-      const newColTasks = [...colTasks];
-      newColTasks.splice(oldIndex, 1);
-      let adjustedTarget = targetIndex;
-      if (oldIndex < targetIndex)
-        adjustedTarget--;
-      newColTasks.splice(adjustedTarget, 0, cardToMove);
-      await Promise.all(newColTasks.map((t, idx) => fileManager.updateTask(t.id, { orderIndex: idx })));
-    } else {
-      if (isLocked && status === sRunning.id)
-        return;
-      const sourceCol = allTasksOfProject.filter((t) => t.status === oldStatus && t.id !== task.id);
-      const destCol = allTasksOfProject.filter((t) => t.status === status);
-      destCol.splice(targetIndex, 0, {
-        ...task,
-        status,
-        isCompleted: status === sReview.id
-      });
-      await Promise.all([
-        ...sourceCol.map((t, idx) => fileManager.updateTask(t.id, { orderIndex: idx })),
-        ...destCol.map((t, idx) => fileManager.updateTask(t.id, {
+    const allTasksOfProject = projectTasks;
+    const destCol = allTasksOfProject.filter((t) => t.status === status && t.id !== task.id);
+    destCol.splice(targetIndex, 0, { ...task, status });
+    const promises = destCol.map((t, idx) => {
+      if (t.id === task.id || t.orderIndex !== idx) {
+        return fileManager.updateTask(t.id, {
           orderIndex: idx,
-          status: t.id === task.id ? status : t.status,
-          isCompleted: t.id === task.id ? status === sReview.id : t.isCompleted
-        }))
-      ]);
+          status: t.id === task.id ? status : t.status
+        });
+      }
+      return Promise.resolve();
+    });
+    if (oldStatus !== status) {
+      const sourceCol = allTasksOfProject.filter((t) => t.status === oldStatus && t.id !== task.id);
+      sourceCol.forEach((t, idx) => {
+        if (t.orderIndex !== idx)
+          promises.push(fileManager.updateTask(t.id, { orderIndex: idx }));
+      });
     }
+    await Promise.all(promises);
   }
-  function click_handler_1(event) {
-    bubble.call(this, $$self, event);
+  function createPlannedTask(statusId) {
+    new NewTaskModal(
+      app,
+      async (name) => {
+        let pid = projectId;
+        if (pid === "-- All Projects --")
+          pid = "";
+        await fileManager.createTask({ name, project: pid, status: statusId });
+      }
+    ).open();
   }
-  function keydown_handler(event) {
-    bubble.call(this, $$self, event);
+  function editTask(task) {
+    new QuickEditTaskModal(
+      app,
+      fileManager.plugin,
+      task,
+      async (updates) => {
+        await fileManager.updateTask(task.id, updates);
+      }
+    ).open();
   }
-  function keypress_handler(event) {
-    bubble.call(this, $$self, event);
+  async function updateStatus(task, status) {
+    await fileManager.updateTask(task.id, { status });
   }
-  function keyup_handler(event) {
-    bubble.call(this, $$self, event);
+  async function deleteTask(id) {
+    await fileManager.deleteTask(id);
   }
-  function click_handler(event) {
-    bubble.call(this, $$self, event);
-  }
-  function input0_input_handler() {
-    dDate = this.value;
-    $$invalidate(1, dDate);
-  }
-  function input1_input_handler() {
-    dTime = this.value;
-    $$invalidate(2, dTime);
-  }
-  const click_handler_2 = () => {
-    if (isLocked)
-      return;
-    $$invalidate(1, dDate);
-  };
-  const click_handler_3 = (task) => editTask(task);
-  const click_handler_4 = (task) => deleteTask(task.id);
-  const dragstart_handler = (task, e) => handleDragStart(e, task.id);
-  const dragover_handler = (e) => handleDragOver(e, sBacklog.id);
-  const drop_handler = (e) => handleDrop(e, sBacklog.id);
-  const click_handler_5 = (task) => editTask(task);
-  const click_handler_6 = (task) => fileManager.updateTask(task.id, { weight: Math.max(1, task.weight - 1) });
-  const click_handler_7 = (task) => fileManager.updateTask(task.id, { weight: task.weight + 1 });
-  const change_handler = (task, e) => toggleFixed(task, e.currentTarget.checked);
-  const change_handler_1 = (task, e) => setFixed(task, Number(e.currentTarget.value));
-  const click_handler_8 = (task) => deleteTask(task.id);
+  const change_handler = (col, e) => updateColumnColor(col.id, e.currentTarget.value);
+  const dragstart_handler = (col, e) => handleColDragStart(e, col.id);
+  const dragover_handler = (col, e) => handleColDragOver(e, col.id);
+  const drop_handler = (col, e) => handleColDrop(e, col.id);
+  const click_handler = (task) => editTask(task);
+  const click_handler_1 = (task) => deleteTask(task.id);
   const dragstart_handler_1 = (task, e) => handleDragStart(e, task.id);
-  const func2 = (task, t) => t.id === task.id;
-  function div7_elementresize_handler() {
-    runningWrapperHeight = this.clientHeight;
-    $$invalidate(4, runningWrapperHeight);
-  }
-  const dragover_handler_1 = (e) => handleDragOver(e, sRunning.id);
-  const drop_handler_1 = (e) => handleDrop(e, sRunning.id);
-  const click_handler_9 = (task) => editTask(task);
-  const click_handler_10 = (task) => deleteTask(task.id);
-  const dragstart_handler_2 = (task, e) => handleDragStart(e, task.id);
-  const dragover_handler_2 = (e) => handleDragOver(e, sReview.id);
-  const drop_handler_2 = (e) => handleDrop(e, sReview.id);
+  const click_handler_2 = (col) => createPlannedTask(col.id);
+  const dragover_handler_1 = (col, e) => handleDragOver(e, col.id);
+  const drop_handler_1 = (col, e) => handleDrop(e, col.id);
   $$self.$$set = ($$props2) => {
     if ("app" in $$props2)
-      $$invalidate(32, app = $$props2.app);
+      $$invalidate(21, app = $$props2.app);
     if ("fileManager" in $$props2)
-      $$invalidate(0, fileManager = $$props2.fileManager);
+      $$invalidate(20, fileManager = $$props2.fileManager);
     if ("projectId" in $$props2)
-      $$invalidate(33, projectId = $$props2.projectId);
+      $$invalidate(22, projectId = $$props2.projectId);
+    if ("projectTasks" in $$props2)
+      $$invalidate(23, projectTasks = $$props2.projectTasks);
   };
   $$self.$$.update = () => {
-    if ($$self.$$.dirty[1] & /*$tasksStore, projectId, $projectsStore*/
-    196) {
-      $:
-        $$invalidate(35, projectTasks = getProjectTasks($tasksStore, projectId, $projectsStore));
-    }
     if ($$self.$$.dirty[0] & /*fileManager*/
-    1) {
+    1048576) {
       $:
-        $$invalidate(36, statuses = fileManager.plugin.settings.statuses || []);
+        $$invalidate(25, settingsStatuses = fileManager.plugin.settings.statuses || []);
     }
-    if ($$self.$$.dirty[1] & /*statuses*/
-    32) {
+    if ($$self.$$.dirty[0] & /*settingsStatuses, projectTasks*/
+    41943040) {
       $:
-        $$invalidate(9, sBacklog = statuses.find((s) => s.id === "backlog") || {
-          id: "backlog",
-          name: "Elastic Backlog",
-          color: "#636e72"
-        });
-    }
-    if ($$self.$$.dirty[1] & /*statuses*/
-    32) {
-      $:
-        $$invalidate(6, sRunning = statuses.find((s) => s.id === "running") || {
-          id: "running",
-          name: "Elastic Running",
-          color: "#00b894"
-        });
-    }
-    if ($$self.$$.dirty[1] & /*statuses*/
-    32) {
-      $:
-        $$invalidate(5, sReview = statuses.find((s) => s.id === "review") || {
-          id: "review",
-          name: "Finished",
-          color: "#fdcb6e"
-        });
-    }
-    if ($$self.$$.dirty[0] & /*sBacklog*/
-    512 | $$self.$$.dirty[1] & /*projectTasks*/
-    16) {
-      $:
-        $$invalidate(18, backlog = sortTasks(projectTasks.filter((t) => t.status === sBacklog.id)));
-    }
-    if ($$self.$$.dirty[0] & /*sRunning*/
-    64 | $$self.$$.dirty[1] & /*projectTasks*/
-    16) {
-      $:
-        $$invalidate(7, running = sortTasks(projectTasks.filter((t) => t.status === sRunning.id)));
-    }
-    if ($$self.$$.dirty[0] & /*sReview*/
-    32 | $$self.$$.dirty[1] & /*projectTasks*/
-    16) {
-      $:
-        $$invalidate(16, review = sortTasks(projectTasks.filter((t) => t.status === sReview.id)));
-    }
-    if ($$self.$$.dirty[0] & /*isLocked, running, dDate, dTime*/
-    142 | $$self.$$.dirty[1] & /*lockedTimeline*/
-    8) {
-      $:
-        $$invalidate(8, timeline = isLocked ? lockedTimeline : calculateLiquidTimeline(running, /* @__PURE__ */ new Date(), /* @__PURE__ */ new Date(`${dDate}T${dTime}`)));
-    }
-    if ($$self.$$.dirty[0] & /*runningWrapperHeight, running, timeline*/
-    400) {
-      $:
-        $$invalidate(17, taskHeights = (() => {
-          const H = runningWrapperHeight;
-          const heights = {};
-          if (running.length === 0)
-            return heights;
-          const tl = timeline;
-          const total = tl.reduce((s, t) => s + t.calculatedDuration, 0);
-          if (total <= 0 || H <= 0) {
-            const tw = running.reduce((s, t) => s + t.weight, 0) || 1;
-            running.forEach((t) => {
-              heights[t.id] = Math.max(65, t.weight / tw * Math.max(H, 300));
-            });
-            return heights;
-          }
-          running.forEach((t) => {
-            const ti = tl.find((item) => item.id === t.id);
-            const dur = ti ? ti.calculatedDuration : 0;
-            heights[t.id] = Math.max(65, dur / total * H);
+        $$invalidate(24, statuses = (() => {
+          const cols = [
+            {
+              id: "backlog",
+              name: "Elastic Backlog",
+              color: "#636e72"
+            }
+          ];
+          settingsStatuses.forEach((s) => {
+            if (!cols.find((c) => c.id === s.id))
+              cols.push(s);
           });
-          return heights;
+          const activeStatuses = new Set(projectTasks.map((t) => t.status));
+          activeStatuses.forEach((statusId) => {
+            if (!cols.find((c) => c.id === statusId)) {
+              if (statusId === "running")
+                cols.push({
+                  id: "running",
+                  name: "Elastic Running",
+                  color: "#00b894"
+                });
+              else if (statusId === "review")
+                cols.push({
+                  id: "review",
+                  name: "Elastic Review",
+                  color: "#fdcb6e"
+                });
+              else
+                cols.push({
+                  id: statusId,
+                  name: statusId,
+                  color: "#a29bfe"
+                });
+            }
+          });
+          return cols;
         })());
+    }
+    if ($$self.$$.dirty[0] & /*statuses, projectTasks*/
+    25165824) {
+      $:
+        $$invalidate(7, columns = statuses.map((s) => ({
+          ...s,
+          tasks: sortTasks(projectTasks.filter((t) => t.status === s.id))
+        })));
     }
   };
   return [
-    fileManager,
-    dDate,
-    dTime,
-    isLocked,
-    runningWrapperHeight,
-    sReview,
-    sRunning,
-    running,
-    timeline,
-    sBacklog,
-    lockLineTop,
-    lockWipeHeight,
+    dragColId,
+    dragOverColId,
+    dragOverColIndex,
     dragId,
     dragOverStatus,
     dragOverIndex,
     dragHeight,
-    review,
-    taskHeights,
-    backlog,
+    columns,
     getCustomProps,
-    createTask,
-    editTask,
-    toggleFixed,
-    setFixed,
-    deleteTask,
-    confirmRestoreAll,
-    confirmDeleteAll,
-    toggleLock,
+    handleColDragStart,
+    handleColDragEnd,
+    handleColDrop,
+    updateColumnColor,
     handleDragStart,
     handleDragEnd,
     handleDragOver,
     handleDrop,
+    createPlannedTask,
+    editTask,
+    deleteTask,
+    fileManager,
     app,
     projectId,
-    lockedTimeline,
     projectTasks,
     statuses,
-    $projectsStore,
-    $tasksStore,
-    click_handler_1,
-    keydown_handler,
-    keypress_handler,
-    keyup_handler,
-    click_handler,
-    input0_input_handler,
-    input1_input_handler,
-    click_handler_2,
-    click_handler_3,
-    click_handler_4,
+    settingsStatuses,
+    change_handler,
     dragstart_handler,
     dragover_handler,
     drop_handler,
+    click_handler,
+    click_handler_1,
+    dragstart_handler_1,
+    click_handler_2,
+    dragover_handler_1,
+    drop_handler_1
+  ];
+}
+var ProjectTaskBoard = class extends SvelteComponent {
+  constructor(options) {
+    super();
+    init(
+      this,
+      options,
+      instance,
+      create_fragment,
+      safe_not_equal,
+      {
+        app: 21,
+        fileManager: 20,
+        projectId: 22,
+        projectTasks: 23
+      },
+      null,
+      [-1, -1]
+    );
+  }
+};
+var ProjectTaskBoard_default = ProjectTaskBoard;
+
+// src/ui/views/components/ProjectTaskGrid.svelte
+var import_obsidian3 = require("obsidian");
+function get_each_context2(ctx, list, i) {
+  const child_ctx = ctx.slice();
+  child_ctx[44] = list[i];
+  return child_ctx;
+}
+function get_each_context_12(ctx, list, i) {
+  const child_ctx = ctx.slice();
+  child_ctx[47] = list[i];
+  return child_ctx;
+}
+function get_each_context_22(ctx, list, i) {
+  const child_ctx = ctx.slice();
+  child_ctx[50] = list[i];
+  child_ctx[51] = list;
+  child_ctx[52] = i;
+  return child_ctx;
+}
+function get_each_context_3(ctx, list, i) {
+  const child_ctx = ctx.slice();
+  child_ctx[53] = list[i];
+  return child_ctx;
+}
+function get_each_context_4(ctx, list, i) {
+  const child_ctx = ctx.slice();
+  child_ctx[47] = list[i];
+  return child_ctx;
+}
+function create_if_block_7(ctx) {
+  let div2;
+  let button;
+  let t1;
+  let mounted;
+  let dispose;
+  let each_value_4 = ensure_array_like(
+    /*uniqueTags*/
+    ctx[9]
+  );
+  let each_blocks = [];
+  for (let i = 0; i < each_value_4.length; i += 1) {
+    each_blocks[i] = create_each_block_4(get_each_context_4(ctx, each_value_4, i));
+  }
+  return {
+    c() {
+      div2 = element("div");
+      button = element("button");
+      button.textContent = "All Tags";
+      t1 = space();
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        each_blocks[i].c();
+      }
+      attr(button, "class", "pos-tag-filter-pill");
+      toggle_class(
+        button,
+        "active",
+        /*tagFilter*/
+        ctx[2] === null
+      );
+      attr(div2, "class", "pos-tag-filter-bar");
+    },
+    m(target, anchor) {
+      insert(target, div2, anchor);
+      append(div2, button);
+      append(div2, t1);
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        if (each_blocks[i]) {
+          each_blocks[i].m(div2, null);
+        }
+      }
+      if (!mounted) {
+        dispose = listen(
+          button,
+          "click",
+          /*click_handler*/
+          ctx[26]
+        );
+        mounted = true;
+      }
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*tagFilter*/
+      4) {
+        toggle_class(
+          button,
+          "active",
+          /*tagFilter*/
+          ctx2[2] === null
+        );
+      }
+      if (dirty[0] & /*tagFilter, uniqueTags*/
+      516) {
+        each_value_4 = ensure_array_like(
+          /*uniqueTags*/
+          ctx2[9]
+        );
+        let i;
+        for (i = 0; i < each_value_4.length; i += 1) {
+          const child_ctx = get_each_context_4(ctx2, each_value_4, i);
+          if (each_blocks[i]) {
+            each_blocks[i].p(child_ctx, dirty);
+          } else {
+            each_blocks[i] = create_each_block_4(child_ctx);
+            each_blocks[i].c();
+            each_blocks[i].m(div2, null);
+          }
+        }
+        for (; i < each_blocks.length; i += 1) {
+          each_blocks[i].d(1);
+        }
+        each_blocks.length = each_value_4.length;
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div2);
+      }
+      destroy_each(each_blocks, detaching);
+      mounted = false;
+      dispose();
+    }
+  };
+}
+function create_each_block_4(ctx) {
+  let button;
+  let t_value = (
+    /*tag*/
+    ctx[47] + ""
+  );
+  let t;
+  let mounted;
+  let dispose;
+  function click_handler_1() {
+    return (
+      /*click_handler_1*/
+      ctx[27](
+        /*tag*/
+        ctx[47]
+      )
+    );
+  }
+  return {
+    c() {
+      button = element("button");
+      t = text(t_value);
+      attr(button, "class", "pos-tag-filter-pill");
+      toggle_class(
+        button,
+        "active",
+        /*tagFilter*/
+        ctx[2] === /*tag*/
+        ctx[47]
+      );
+    },
+    m(target, anchor) {
+      insert(target, button, anchor);
+      append(button, t);
+      if (!mounted) {
+        dispose = listen(button, "click", click_handler_1);
+        mounted = true;
+      }
+    },
+    p(new_ctx, dirty) {
+      ctx = new_ctx;
+      if (dirty[0] & /*uniqueTags*/
+      512 && t_value !== (t_value = /*tag*/
+      ctx[47] + ""))
+        set_data(t, t_value);
+      if (dirty[0] & /*tagFilter, uniqueTags*/
+      516) {
+        toggle_class(
+          button,
+          "active",
+          /*tagFilter*/
+          ctx[2] === /*tag*/
+          ctx[47]
+        );
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(button);
+      }
+      mounted = false;
+      dispose();
+    }
+  };
+}
+function create_each_block_3(ctx) {
+  let option;
+  let t_value = (
+    /*prop*/
+    ctx[53].name + ""
+  );
+  let t;
+  let option_value_value;
+  return {
+    c() {
+      option = element("option");
+      t = text(t_value);
+      option.__value = option_value_value = /*prop*/
+      ctx[53].id;
+      set_input_value(option, option.__value);
+    },
+    m(target, anchor) {
+      insert(target, option, anchor);
+      append(option, t);
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*schema*/
+      1024 && t_value !== (t_value = /*prop*/
+      ctx2[53].name + ""))
+        set_data(t, t_value);
+      if (dirty[0] & /*schema*/
+      1024 && option_value_value !== (option_value_value = /*prop*/
+      ctx2[53].id)) {
+        option.__value = option_value_value;
+        set_input_value(option, option.__value);
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(option);
+      }
+    }
+  };
+}
+function create_if_block_6(ctx) {
+  let input;
+  let mounted;
+  let dispose;
+  function input_input_handler() {
+    ctx[31].call(
+      input,
+      /*each_value_2*/
+      ctx[51],
+      /*filter_index*/
+      ctx[52]
+    );
+  }
+  return {
+    c() {
+      input = element("input");
+      attr(input, "type", "text");
+      attr(input, "class", "pos-grid-search-input");
+      set_style(input, "flex", "1");
+      set_style(input, "max-width", "200px");
+      attr(input, "placeholder", "Value...");
+    },
+    m(target, anchor) {
+      insert(target, input, anchor);
+      set_input_value(
+        input,
+        /*filter*/
+        ctx[50].value
+      );
+      if (!mounted) {
+        dispose = [
+          listen(input, "input", input_input_handler),
+          listen(
+            input,
+            "input",
+            /*saveFilters*/
+            ctx[11]
+          )
+        ];
+        mounted = true;
+      }
+    },
+    p(new_ctx, dirty) {
+      ctx = new_ctx;
+      if (dirty[0] & /*projectFilters, schema*/
+      1152 && input.value !== /*filter*/
+      ctx[50].value) {
+        set_input_value(
+          input,
+          /*filter*/
+          ctx[50].value
+        );
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(input);
+      }
+      mounted = false;
+      run_all(dispose);
+    }
+  };
+}
+function create_each_block_22(key_1, ctx) {
+  let div2;
+  let select0;
+  let option0;
+  let option1;
+  let option2;
+  let optgroup;
+  let t3;
+  let select1;
+  let option3;
+  let option4;
+  let option5;
+  let option6;
+  let option7;
+  let option8;
+  let option9;
+  let option10;
+  let t12;
+  let t13;
+  let button;
+  let mounted;
+  let dispose;
+  let each_value_3 = ensure_array_like(
+    /*schema*/
+    ctx[10]
+  );
+  let each_blocks = [];
+  for (let i = 0; i < each_value_3.length; i += 1) {
+    each_blocks[i] = create_each_block_3(get_each_context_3(ctx, each_value_3, i));
+  }
+  function select0_change_handler() {
+    ctx[29].call(
+      select0,
+      /*each_value_2*/
+      ctx[51],
+      /*filter_index*/
+      ctx[52]
+    );
+  }
+  function select1_change_handler() {
+    ctx[30].call(
+      select1,
+      /*each_value_2*/
+      ctx[51],
+      /*filter_index*/
+      ctx[52]
+    );
+  }
+  let if_block = (
+    /*filter*/
+    ctx[50].operator !== "is-empty" && /*filter*/
+    ctx[50].operator !== "not-empty" && create_if_block_6(ctx)
+  );
+  function click_handler_2() {
+    return (
+      /*click_handler_2*/
+      ctx[32](
+        /*filter*/
+        ctx[50]
+      )
+    );
+  }
+  return {
+    key: key_1,
+    first: null,
+    c() {
+      div2 = element("div");
+      select0 = element("select");
+      option0 = element("option");
+      option0.textContent = "Status";
+      option1 = element("option");
+      option1.textContent = "Is Completed";
+      option2 = element("option");
+      option2.textContent = "Task Name";
+      optgroup = element("optgroup");
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        each_blocks[i].c();
+      }
+      t3 = space();
+      select1 = element("select");
+      option3 = element("option");
+      option3.textContent = "Is";
+      option4 = element("option");
+      option4.textContent = "Is Not";
+      option5 = element("option");
+      option5.textContent = "Contains";
+      option6 = element("option");
+      option6.textContent = "Does Not Contain";
+      option7 = element("option");
+      option7.textContent = "Greater Than";
+      option8 = element("option");
+      option8.textContent = "Less Than";
+      option9 = element("option");
+      option9.textContent = "Is Empty";
+      option10 = element("option");
+      option10.textContent = "Is Not Empty";
+      t12 = space();
+      if (if_block)
+        if_block.c();
+      t13 = space();
+      button = element("button");
+      button.textContent = "x";
+      option0.__value = "status";
+      set_input_value(option0, option0.__value);
+      option1.__value = "isCompleted";
+      set_input_value(option1, option1.__value);
+      option2.__value = "name";
+      set_input_value(option2, option2.__value);
+      attr(optgroup, "label", "Custom Properties");
+      attr(select0, "class", "pos-grid-select-filter");
+      if (
+        /*filter*/
+        ctx[50].property === void 0
+      )
+        add_render_callback(select0_change_handler);
+      option3.__value = "is";
+      set_input_value(option3, option3.__value);
+      option4.__value = "is-not";
+      set_input_value(option4, option4.__value);
+      option5.__value = "contains";
+      set_input_value(option5, option5.__value);
+      option6.__value = "not-contains";
+      set_input_value(option6, option6.__value);
+      option7.__value = "gt";
+      set_input_value(option7, option7.__value);
+      option8.__value = "lt";
+      set_input_value(option8, option8.__value);
+      option9.__value = "is-empty";
+      set_input_value(option9, option9.__value);
+      option10.__value = "not-empty";
+      set_input_value(option10, option10.__value);
+      attr(select1, "class", "pos-grid-select-filter");
+      if (
+        /*filter*/
+        ctx[50].operator === void 0
+      )
+        add_render_callback(select1_change_handler);
+      attr(button, "class", "pos-del");
+      set_style(button, "padding", "4px 8px");
+      attr(div2, "class", "pos-filter-rule");
+      set_style(div2, "display", "flex");
+      set_style(div2, "gap", "8px");
+      set_style(div2, "margin-bottom", "8px");
+      set_style(div2, "align-items", "center");
+      this.first = div2;
+    },
+    m(target, anchor) {
+      insert(target, div2, anchor);
+      append(div2, select0);
+      append(select0, option0);
+      append(select0, option1);
+      append(select0, option2);
+      append(select0, optgroup);
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        if (each_blocks[i]) {
+          each_blocks[i].m(optgroup, null);
+        }
+      }
+      select_option(
+        select0,
+        /*filter*/
+        ctx[50].property,
+        true
+      );
+      append(div2, t3);
+      append(div2, select1);
+      append(select1, option3);
+      append(select1, option4);
+      append(select1, option5);
+      append(select1, option6);
+      append(select1, option7);
+      append(select1, option8);
+      append(select1, option9);
+      append(select1, option10);
+      select_option(
+        select1,
+        /*filter*/
+        ctx[50].operator,
+        true
+      );
+      append(div2, t12);
+      if (if_block)
+        if_block.m(div2, null);
+      append(div2, t13);
+      append(div2, button);
+      if (!mounted) {
+        dispose = [
+          listen(select0, "change", select0_change_handler),
+          listen(
+            select0,
+            "change",
+            /*saveFilters*/
+            ctx[11]
+          ),
+          listen(select1, "change", select1_change_handler),
+          listen(
+            select1,
+            "change",
+            /*saveFilters*/
+            ctx[11]
+          ),
+          listen(button, "click", click_handler_2)
+        ];
+        mounted = true;
+      }
+    },
+    p(new_ctx, dirty) {
+      ctx = new_ctx;
+      if (dirty[0] & /*schema*/
+      1024) {
+        each_value_3 = ensure_array_like(
+          /*schema*/
+          ctx[10]
+        );
+        let i;
+        for (i = 0; i < each_value_3.length; i += 1) {
+          const child_ctx = get_each_context_3(ctx, each_value_3, i);
+          if (each_blocks[i]) {
+            each_blocks[i].p(child_ctx, dirty);
+          } else {
+            each_blocks[i] = create_each_block_3(child_ctx);
+            each_blocks[i].c();
+            each_blocks[i].m(optgroup, null);
+          }
+        }
+        for (; i < each_blocks.length; i += 1) {
+          each_blocks[i].d(1);
+        }
+        each_blocks.length = each_value_3.length;
+      }
+      if (dirty[0] & /*projectFilters, schema*/
+      1152) {
+        select_option(
+          select0,
+          /*filter*/
+          ctx[50].property
+        );
+      }
+      if (dirty[0] & /*projectFilters, schema*/
+      1152) {
+        select_option(
+          select1,
+          /*filter*/
+          ctx[50].operator
+        );
+      }
+      if (
+        /*filter*/
+        ctx[50].operator !== "is-empty" && /*filter*/
+        ctx[50].operator !== "not-empty"
+      ) {
+        if (if_block) {
+          if_block.p(ctx, dirty);
+        } else {
+          if_block = create_if_block_6(ctx);
+          if_block.c();
+          if_block.m(div2, t13);
+        }
+      } else if (if_block) {
+        if_block.d(1);
+        if_block = null;
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div2);
+      }
+      destroy_each(each_blocks, detaching);
+      if (if_block)
+        if_block.d();
+      mounted = false;
+      run_all(dispose);
+    }
+  };
+}
+function create_if_block_52(ctx) {
+  let div1;
+  let span;
+  let t0_value = (
+    /*selectedTaskIds*/
+    ctx[5].size + ""
+  );
+  let t0;
+  let t1;
+  let t2;
+  let div0;
+  let button0;
+  let t4;
+  let button1;
+  let t6;
+  let button2;
+  let t8;
+  let button3;
+  let mounted;
+  let dispose;
+  return {
+    c() {
+      div1 = element("div");
+      span = element("span");
+      t0 = text(t0_value);
+      t1 = text(" tasks selected");
+      t2 = space();
+      div0 = element("div");
+      button0 = element("button");
+      button0.textContent = "Activate (Move to Backlog)";
+      t4 = space();
+      button1 = element("button");
+      button1.textContent = "Deactivate (Move to Planned)";
+      t6 = space();
+      button2 = element("button");
+      button2.textContent = "Complete";
+      t8 = space();
+      button3 = element("button");
+      button3.textContent = "Delete Permanently";
+      attr(span, "class", "pos-bulk-bar-count");
+      attr(button0, "class", "pos-bulk-act-btn activate");
+      attr(button1, "class", "pos-bulk-act-btn plan");
+      attr(button2, "class", "pos-bulk-act-btn complete");
+      attr(button3, "class", "pos-bulk-act-btn delete pos-del");
+      attr(div0, "class", "pos-bulk-bar-acts");
+      attr(div1, "class", "pos-bulk-bar");
+    },
+    m(target, anchor) {
+      insert(target, div1, anchor);
+      append(div1, span);
+      append(span, t0);
+      append(span, t1);
+      append(div1, t2);
+      append(div1, div0);
+      append(div0, button0);
+      append(div0, t4);
+      append(div0, button1);
+      append(div0, t6);
+      append(div0, button2);
+      append(div0, t8);
+      append(div0, button3);
+      if (!mounted) {
+        dispose = [
+          listen(
+            button0,
+            "click",
+            /*bulkActivate*/
+            ctx[16]
+          ),
+          listen(
+            button1,
+            "click",
+            /*bulkPlan*/
+            ctx[17]
+          ),
+          listen(
+            button2,
+            "click",
+            /*bulkComplete*/
+            ctx[18]
+          ),
+          listen(
+            button3,
+            "click",
+            /*bulkDelete*/
+            ctx[19]
+          )
+        ];
+        mounted = true;
+      }
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*selectedTaskIds*/
+      32 && t0_value !== (t0_value = /*selectedTaskIds*/
+      ctx2[5].size + ""))
+        set_data(t0, t0_value);
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div1);
+      }
+      mounted = false;
+      run_all(dispose);
+    }
+  };
+}
+function create_else_block2(ctx) {
+  let each_blocks = [];
+  let each_1_lookup = /* @__PURE__ */ new Map();
+  let each_1_anchor;
+  let each_value = ensure_array_like(
+    /*sortedTasks*/
+    ctx[6]
+  );
+  const get_key = (ctx2) => (
+    /*task*/
+    ctx2[44].id
+  );
+  for (let i = 0; i < each_value.length; i += 1) {
+    let child_ctx = get_each_context2(ctx, each_value, i);
+    let key = get_key(child_ctx);
+    each_1_lookup.set(key, each_blocks[i] = create_each_block2(key, child_ctx));
+  }
+  return {
+    c() {
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        each_blocks[i].c();
+      }
+      each_1_anchor = empty();
+    },
+    m(target, anchor) {
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        if (each_blocks[i]) {
+          each_blocks[i].m(target, anchor);
+        }
+      }
+      insert(target, each_1_anchor, anchor);
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*selectedTaskIds, sortedTasks, fileManager, tagFilter, editTask, toggleSelection*/
+      2113637) {
+        each_value = ensure_array_like(
+          /*sortedTasks*/
+          ctx2[6]
+        );
+        each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx2, each_value, each_1_lookup, each_1_anchor.parentNode, destroy_block, create_each_block2, each_1_anchor, get_each_context2);
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(each_1_anchor);
+      }
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        each_blocks[i].d(detaching);
+      }
+    }
+  };
+}
+function create_if_block2(ctx) {
+  let tr;
+  return {
+    c() {
+      tr = element("tr");
+      tr.innerHTML = `<td colspan="8" class="pos-empty-grid">No tasks match your search filters.</td>`;
+    },
+    m(target, anchor) {
+      insert(target, tr, anchor);
+    },
+    p: noop,
+    d(detaching) {
+      if (detaching) {
+        detach(tr);
+      }
+    }
+  };
+}
+function create_if_block_42(ctx) {
+  let span;
+  let t_value = (
+    /*task*/
+    ctx[44].description + ""
+  );
+  let t;
+  return {
+    c() {
+      span = element("span");
+      t = text(t_value);
+      attr(span, "class", "pos-td-task-desc");
+    },
+    m(target, anchor) {
+      insert(target, span, anchor);
+      append(span, t);
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*sortedTasks*/
+      64 && t_value !== (t_value = /*task*/
+      ctx2[44].description + ""))
+        set_data(t, t_value);
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(span);
+      }
+    }
+  };
+}
+function create_else_block_1(ctx) {
+  let span;
+  return {
+    c() {
+      span = element("span");
+      span.textContent = "Low";
+      attr(span, "class", "pos-priority-badge low");
+    },
+    m(target, anchor) {
+      insert(target, span, anchor);
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(span);
+      }
+    }
+  };
+}
+function create_if_block_32(ctx) {
+  let span;
+  return {
+    c() {
+      span = element("span");
+      span.textContent = "Medium";
+      attr(span, "class", "pos-priority-badge medium");
+    },
+    m(target, anchor) {
+      insert(target, span, anchor);
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(span);
+      }
+    }
+  };
+}
+function create_if_block_22(ctx) {
+  let span;
+  return {
+    c() {
+      span = element("span");
+      span.textContent = "High";
+      attr(span, "class", "pos-priority-badge high");
+    },
+    m(target, anchor) {
+      insert(target, span, anchor);
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(span);
+      }
+    }
+  };
+}
+function create_if_block_12(ctx) {
+  let each_1_anchor;
+  let each_value_1 = ensure_array_like(
+    /*task*/
+    ctx[44].tags
+  );
+  let each_blocks = [];
+  for (let i = 0; i < each_value_1.length; i += 1) {
+    each_blocks[i] = create_each_block_12(get_each_context_12(ctx, each_value_1, i));
+  }
+  return {
+    c() {
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        each_blocks[i].c();
+      }
+      each_1_anchor = empty();
+    },
+    m(target, anchor) {
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        if (each_blocks[i]) {
+          each_blocks[i].m(target, anchor);
+        }
+      }
+      insert(target, each_1_anchor, anchor);
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*tagFilter, sortedTasks*/
+      68) {
+        each_value_1 = ensure_array_like(
+          /*task*/
+          ctx2[44].tags
+        );
+        let i;
+        for (i = 0; i < each_value_1.length; i += 1) {
+          const child_ctx = get_each_context_12(ctx2, each_value_1, i);
+          if (each_blocks[i]) {
+            each_blocks[i].p(child_ctx, dirty);
+          } else {
+            each_blocks[i] = create_each_block_12(child_ctx);
+            each_blocks[i].c();
+            each_blocks[i].m(each_1_anchor.parentNode, each_1_anchor);
+          }
+        }
+        for (; i < each_blocks.length; i += 1) {
+          each_blocks[i].d(1);
+        }
+        each_blocks.length = each_value_1.length;
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(each_1_anchor);
+      }
+      destroy_each(each_blocks, detaching);
+    }
+  };
+}
+function create_each_block_12(ctx) {
+  let span;
+  let t_value = (
+    /*tag*/
+    ctx[47] + ""
+  );
+  let t;
+  let mounted;
+  let dispose;
+  function click_handler_10() {
+    return (
+      /*click_handler_10*/
+      ctx[41](
+        /*tag*/
+        ctx[47]
+      )
+    );
+  }
+  return {
+    c() {
+      span = element("span");
+      t = text(t_value);
+      attr(span, "class", "pos-tag-pill");
+      set_style(span, "cursor", "pointer");
+    },
+    m(target, anchor) {
+      insert(target, span, anchor);
+      append(span, t);
+      if (!mounted) {
+        dispose = listen(span, "click", stop_propagation(click_handler_10));
+        mounted = true;
+      }
+    },
+    p(new_ctx, dirty) {
+      ctx = new_ctx;
+      if (dirty[0] & /*sortedTasks*/
+      64 && t_value !== (t_value = /*tag*/
+      ctx[47] + ""))
+        set_data(t, t_value);
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(span);
+      }
+      mounted = false;
+      dispose();
+    }
+  };
+}
+function create_each_block2(key_1, ctx) {
+  let tr;
+  let td0;
+  let input;
+  let input_checked_value;
+  let t0;
+  let td1;
+  let div0;
+  let span0;
+  let t1_value = (
+    /*task*/
+    ctx[44].name + ""
+  );
+  let t1;
+  let t2;
+  let t3;
+  let td2;
+  let span1;
+  let t4_value = (
+    /*task*/
+    ctx[44].status.toUpperCase() + ""
+  );
+  let t4;
+  let span1_class_value;
+  let t5;
+  let td3;
+  let t6;
+  let td4;
+  let div1;
+  let t7;
+  let td5;
+  let t8_value = (
+    /*task*/
+    ctx[44].weight + ""
+  );
+  let t8;
+  let t9;
+  let td6;
+  let t10_value = new Date(
+    /*task*/
+    ctx[44].createdAt
+  ).toLocaleDateString() + "";
+  let t10;
+  let t11;
+  let td7;
+  let div2;
+  let button;
+  let t13;
+  let mounted;
+  let dispose;
+  function change_handler() {
+    return (
+      /*change_handler*/
+      ctx[39](
+        /*task*/
+        ctx[44]
+      )
+    );
+  }
+  function click_handler_9() {
+    return (
+      /*click_handler_9*/
+      ctx[40](
+        /*task*/
+        ctx[44]
+      )
+    );
+  }
+  let if_block0 = (
+    /*task*/
+    ctx[44].description && create_if_block_42(ctx)
+  );
+  function select_block_type_1(ctx2, dirty) {
+    if (
+      /*task*/
+      ctx2[44].priority === 1
+    )
+      return create_if_block_22;
+    if (
+      /*task*/
+      ctx2[44].priority === 2
+    )
+      return create_if_block_32;
+    return create_else_block_1;
+  }
+  let current_block_type = select_block_type_1(ctx, [-1, -1]);
+  let if_block1 = current_block_type(ctx);
+  let if_block2 = (
+    /*task*/
+    ctx[44].tags && create_if_block_12(ctx)
+  );
+  function click_handler_11() {
+    return (
+      /*click_handler_11*/
+      ctx[42](
+        /*task*/
+        ctx[44]
+      )
+    );
+  }
+  return {
+    key: key_1,
+    first: null,
+    c() {
+      tr = element("tr");
+      td0 = element("td");
+      input = element("input");
+      t0 = space();
+      td1 = element("td");
+      div0 = element("div");
+      span0 = element("span");
+      t1 = text(t1_value);
+      t2 = space();
+      if (if_block0)
+        if_block0.c();
+      t3 = space();
+      td2 = element("td");
+      span1 = element("span");
+      t4 = text(t4_value);
+      t5 = space();
+      td3 = element("td");
+      if_block1.c();
+      t6 = space();
+      td4 = element("td");
+      div1 = element("div");
+      if (if_block2)
+        if_block2.c();
+      t7 = space();
+      td5 = element("td");
+      t8 = text(t8_value);
+      t9 = space();
+      td6 = element("td");
+      t10 = text(t10_value);
+      t11 = space();
+      td7 = element("td");
+      div2 = element("div");
+      button = element("button");
+      button.textContent = "Delete";
+      t13 = space();
+      attr(input, "type", "checkbox");
+      input.checked = input_checked_value = /*selectedTaskIds*/
+      ctx[5].has(
+        /*task*/
+        ctx[44].id
+      );
+      attr(td0, "class", "pos-td-check");
+      attr(span0, "class", "pos-td-task-title");
+      attr(div0, "class", "pos-td-name-cell");
+      attr(td1, "class", "pos-td-name");
+      attr(span1, "class", span1_class_value = "pos-ptc-status-badge " + /*task*/
+      ctx[44].status);
+      attr(td2, "class", "pos-td-status");
+      attr(td3, "class", "pos-td-priority");
+      attr(div1, "class", "pos-card-meta");
+      attr(td4, "class", "pos-td-tags");
+      attr(td5, "class", "pos-td-weight font-mono");
+      attr(td6, "class", "pos-td-date font-mono");
+      attr(button, "class", "pos-del");
+      attr(div2, "class", "pos-grid-row-acts");
+      attr(td7, "class", "pos-td-acts");
+      toggle_class(
+        tr,
+        "selected",
+        /*selectedTaskIds*/
+        ctx[5].has(
+          /*task*/
+          ctx[44].id
+        )
+      );
+      toggle_class(
+        tr,
+        "completed",
+        /*task*/
+        ctx[44].isCompleted
+      );
+      this.first = tr;
+    },
+    m(target, anchor) {
+      insert(target, tr, anchor);
+      append(tr, td0);
+      append(td0, input);
+      append(tr, t0);
+      append(tr, td1);
+      append(td1, div0);
+      append(div0, span0);
+      append(span0, t1);
+      append(div0, t2);
+      if (if_block0)
+        if_block0.m(div0, null);
+      append(tr, t3);
+      append(tr, td2);
+      append(td2, span1);
+      append(span1, t4);
+      append(tr, t5);
+      append(tr, td3);
+      if_block1.m(td3, null);
+      append(tr, t6);
+      append(tr, td4);
+      append(td4, div1);
+      if (if_block2)
+        if_block2.m(div1, null);
+      append(tr, t7);
+      append(tr, td5);
+      append(td5, t8);
+      append(tr, t9);
+      append(tr, td6);
+      append(td6, t10);
+      append(tr, t11);
+      append(tr, td7);
+      append(td7, div2);
+      append(div2, button);
+      append(tr, t13);
+      if (!mounted) {
+        dispose = [
+          listen(input, "change", change_handler),
+          listen(span0, "click", click_handler_9),
+          listen(button, "click", click_handler_11)
+        ];
+        mounted = true;
+      }
+    },
+    p(new_ctx, dirty) {
+      ctx = new_ctx;
+      if (dirty[0] & /*selectedTaskIds, sortedTasks*/
+      96 && input_checked_value !== (input_checked_value = /*selectedTaskIds*/
+      ctx[5].has(
+        /*task*/
+        ctx[44].id
+      ))) {
+        input.checked = input_checked_value;
+      }
+      if (dirty[0] & /*sortedTasks*/
+      64 && t1_value !== (t1_value = /*task*/
+      ctx[44].name + ""))
+        set_data(t1, t1_value);
+      if (
+        /*task*/
+        ctx[44].description
+      ) {
+        if (if_block0) {
+          if_block0.p(ctx, dirty);
+        } else {
+          if_block0 = create_if_block_42(ctx);
+          if_block0.c();
+          if_block0.m(div0, null);
+        }
+      } else if (if_block0) {
+        if_block0.d(1);
+        if_block0 = null;
+      }
+      if (dirty[0] & /*sortedTasks*/
+      64 && t4_value !== (t4_value = /*task*/
+      ctx[44].status.toUpperCase() + ""))
+        set_data(t4, t4_value);
+      if (dirty[0] & /*sortedTasks*/
+      64 && span1_class_value !== (span1_class_value = "pos-ptc-status-badge " + /*task*/
+      ctx[44].status)) {
+        attr(span1, "class", span1_class_value);
+      }
+      if (current_block_type !== (current_block_type = select_block_type_1(ctx, dirty))) {
+        if_block1.d(1);
+        if_block1 = current_block_type(ctx);
+        if (if_block1) {
+          if_block1.c();
+          if_block1.m(td3, null);
+        }
+      }
+      if (
+        /*task*/
+        ctx[44].tags
+      ) {
+        if (if_block2) {
+          if_block2.p(ctx, dirty);
+        } else {
+          if_block2 = create_if_block_12(ctx);
+          if_block2.c();
+          if_block2.m(div1, null);
+        }
+      } else if (if_block2) {
+        if_block2.d(1);
+        if_block2 = null;
+      }
+      if (dirty[0] & /*sortedTasks*/
+      64 && t8_value !== (t8_value = /*task*/
+      ctx[44].weight + ""))
+        set_data(t8, t8_value);
+      if (dirty[0] & /*sortedTasks*/
+      64 && t10_value !== (t10_value = new Date(
+        /*task*/
+        ctx[44].createdAt
+      ).toLocaleDateString() + ""))
+        set_data(t10, t10_value);
+      if (dirty[0] & /*selectedTaskIds, sortedTasks*/
+      96) {
+        toggle_class(
+          tr,
+          "selected",
+          /*selectedTaskIds*/
+          ctx[5].has(
+            /*task*/
+            ctx[44].id
+          )
+        );
+      }
+      if (dirty[0] & /*sortedTasks*/
+      64) {
+        toggle_class(
+          tr,
+          "completed",
+          /*task*/
+          ctx[44].isCompleted
+        );
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(tr);
+      }
+      if (if_block0)
+        if_block0.d();
+      if_block1.d();
+      if (if_block2)
+        if_block2.d();
+      mounted = false;
+      run_all(dispose);
+    }
+  };
+}
+function create_fragment2(ctx) {
+  let div3;
+  let t0;
+  let div0;
+  let input0;
+  let t1;
+  let div1;
+  let each_blocks = [];
+  let each_1_lookup = /* @__PURE__ */ new Map();
+  let t2;
+  let button;
+  let t4;
+  let t5;
+  let div2;
+  let table;
+  let thead;
+  let tr;
+  let th0;
+  let input1;
+  let t6;
+  let th1;
+  let t7;
+  let t8_value = (
+    /*sortBy*/
+    ctx[3] === "name" ? (
+      /*sortOrder*/
+      ctx[4] === "asc" ? "\u25B2" : "\u25BC"
+    ) : ""
+  );
+  let t8;
+  let t9;
+  let th2;
+  let t10;
+  let t11_value = (
+    /*sortBy*/
+    ctx[3] === "status" ? (
+      /*sortOrder*/
+      ctx[4] === "asc" ? "\u25B2" : "\u25BC"
+    ) : ""
+  );
+  let t11;
+  let t12;
+  let th3;
+  let t13;
+  let t14_value = (
+    /*sortBy*/
+    ctx[3] === "priority" ? (
+      /*sortOrder*/
+      ctx[4] === "asc" ? "\u25B2" : "\u25BC"
+    ) : ""
+  );
+  let t14;
+  let t15;
+  let th4;
+  let t16;
+  let t17_value = (
+    /*sortBy*/
+    ctx[3] === "tags" ? (
+      /*sortOrder*/
+      ctx[4] === "asc" ? "\u25B2" : "\u25BC"
+    ) : ""
+  );
+  let t17;
+  let t18;
+  let th5;
+  let t19;
+  let t20_value = (
+    /*sortBy*/
+    ctx[3] === "weight" ? (
+      /*sortOrder*/
+      ctx[4] === "asc" ? "\u25B2" : "\u25BC"
+    ) : ""
+  );
+  let t20;
+  let t21;
+  let th6;
+  let t22;
+  let t23_value = (
+    /*sortBy*/
+    ctx[3] === "createdAt" ? (
+      /*sortOrder*/
+      ctx[4] === "asc" ? "\u25B2" : "\u25BC"
+    ) : ""
+  );
+  let t23;
+  let t24;
+  let th7;
+  let t26;
+  let tbody;
+  let mounted;
+  let dispose;
+  let if_block0 = (
+    /*uniqueTags*/
+    ctx[9].length > 0 && create_if_block_7(ctx)
+  );
+  let each_value_2 = ensure_array_like(
+    /*projectFilters*/
+    ctx[7]
+  );
+  const get_key = (ctx2) => (
+    /*filter*/
+    ctx2[50].id
+  );
+  for (let i = 0; i < each_value_2.length; i += 1) {
+    let child_ctx = get_each_context_22(ctx, each_value_2, i);
+    let key = get_key(child_ctx);
+    each_1_lookup.set(key, each_blocks[i] = create_each_block_22(key, child_ctx));
+  }
+  let if_block1 = (
+    /*selectedTaskIds*/
+    ctx[5].size > 0 && create_if_block_52(ctx)
+  );
+  function select_block_type(ctx2, dirty) {
+    if (
+      /*sortedTasks*/
+      ctx2[6].length === 0
+    )
+      return create_if_block2;
+    return create_else_block2;
+  }
+  let current_block_type = select_block_type(ctx, [-1, -1]);
+  let if_block2 = current_block_type(ctx);
+  return {
+    c() {
+      div3 = element("div");
+      if (if_block0)
+        if_block0.c();
+      t0 = space();
+      div0 = element("div");
+      input0 = element("input");
+      t1 = space();
+      div1 = element("div");
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        each_blocks[i].c();
+      }
+      t2 = space();
+      button = element("button");
+      button.textContent = "+ Add Filter";
+      t4 = space();
+      if (if_block1)
+        if_block1.c();
+      t5 = space();
+      div2 = element("div");
+      table = element("table");
+      thead = element("thead");
+      tr = element("tr");
+      th0 = element("th");
+      input1 = element("input");
+      t6 = space();
+      th1 = element("th");
+      t7 = text("Task Name ");
+      t8 = text(t8_value);
+      t9 = space();
+      th2 = element("th");
+      t10 = text("Status ");
+      t11 = text(t11_value);
+      t12 = space();
+      th3 = element("th");
+      t13 = text("Priority ");
+      t14 = text(t14_value);
+      t15 = space();
+      th4 = element("th");
+      t16 = text("Tags ");
+      t17 = text(t17_value);
+      t18 = space();
+      th5 = element("th");
+      t19 = text("Weight ");
+      t20 = text(t20_value);
+      t21 = space();
+      th6 = element("th");
+      t22 = text("Created ");
+      t23 = text(t23_value);
+      t24 = space();
+      th7 = element("th");
+      th7.textContent = "Actions";
+      t26 = space();
+      tbody = element("tbody");
+      if_block2.c();
+      attr(input0, "type", "text");
+      attr(input0, "placeholder", "Search planned task names or descriptions...");
+      attr(input0, "class", "pos-grid-search-input");
+      attr(div0, "class", "pos-grid-filter-bar");
+      attr(button, "class", "pos-fb-new-btn");
+      set_style(button, "margin-bottom", "12px");
+      set_style(button, "font-size", "0.8em");
+      attr(div1, "class", "pos-dynamic-filters");
+      attr(input1, "type", "checkbox");
+      input1.checked = /*allSelected*/
+      ctx[8];
+      attr(th0, "class", "pos-th-check");
+      attr(th1, "class", "pos-th-name");
+      attr(th2, "class", "pos-th-status");
+      attr(th3, "class", "pos-th-priority");
+      attr(th4, "class", "pos-th-tags");
+      attr(th5, "class", "pos-th-weight");
+      attr(th6, "class", "pos-th-date");
+      attr(th7, "class", "pos-th-acts");
+      attr(table, "class", "pos-grid-table");
+      attr(div2, "class", "pos-grid-table-container");
+      attr(div3, "class", "pos-grid-workspace");
+    },
+    m(target, anchor) {
+      insert(target, div3, anchor);
+      if (if_block0)
+        if_block0.m(div3, null);
+      append(div3, t0);
+      append(div3, div0);
+      append(div0, input0);
+      set_input_value(
+        input0,
+        /*searchQuery*/
+        ctx[1]
+      );
+      append(div3, t1);
+      append(div3, div1);
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        if (each_blocks[i]) {
+          each_blocks[i].m(div1, null);
+        }
+      }
+      append(div1, t2);
+      append(div1, button);
+      append(div3, t4);
+      if (if_block1)
+        if_block1.m(div3, null);
+      append(div3, t5);
+      append(div3, div2);
+      append(div2, table);
+      append(table, thead);
+      append(thead, tr);
+      append(tr, th0);
+      append(th0, input1);
+      append(tr, t6);
+      append(tr, th1);
+      append(th1, t7);
+      append(th1, t8);
+      append(tr, t9);
+      append(tr, th2);
+      append(th2, t10);
+      append(th2, t11);
+      append(tr, t12);
+      append(tr, th3);
+      append(th3, t13);
+      append(th3, t14);
+      append(tr, t15);
+      append(tr, th4);
+      append(th4, t16);
+      append(th4, t17);
+      append(tr, t18);
+      append(tr, th5);
+      append(th5, t19);
+      append(th5, t20);
+      append(tr, t21);
+      append(tr, th6);
+      append(th6, t22);
+      append(th6, t23);
+      append(tr, t24);
+      append(tr, th7);
+      append(table, t26);
+      append(table, tbody);
+      if_block2.m(tbody, null);
+      if (!mounted) {
+        dispose = [
+          listen(
+            input0,
+            "input",
+            /*input0_input_handler*/
+            ctx[28]
+          ),
+          listen(
+            button,
+            "click",
+            /*addFilter*/
+            ctx[12]
+          ),
+          listen(
+            input1,
+            "change",
+            /*toggleSelectAll*/
+            ctx[15]
+          ),
+          listen(
+            th1,
+            "click",
+            /*click_handler_3*/
+            ctx[33]
+          ),
+          listen(
+            th2,
+            "click",
+            /*click_handler_4*/
+            ctx[34]
+          ),
+          listen(
+            th3,
+            "click",
+            /*click_handler_5*/
+            ctx[35]
+          ),
+          listen(
+            th4,
+            "click",
+            /*click_handler_6*/
+            ctx[36]
+          ),
+          listen(
+            th5,
+            "click",
+            /*click_handler_7*/
+            ctx[37]
+          ),
+          listen(
+            th6,
+            "click",
+            /*click_handler_8*/
+            ctx[38]
+          )
+        ];
+        mounted = true;
+      }
+    },
+    p(ctx2, dirty) {
+      if (
+        /*uniqueTags*/
+        ctx2[9].length > 0
+      ) {
+        if (if_block0) {
+          if_block0.p(ctx2, dirty);
+        } else {
+          if_block0 = create_if_block_7(ctx2);
+          if_block0.c();
+          if_block0.m(div3, t0);
+        }
+      } else if (if_block0) {
+        if_block0.d(1);
+        if_block0 = null;
+      }
+      if (dirty[0] & /*searchQuery*/
+      2 && input0.value !== /*searchQuery*/
+      ctx2[1]) {
+        set_input_value(
+          input0,
+          /*searchQuery*/
+          ctx2[1]
+        );
+      }
+      if (dirty[0] & /*removeFilter, projectFilters, saveFilters, schema*/
+      11392) {
+        each_value_2 = ensure_array_like(
+          /*projectFilters*/
+          ctx2[7]
+        );
+        each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx2, each_value_2, each_1_lookup, div1, destroy_block, create_each_block_22, t2, get_each_context_22);
+      }
+      if (
+        /*selectedTaskIds*/
+        ctx2[5].size > 0
+      ) {
+        if (if_block1) {
+          if_block1.p(ctx2, dirty);
+        } else {
+          if_block1 = create_if_block_52(ctx2);
+          if_block1.c();
+          if_block1.m(div3, t5);
+        }
+      } else if (if_block1) {
+        if_block1.d(1);
+        if_block1 = null;
+      }
+      if (dirty[0] & /*allSelected*/
+      256) {
+        input1.checked = /*allSelected*/
+        ctx2[8];
+      }
+      if (dirty[0] & /*sortBy, sortOrder*/
+      24 && t8_value !== (t8_value = /*sortBy*/
+      ctx2[3] === "name" ? (
+        /*sortOrder*/
+        ctx2[4] === "asc" ? "\u25B2" : "\u25BC"
+      ) : ""))
+        set_data(t8, t8_value);
+      if (dirty[0] & /*sortBy, sortOrder*/
+      24 && t11_value !== (t11_value = /*sortBy*/
+      ctx2[3] === "status" ? (
+        /*sortOrder*/
+        ctx2[4] === "asc" ? "\u25B2" : "\u25BC"
+      ) : ""))
+        set_data(t11, t11_value);
+      if (dirty[0] & /*sortBy, sortOrder*/
+      24 && t14_value !== (t14_value = /*sortBy*/
+      ctx2[3] === "priority" ? (
+        /*sortOrder*/
+        ctx2[4] === "asc" ? "\u25B2" : "\u25BC"
+      ) : ""))
+        set_data(t14, t14_value);
+      if (dirty[0] & /*sortBy, sortOrder*/
+      24 && t17_value !== (t17_value = /*sortBy*/
+      ctx2[3] === "tags" ? (
+        /*sortOrder*/
+        ctx2[4] === "asc" ? "\u25B2" : "\u25BC"
+      ) : ""))
+        set_data(t17, t17_value);
+      if (dirty[0] & /*sortBy, sortOrder*/
+      24 && t20_value !== (t20_value = /*sortBy*/
+      ctx2[3] === "weight" ? (
+        /*sortOrder*/
+        ctx2[4] === "asc" ? "\u25B2" : "\u25BC"
+      ) : ""))
+        set_data(t20, t20_value);
+      if (dirty[0] & /*sortBy, sortOrder*/
+      24 && t23_value !== (t23_value = /*sortBy*/
+      ctx2[3] === "createdAt" ? (
+        /*sortOrder*/
+        ctx2[4] === "asc" ? "\u25B2" : "\u25BC"
+      ) : ""))
+        set_data(t23, t23_value);
+      if (current_block_type === (current_block_type = select_block_type(ctx2, dirty)) && if_block2) {
+        if_block2.p(ctx2, dirty);
+      } else {
+        if_block2.d(1);
+        if_block2 = current_block_type(ctx2);
+        if (if_block2) {
+          if_block2.c();
+          if_block2.m(tbody, null);
+        }
+      }
+    },
+    i: noop,
+    o: noop,
+    d(detaching) {
+      if (detaching) {
+        detach(div3);
+      }
+      if (if_block0)
+        if_block0.d();
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        each_blocks[i].d();
+      }
+      if (if_block1)
+        if_block1.d();
+      if_block2.d();
+      mounted = false;
+      run_all(dispose);
+    }
+  };
+}
+function instance2($$self, $$props, $$invalidate) {
+  let schema;
+  let projectFilters;
+  let uniqueTags;
+  let filteredTasks;
+  let sortedTasks;
+  let allSelected;
+  let { app } = $$props;
+  let { fileManager } = $$props;
+  let { projectTasks } = $$props;
+  let { projectId } = $$props;
+  async function saveFilters() {
+    if (!fileManager.plugin.settings.projectFilters)
+      $$invalidate(0, fileManager.plugin.settings.projectFilters = {}, fileManager);
+    $$invalidate(0, fileManager.plugin.settings.projectFilters[projectId] = projectFilters, fileManager);
+    await fileManager.plugin.saveSettings();
+  }
+  function addFilter() {
+    $$invalidate(7, projectFilters = [
+      ...projectFilters,
+      {
+        id: Math.random().toString(),
+        property: "status",
+        operator: "is",
+        value: ""
+      }
+    ]);
+    saveFilters();
+  }
+  function removeFilter(id) {
+    $$invalidate(7, projectFilters = projectFilters.filter((f) => f.id !== id));
+    saveFilters();
+  }
+  let searchQuery = "";
+  let tagFilter = null;
+  let sortBy = "name";
+  let sortOrder = "asc";
+  let selectedTaskIds = /* @__PURE__ */ new Set();
+  function toggleSelection(id) {
+    if (selectedTaskIds.has(id)) {
+      selectedTaskIds.delete(id);
+    } else {
+      selectedTaskIds.add(id);
+    }
+    $$invalidate(5, selectedTaskIds);
+  }
+  function toggleSelectAll() {
+    if (allSelected) {
+      sortedTasks.forEach((t) => selectedTaskIds.delete(t.id));
+    } else {
+      sortedTasks.forEach((t) => selectedTaskIds.add(t.id));
+    }
+    $$invalidate(5, selectedTaskIds);
+  }
+  async function bulkActivate() {
+    if (selectedTaskIds.size === 0)
+      return;
+    const ids = Array.from(selectedTaskIds);
+    await Promise.all(ids.map((id) => fileManager.updateTask(id, { status: "backlog", isCompleted: false })));
+    selectedTaskIds.clear();
+    $$invalidate(5, selectedTaskIds);
+  }
+  async function bulkPlan() {
+    if (selectedTaskIds.size === 0)
+      return;
+    const ids = Array.from(selectedTaskIds);
+    await Promise.all(ids.map((id) => fileManager.updateTask(id, { status: "planned", isCompleted: false })));
+    selectedTaskIds.clear();
+    $$invalidate(5, selectedTaskIds);
+  }
+  async function bulkComplete() {
+    if (selectedTaskIds.size === 0)
+      return;
+    const ids = Array.from(selectedTaskIds);
+    await Promise.all(ids.map((id) => fileManager.updateTask(id, { status: "review", isCompleted: true })));
+    selectedTaskIds.clear();
+    $$invalidate(5, selectedTaskIds);
+  }
+  function bulkDelete() {
+    if (selectedTaskIds.size === 0)
+      return;
+    new ConfirmModal(
+      app,
+      "Bulk Delete Tasks",
+      `Permanently delete all ${selectedTaskIds.size} selected tasks?`,
+      async () => {
+        const ids = Array.from(selectedTaskIds);
+        await Promise.all(ids.map((id) => fileManager.deleteTask(id)));
+        selectedTaskIds.clear();
+        $$invalidate(5, selectedTaskIds);
+      }
+    ).open();
+  }
+  function toggleSort(field) {
+    if (sortBy === field) {
+      $$invalidate(4, sortOrder = sortOrder === "asc" ? "desc" : "asc");
+    } else {
+      $$invalidate(3, sortBy = field);
+      $$invalidate(4, sortOrder = "asc");
+    }
+  }
+  function editTask(task) {
+    new QuickEditTaskModal(
+      app,
+      fileManager.plugin,
+      task,
+      async (updates) => {
+        await fileManager.updateTask(task.id, updates);
+      }
+    ).open();
+  }
+  function openTaskFile(taskId) {
+    const file = app.vault.getAbstractFileByPath(`tasks/${taskId}.md`);
+    if (file instanceof import_obsidian3.TFile) {
+      app.workspace.getLeaf().openFile(file);
+    }
+  }
+  const click_handler = () => $$invalidate(2, tagFilter = null);
+  const click_handler_1 = (tag) => $$invalidate(2, tagFilter = tag);
+  function input0_input_handler() {
+    searchQuery = this.value;
+    $$invalidate(1, searchQuery);
+  }
+  function select0_change_handler(each_value_2, filter_index) {
+    each_value_2[filter_index].property = select_value(this);
+    $$invalidate(7, projectFilters), $$invalidate(0, fileManager), $$invalidate(24, projectId);
+    $$invalidate(10, schema), $$invalidate(0, fileManager);
+  }
+  function select1_change_handler(each_value_2, filter_index) {
+    each_value_2[filter_index].operator = select_value(this);
+    $$invalidate(7, projectFilters), $$invalidate(0, fileManager), $$invalidate(24, projectId);
+    $$invalidate(10, schema), $$invalidate(0, fileManager);
+  }
+  function input_input_handler(each_value_2, filter_index) {
+    each_value_2[filter_index].value = this.value;
+    $$invalidate(7, projectFilters), $$invalidate(0, fileManager), $$invalidate(24, projectId);
+    $$invalidate(10, schema), $$invalidate(0, fileManager);
+  }
+  const click_handler_2 = (filter) => removeFilter(filter.id);
+  const click_handler_3 = () => toggleSort("name");
+  const click_handler_4 = () => toggleSort("status");
+  const click_handler_5 = () => toggleSort("priority");
+  const click_handler_6 = () => toggleSort("tags");
+  const click_handler_7 = () => toggleSort("weight");
+  const click_handler_8 = () => toggleSort("createdAt");
+  const change_handler = (task) => toggleSelection(task.id);
+  const click_handler_9 = (task) => editTask(task);
+  const click_handler_10 = (tag) => $$invalidate(2, tagFilter = tag);
+  const click_handler_11 = (task) => fileManager.deleteTask(task.id);
+  $$self.$$set = ($$props2) => {
+    if ("app" in $$props2)
+      $$invalidate(22, app = $$props2.app);
+    if ("fileManager" in $$props2)
+      $$invalidate(0, fileManager = $$props2.fileManager);
+    if ("projectTasks" in $$props2)
+      $$invalidate(23, projectTasks = $$props2.projectTasks);
+    if ("projectId" in $$props2)
+      $$invalidate(24, projectId = $$props2.projectId);
+  };
+  $$self.$$.update = () => {
+    if ($$self.$$.dirty[0] & /*fileManager*/
+    1) {
+      $:
+        $$invalidate(10, schema = fileManager.plugin.settings.taskSchema || []);
+    }
+    if ($$self.$$.dirty[0] & /*fileManager, projectId*/
+    16777217) {
+      $:
+        $$invalidate(7, projectFilters = (fileManager.plugin.settings.projectFilters || {})[projectId] || []);
+    }
+    if ($$self.$$.dirty[0] & /*projectTasks*/
+    8388608) {
+      $:
+        $$invalidate(9, uniqueTags = Array.from(new Set(projectTasks.flatMap((t) => t.tags || []))).sort());
+    }
+    if ($$self.$$.dirty[0] & /*projectTasks, searchQuery, tagFilter, projectFilters*/
+    8388742) {
+      $:
+        $$invalidate(25, filteredTasks = projectTasks.filter((task) => {
+          const matchesSearch = task.name.toLowerCase().includes(searchQuery.toLowerCase()) || task.description.toLowerCase().includes(searchQuery.toLowerCase());
+          if (!matchesSearch)
+            return false;
+          if (tagFilter && !(task.tags || []).includes(tagFilter))
+            return false;
+          for (const rule of projectFilters) {
+            if (!rule.property)
+              continue;
+            let taskValue;
+            if (rule.property === "status")
+              taskValue = task.status;
+            else if (rule.property === "isCompleted")
+              taskValue = task.isCompleted;
+            else if (rule.property === "name")
+              taskValue = task.name;
+            else
+              taskValue = task.properties ? task.properties[rule.property] : void 0;
+            const rVal = rule.value;
+            const op = rule.operator;
+            if (op === "is-empty") {
+              if (taskValue !== void 0 && taskValue !== null && taskValue !== "")
+                return false;
+            } else if (op === "not-empty") {
+              if (taskValue === void 0 || taskValue === null || taskValue === "")
+                return false;
+            } else if (op === "is") {
+              if (String(taskValue) !== String(rVal))
+                return false;
+            } else if (op === "is-not") {
+              if (String(taskValue) === String(rVal))
+                return false;
+            } else if (op === "contains") {
+              if (!String(taskValue).toLowerCase().includes(String(rVal).toLowerCase()))
+                return false;
+            } else if (op === "not-contains") {
+              if (String(taskValue).toLowerCase().includes(String(rVal).toLowerCase()))
+                return false;
+            } else if (op === "gt") {
+              if (Number(taskValue) <= Number(rVal))
+                return false;
+            } else if (op === "lt") {
+              if (Number(taskValue) >= Number(rVal))
+                return false;
+            }
+          }
+          return true;
+        }));
+    }
+    if ($$self.$$.dirty[0] & /*filteredTasks, sortBy, sortOrder*/
+    33554456) {
+      $:
+        $$invalidate(6, sortedTasks = [...filteredTasks].sort((a, b) => {
+          if (sortBy === "tags") {
+            const aCount = (a.tags || []).length;
+            const bCount = (b.tags || []).length;
+            if (aCount !== bCount)
+              return sortOrder === "asc" ? aCount - bCount : bCount - aCount;
+            const aName = (a.tags || []).join(", ").toLowerCase();
+            const bName = (b.tags || []).join(", ").toLowerCase();
+            if (aName < bName)
+              return sortOrder === "asc" ? -1 : 1;
+            if (aName > bName)
+              return sortOrder === "asc" ? 1 : -1;
+            return 0;
+          }
+          let fieldA = a[sortBy];
+          let fieldB = b[sortBy];
+          if (typeof fieldA === "string") {
+            fieldA = fieldA.toLowerCase();
+            fieldB = fieldB.toLowerCase();
+          }
+          if (fieldA < fieldB)
+            return sortOrder === "asc" ? -1 : 1;
+          if (fieldA > fieldB)
+            return sortOrder === "asc" ? 1 : -1;
+          return 0;
+        }));
+    }
+    if ($$self.$$.dirty[0] & /*sortedTasks, selectedTaskIds*/
+    96) {
+      $:
+        $$invalidate(8, allSelected = sortedTasks.length > 0 && sortedTasks.every((t) => selectedTaskIds.has(t.id)));
+    }
+  };
+  return [
+    fileManager,
+    searchQuery,
+    tagFilter,
+    sortBy,
+    sortOrder,
+    selectedTaskIds,
+    sortedTasks,
+    projectFilters,
+    allSelected,
+    uniqueTags,
+    schema,
+    saveFilters,
+    addFilter,
+    removeFilter,
+    toggleSelection,
+    toggleSelectAll,
+    bulkActivate,
+    bulkPlan,
+    bulkComplete,
+    bulkDelete,
+    toggleSort,
+    editTask,
+    app,
+    projectTasks,
+    projectId,
+    filteredTasks,
+    click_handler,
+    click_handler_1,
+    input0_input_handler,
+    select0_change_handler,
+    select1_change_handler,
+    input_input_handler,
+    click_handler_2,
+    click_handler_3,
+    click_handler_4,
     click_handler_5,
     click_handler_6,
     click_handler_7,
-    change_handler,
-    change_handler_1,
     click_handler_8,
-    dragstart_handler_1,
-    func2,
-    div7_elementresize_handler,
-    dragover_handler_1,
-    drop_handler_1,
+    change_handler,
     click_handler_9,
     click_handler_10,
-    dragstart_handler_2,
-    dragover_handler_2,
-    drop_handler_2
+    click_handler_11
   ];
 }
-var ElasticView = class extends SvelteComponent {
+var ProjectTaskGrid = class extends SvelteComponent {
   constructor(options) {
     super();
-    init(this, options, instance2, create_fragment2, safe_not_equal, { app: 32, fileManager: 0, projectId: 33 }, null, [-1, -1, -1]);
+    init(
+      this,
+      options,
+      instance2,
+      create_fragment2,
+      safe_not_equal,
+      {
+        app: 22,
+        fileManager: 0,
+        projectTasks: 23,
+        projectId: 24
+      },
+      null,
+      [-1, -1]
+    );
   }
 };
-var ElasticView_default = ElasticView;
+var ProjectTaskGrid_default = ProjectTaskGrid;
+
+// src/utils.ts
+function calculateLiquidTimeline(tasks, startTime, deadline) {
+  const totalMin = (deadline.getTime() - startTime.getTime()) / 6e4;
+  if (totalMin <= 0)
+    return [];
+  let remaining = totalMin;
+  const durMap = /* @__PURE__ */ new Map();
+  for (const t of tasks) {
+    if (t.isFixedDuration && t.fixedDuration && t.fixedDuration > 0) {
+      durMap.set(t.id, t.fixedDuration);
+      remaining -= t.fixedDuration;
+    }
+  }
+  const elastic = tasks.filter((t) => !(t.isFixedDuration && t.fixedDuration && t.fixedDuration > 0));
+  if (elastic.length && remaining > 0) {
+    const tw = elastic.reduce((s, t) => s + t.weight, 0) || 1;
+    for (const t of elastic) {
+      let d = t.weight / tw * remaining;
+      if (t.maxDuration && d > t.maxDuration)
+        d = t.maxDuration;
+      durMap.set(t.id, d);
+    }
+  }
+  let cur = startTime.getTime();
+  const tl = [];
+  for (const t of tasks) {
+    const dur = durMap.get(t.id) || 0;
+    const end = new Date(cur + dur * 6e4);
+    tl.push({
+      id: t.id,
+      startTime: new Date(cur).toISOString(),
+      endTime: end.toISOString(),
+      calculatedDuration: dur
+    });
+    cur = end.getTime();
+  }
+  return tl;
+}
+function formatAge(createdAtIso, now2 = Date.now()) {
+  const diff = now2 - new Date(createdAtIso).getTime();
+  const mins = Math.floor(diff / 6e4);
+  if (mins < 1)
+    return "just now";
+  if (mins < 60)
+    return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24)
+    return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 30)
+    return `${days}d ago`;
+  const months = Math.floor(days / 30);
+  return `${months}mo ago`;
+}
+function formatCountdown(diffMs) {
+  const isPast = diffMs < 0;
+  const abs = Math.abs(diffMs);
+  const totalSecs = Math.floor(abs / 1e3);
+  const days = Math.floor(totalSecs / 86400);
+  const hours = Math.floor(totalSecs % 86400 / 3600);
+  const mins = Math.floor(totalSecs % 3600 / 60);
+  const secs = totalSecs % 60;
+  let str = "";
+  if (days > 0)
+    str += `${days}d `;
+  if (hours > 0)
+    str += `${hours}h `;
+  str += `${mins}m ${secs}s`;
+  return isPast ? `overdue by ${str}` : str;
+}
+function fmtDate(iso) {
+  return iso ? new Date(iso).toISOString().slice(0, 10) : "";
+}
+function fmtTime(iso) {
+  if (!iso)
+    return "";
+  const d = new Date(iso);
+  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+}
+function fmtDur(m) {
+  return m >= 60 ? `${Math.floor(m / 60)}h ${m % 60}m` : `${m}m`;
+}
 
 // src/ui/views/components/ProjectDeadlines.svelte
 var { window: window_1 } = globals;
@@ -7622,7 +6931,7 @@ function get_each_context_42(ctx, list, i) {
   child_ctx[90] = list[i];
   return child_ctx;
 }
-function get_each_context_52(ctx, list, i) {
+function get_each_context_5(ctx, list, i) {
   const child_ctx = ctx.slice();
   child_ctx[93] = list[i];
   const constants_0 = (
@@ -7668,12 +6977,12 @@ function get_each_context3(ctx, list, i) {
   child_ctx[78] = list[i];
   return child_ctx;
 }
-function get_each_context_12(ctx, list, i) {
+function get_each_context_13(ctx, list, i) {
   const child_ctx = ctx.slice();
   child_ctx[81] = list[i];
   return child_ctx;
 }
-function get_each_context_22(ctx, list, i) {
+function get_each_context_23(ctx, list, i) {
   const child_ctx = ctx.slice();
   child_ctx[84] = list[i];
   return child_ctx;
@@ -7684,7 +6993,7 @@ function get_each_context_32(ctx, list, i) {
   child_ctx[89] = i;
   return child_ctx;
 }
-function create_if_block_112(ctx) {
+function create_if_block_11(ctx) {
   let div2;
   let button;
   let mounted;
@@ -7720,7 +7029,7 @@ function create_if_block_112(ctx) {
     }
   };
 }
-function create_if_block_102(ctx) {
+function create_if_block_10(ctx) {
   let div2;
   let button0;
   let t1;
@@ -7823,7 +7132,7 @@ function create_if_block_102(ctx) {
     }
   };
 }
-function create_else_block2(ctx) {
+function create_else_block3(ctx) {
   let div2;
   let each_value_7 = ensure_array_like(
     /*countdownGroups*/
@@ -8044,7 +7353,7 @@ function create_if_block_23(ctx) {
     }
   };
 }
-function create_if_block_17(ctx) {
+function create_if_block_13(ctx) {
   let div3;
   let div2;
   let div0;
@@ -8175,7 +7484,7 @@ function create_if_block3(ctx) {
     }
   };
 }
-function create_if_block_92(ctx) {
+function create_if_block_9(ctx) {
   let span;
   return {
     c() {
@@ -8196,7 +7505,7 @@ function create_if_block_92(ctx) {
     }
   };
 }
-function create_if_block_82(ctx) {
+function create_if_block_8(ctx) {
   let span;
   return {
     c() {
@@ -8343,11 +7652,11 @@ function create_each_block_8(key_1, ctx) {
   let dispose;
   let if_block0 = (
     /*task*/
-    ctx[93].priority === 1 && create_if_block_92(ctx)
+    ctx[93].priority === 1 && create_if_block_9(ctx)
   );
   let if_block1 = (
     /*task*/
-    ctx[93].priority === 2 && create_if_block_82(ctx)
+    ctx[93].priority === 2 && create_if_block_8(ctx)
   );
   let if_block2 = (
     /*task*/
@@ -8465,7 +7774,7 @@ function create_each_block_8(key_1, ctx) {
       ) {
         if (if_block0) {
         } else {
-          if_block0 = create_if_block_92(ctx);
+          if_block0 = create_if_block_9(ctx);
           if_block0.c();
           if_block0.m(div0, t0);
         }
@@ -8479,7 +7788,7 @@ function create_each_block_8(key_1, ctx) {
       ) {
         if (if_block1) {
         } else {
-          if_block1 = create_if_block_82(ctx);
+          if_block1 = create_if_block_8(ctx);
           if_block1.c();
           if_block1.m(div0, t1);
         }
@@ -8664,7 +7973,7 @@ function create_each_block_7(ctx) {
     }
   };
 }
-function create_if_block_63(ctx) {
+function create_if_block_62(ctx) {
   let span;
   return {
     c() {
@@ -8719,7 +8028,7 @@ function create_each_block_6(ctx) {
   let t5;
   let if_block0 = (
     /*td*/
-    ctx[99].isToday && create_if_block_63(ctx)
+    ctx[99].isToday && create_if_block_62(ctx)
   );
   let if_block1 = (
     /*ganttZoom*/
@@ -8798,7 +8107,7 @@ function create_each_block_6(ctx) {
       ) {
         if (if_block0) {
         } else {
-          if_block0 = create_if_block_63(ctx2);
+          if_block0 = create_if_block_62(ctx2);
           if_block0.c();
           if_block0.m(div2, t4);
         }
@@ -8910,9 +8219,9 @@ function create_if_block_33(ctx) {
     ctx2[93].id
   );
   for (let i = 0; i < each_value_5.length; i += 1) {
-    let child_ctx = get_each_context_52(ctx, each_value_5, i);
+    let child_ctx = get_each_context_5(ctx, each_value_5, i);
     let key = get_key(child_ctx);
-    each_1_lookup.set(key, each_blocks[i] = create_each_block_52(key, child_ctx));
+    each_1_lookup.set(key, each_blocks[i] = create_each_block_5(key, child_ctx));
   }
   return {
     c() {
@@ -8940,7 +8249,7 @@ function create_if_block_33(ctx) {
             ctx2[90]
           ]
         );
-        each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx2, each_value_5, each_1_lookup, each_1_anchor.parentNode, destroy_block, create_each_block_52, each_1_anchor, get_each_context_52);
+        each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx2, each_value_5, each_1_lookup, each_1_anchor.parentNode, destroy_block, create_each_block_5, each_1_anchor, get_each_context_5);
       }
     },
     d(detaching) {
@@ -8953,7 +8262,7 @@ function create_if_block_33(ctx) {
     }
   };
 }
-function create_each_block_52(key_1, ctx) {
+function create_each_block_5(key_1, ctx) {
   let div2;
   let span;
   let t0_value = (
@@ -9389,7 +8698,7 @@ function create_each_block_32(ctx) {
     }
   };
 }
-function create_each_block_22(ctx) {
+function create_each_block_23(ctx) {
   let div1;
   let div0;
   let span;
@@ -9481,7 +8790,7 @@ function create_each_block_22(ctx) {
     }
   };
 }
-function create_each_block_12(key_1, ctx) {
+function create_each_block_13(key_1, ctx) {
   let button;
   let span;
   let t0_value = (
@@ -9696,7 +9005,7 @@ function create_each_block3(ctx) {
   );
   let each_blocks_1 = [];
   for (let i = 0; i < each_value_2.length; i += 1) {
-    each_blocks_1[i] = create_each_block_22(get_each_context_22(ctx, each_value_2, i));
+    each_blocks_1[i] = create_each_block_23(get_each_context_23(ctx, each_value_2, i));
   }
   let each_value_1 = ensure_array_like(
     /*week*/
@@ -9707,9 +9016,9 @@ function create_each_block3(ctx) {
     ctx2[81].task.id
   );
   for (let i = 0; i < each_value_1.length; i += 1) {
-    let child_ctx = get_each_context_12(ctx, each_value_1, i);
+    let child_ctx = get_each_context_13(ctx, each_value_1, i);
     let key = get_key(child_ctx);
-    each1_lookup.set(key, each_blocks[i] = create_each_block_12(key, child_ctx));
+    each1_lookup.set(key, each_blocks[i] = create_each_block_13(key, child_ctx));
   }
   return {
     c() {
@@ -9761,11 +9070,11 @@ function create_each_block3(ctx) {
         );
         let i;
         for (i = 0; i < each_value_2.length; i += 1) {
-          const child_ctx = get_each_context_22(ctx2, each_value_2, i);
+          const child_ctx = get_each_context_23(ctx2, each_value_2, i);
           if (each_blocks_1[i]) {
             each_blocks_1[i].p(child_ctx, dirty);
           } else {
-            each_blocks_1[i] = create_each_block_22(child_ctx);
+            each_blocks_1[i] = create_each_block_23(child_ctx);
             each_blocks_1[i].c();
             each_blocks_1[i].m(div0, null);
           }
@@ -9781,7 +9090,7 @@ function create_each_block3(ctx) {
           /*week*/
           ctx2[78].tasks
         );
-        each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx2, each_value_1, each1_lookup, div1, destroy_block, create_each_block_12, null, get_each_context_12);
+        each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx2, each_value_1, each1_lookup, div1, destroy_block, create_each_block_13, null, get_each_context_13);
       }
       if (dirty[0] & /*gridWeeks*/
       262144) {
@@ -9824,12 +9133,12 @@ function create_fragment3(ctx) {
       /*viewMode*/
       ctx2[0] === "calendar"
     )
-      return create_if_block_102;
+      return create_if_block_10;
     if (
       /*viewMode*/
       ctx2[0] === "timeline"
     )
-      return create_if_block_112;
+      return create_if_block_11;
   }
   let current_block_type = select_block_type(ctx, [-1, -1, -1, -1]);
   let if_block0 = current_block_type && current_block_type(ctx);
@@ -9843,13 +9152,13 @@ function create_fragment3(ctx) {
       /*viewMode*/
       ctx2[0] === "calendar"
     )
-      return create_if_block_17;
+      return create_if_block_13;
     if (
       /*viewMode*/
       ctx2[0] === "timeline"
     )
       return create_if_block_23;
-    return create_else_block2;
+    return create_else_block3;
   }
   let current_block_type_1 = select_block_type_1(ctx, [-1, -1, -1, -1]);
   let if_block1 = current_block_type_1(ctx);
@@ -10790,129 +10099,90 @@ var ProjectDeadlines = class extends SvelteComponent {
 };
 var ProjectDeadlines_default = ProjectDeadlines;
 
-// src/ui/views/DeadlinesView.svelte
-function create_fragment4(ctx) {
-  let div2;
-  let projectdeadlines;
-  let current;
-  projectdeadlines = new ProjectDeadlines_default({
-    props: {
-      app: (
-        /*app*/
-        ctx[0]
-      ),
-      fileManager: (
-        /*fileManager*/
-        ctx[1]
-      ),
-      projectId: (
-        /*projectId*/
-        ctx[2]
-      ),
-      plugin: (
-        /*fileManager*/
-        ctx[1].plugin
-      )
-    }
-  });
-  return {
-    c() {
-      div2 = element("div");
-      create_component(projectdeadlines.$$.fragment);
-      set_style(div2, "height", "100%");
-      set_style(div2, "display", "flex");
-      set_style(div2, "flex-direction", "column");
-      set_style(div2, "overflow", "hidden");
-    },
-    m(target, anchor) {
-      insert(target, div2, anchor);
-      mount_component(projectdeadlines, div2, null);
-      current = true;
-    },
-    p(ctx2, [dirty]) {
-      const projectdeadlines_changes = {};
-      if (dirty & /*app*/
-      1)
-        projectdeadlines_changes.app = /*app*/
-        ctx2[0];
-      if (dirty & /*fileManager*/
-      2)
-        projectdeadlines_changes.fileManager = /*fileManager*/
-        ctx2[1];
-      if (dirty & /*projectId*/
-      4)
-        projectdeadlines_changes.projectId = /*projectId*/
-        ctx2[2];
-      if (dirty & /*fileManager*/
-      2)
-        projectdeadlines_changes.plugin = /*fileManager*/
-        ctx2[1].plugin;
-      projectdeadlines.$set(projectdeadlines_changes);
-    },
-    i(local) {
-      if (current)
-        return;
-      transition_in(projectdeadlines.$$.fragment, local);
-      current = true;
-    },
-    o(local) {
-      transition_out(projectdeadlines.$$.fragment, local);
-      current = false;
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(div2);
-      }
-      destroy_component(projectdeadlines);
-    }
-  };
-}
-function instance4($$self, $$props, $$invalidate) {
-  let { app } = $$props;
-  let { fileManager } = $$props;
-  let { projectId } = $$props;
-  $$self.$$set = ($$props2) => {
-    if ("app" in $$props2)
-      $$invalidate(0, app = $$props2.app);
-    if ("fileManager" in $$props2)
-      $$invalidate(1, fileManager = $$props2.fileManager);
-    if ("projectId" in $$props2)
-      $$invalidate(2, projectId = $$props2.projectId);
-  };
-  return [app, fileManager, projectId];
-}
-var DeadlinesView = class extends SvelteComponent {
-  constructor(options) {
-    super();
-    init(this, options, instance4, create_fragment4, safe_not_equal, { app: 0, fileManager: 1, projectId: 2 });
-  }
-};
-var DeadlinesView_default = DeadlinesView;
-
-// src/ui/App.svelte
+// src/ui/views/AgingView.svelte
+var import_obsidian4 = require("obsidian");
 function get_each_context4(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[13] = list[i];
+  child_ctx[29] = list[i];
+  const constants_0 = (
+    /*tasks*/
+    child_ctx[5].filter(function func2(...args) {
+      return (
+        /*func*/
+        ctx[27](
+          /*p*/
+          child_ctx[29],
+          ...args
+        )
+      );
+    })
+  );
+  child_ctx[30] = constants_0;
+  const constants_1 = (
+    /*pTasks*/
+    child_ctx[30].length
+  );
+  child_ctx[31] = constants_1;
+  const constants_2 = (
+    /*pTasks*/
+    child_ctx[30].filter((t) => t.status === "review").length
+  );
+  child_ctx[32] = constants_2;
+  const constants_3 = (
+    /*pTasks*/
+    child_ctx[30].filter((t) => t.status === "running").length
+  );
+  child_ctx[33] = constants_3;
+  const constants_4 = (
+    /*pTasks*/
+    child_ctx[30].filter((t) => t.status !== "review" && t.deadline && new Date(t.deadline).getTime() < /*now*/
+    child_ctx[3]).length
+  );
+  child_ctx[34] = constants_4;
+  const constants_5 = (
+    /*pTasks*/
+    child_ctx[30].filter((t) => t.status !== "review").length
+  );
+  child_ctx[35] = constants_5;
+  const constants_6 = (
+    /*pTasks*/
+    child_ctx[30].filter((t) => t.status !== "review" && t.properties && t.properties["priority"] === "1").length
+  );
+  child_ctx[36] = constants_6;
+  const constants_7 = (
+    /*pTasks*/
+    child_ctx[30].filter((t) => t.status !== "review" && t.deadline && new Date(t.deadline).getTime() > /*now*/
+    child_ctx[3]).map((t) => new Date(t.deadline || "").getTime())
+  );
+  child_ctx[37] = constants_7;
+  const constants_8 = (
+    /*futureDeadlines*/
+    child_ctx[37].length > 0 ? Math.min(.../*futureDeadlines*/
+    child_ctx[37]) : null
+  );
+  child_ctx[38] = constants_8;
+  const constants_9 = (
+    /*total*/
+    child_ctx[31] > 0 ? Math.round(
+      /*completed*/
+      child_ctx[32] / /*total*/
+      child_ctx[31] * 100
+    ) : 0
+  );
+  child_ctx[39] = constants_9;
   return child_ctx;
 }
-function create_if_block_34(ctx) {
-  let div2;
-  let label;
-  let t0;
-  let select;
-  let option0;
-  let option1;
+function create_else_block4(ctx) {
   let each_blocks = [];
   let each_1_lookup = /* @__PURE__ */ new Map();
-  let mounted;
-  let dispose;
+  let each_1_anchor;
   let each_value = ensure_array_like(
-    /*activeProjects*/
-    ctx[5]
+    /*displayProjects*/
+    ctx[2]
   );
   const get_key = (ctx2) => (
     /*p*/
-    ctx2[13].id
+    ctx2[29].id
   );
   for (let i = 0; i < each_value.length; i += 1) {
     let child_ctx = get_each_context4(ctx, each_value, i);
@@ -10921,715 +10191,96 @@ function create_if_block_34(ctx) {
   }
   return {
     c() {
-      div2 = element("div");
-      label = element("label");
-      t0 = text("Project:\n        ");
-      select = element("select");
-      option0 = element("option");
-      option0.textContent = "-- All Projects --";
-      option1 = element("option");
-      option1.textContent = "-- Uncategorized --";
       for (let i = 0; i < each_blocks.length; i += 1) {
         each_blocks[i].c();
       }
-      option0.__value = "all";
-      set_input_value(option0, option0.__value);
-      option1.__value = "";
-      set_input_value(option1, option1.__value);
-      attr(select, "class", "pos-project-selector");
-      if (
-        /*selectedProjectId*/
-        ctx[4] === void 0
-      )
-        add_render_callback(() => (
-          /*select_change_handler*/
-          ctx[9].call(select)
-        ));
-      attr(div2, "class", "pos-project-selector-row");
+      each_1_anchor = empty();
     },
     m(target, anchor) {
-      insert(target, div2, anchor);
-      append(div2, label);
-      append(label, t0);
-      append(label, select);
-      append(select, option0);
-      append(select, option1);
       for (let i = 0; i < each_blocks.length; i += 1) {
         if (each_blocks[i]) {
-          each_blocks[i].m(select, null);
+          each_blocks[i].m(target, anchor);
         }
       }
-      select_option(
-        select,
-        /*selectedProjectId*/
-        ctx[4],
-        true
-      );
-      if (!mounted) {
-        dispose = listen(
-          select,
-          "change",
-          /*select_change_handler*/
-          ctx[9]
-        );
-        mounted = true;
-      }
+      insert(target, each_1_anchor, anchor);
     },
     p(ctx2, dirty) {
-      if (dirty & /*activeProjects*/
-      32) {
+      if (dirty[0] & /*showArchived, getHue, displayProjects, range, minTime, handleDeleteProject, handleArchiveProject, handleUnarchiveProject, handleSelectProject, tasks, now*/
+      3967) {
         each_value = ensure_array_like(
-          /*activeProjects*/
-          ctx2[5]
+          /*displayProjects*/
+          ctx2[2]
         );
-        each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx2, each_value, each_1_lookup, select, destroy_block, create_each_block4, null, get_each_context4);
-      }
-      if (dirty & /*selectedProjectId, activeProjects*/
-      48) {
-        select_option(
-          select,
-          /*selectedProjectId*/
-          ctx2[4]
-        );
+        each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx2, each_value, each_1_lookup, each_1_anchor.parentNode, destroy_block, create_each_block4, each_1_anchor, get_each_context4);
       }
     },
     d(detaching) {
       if (detaching) {
-        detach(div2);
+        detach(each_1_anchor);
       }
       for (let i = 0; i < each_blocks.length; i += 1) {
-        each_blocks[i].d();
+        each_blocks[i].d(detaching);
       }
-      mounted = false;
-      dispose();
-    }
-  };
-}
-function create_each_block4(key_1, ctx) {
-  let option;
-  let t_value = (
-    /*p*/
-    ctx[13].name + ""
-  );
-  let t;
-  let option_value_value;
-  return {
-    key: key_1,
-    first: null,
-    c() {
-      option = element("option");
-      t = text(t_value);
-      option.__value = option_value_value = /*p*/
-      ctx[13].id;
-      set_input_value(option, option.__value);
-      this.first = option;
-    },
-    m(target, anchor) {
-      insert(target, option, anchor);
-      append(option, t);
-    },
-    p(new_ctx, dirty) {
-      ctx = new_ctx;
-      if (dirty & /*activeProjects*/
-      32 && t_value !== (t_value = /*p*/
-      ctx[13].name + ""))
-        set_data(t, t_value);
-      if (dirty & /*activeProjects*/
-      32 && option_value_value !== (option_value_value = /*p*/
-      ctx[13].id)) {
-        option.__value = option_value_value;
-        set_input_value(option, option.__value);
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(option);
-      }
-    }
-  };
-}
-function create_if_block_24(ctx) {
-  let deadlinesview;
-  let current;
-  deadlinesview = new DeadlinesView_default({
-    props: {
-      app: (
-        /*app*/
-        ctx[0]
-      ),
-      fileManager: (
-        /*fileManager*/
-        ctx[1]
-      ),
-      projectId: (
-        /*selectedProjectId*/
-        ctx[4]
-      )
-    }
-  });
-  return {
-    c() {
-      create_component(deadlinesview.$$.fragment);
-    },
-    m(target, anchor) {
-      mount_component(deadlinesview, target, anchor);
-      current = true;
-    },
-    p(ctx2, dirty) {
-      const deadlinesview_changes = {};
-      if (dirty & /*app*/
-      1)
-        deadlinesview_changes.app = /*app*/
-        ctx2[0];
-      if (dirty & /*fileManager*/
-      2)
-        deadlinesview_changes.fileManager = /*fileManager*/
-        ctx2[1];
-      if (dirty & /*selectedProjectId*/
-      16)
-        deadlinesview_changes.projectId = /*selectedProjectId*/
-        ctx2[4];
-      deadlinesview.$set(deadlinesview_changes);
-    },
-    i(local) {
-      if (current)
-        return;
-      transition_in(deadlinesview.$$.fragment, local);
-      current = true;
-    },
-    o(local) {
-      transition_out(deadlinesview.$$.fragment, local);
-      current = false;
-    },
-    d(detaching) {
-      destroy_component(deadlinesview, detaching);
-    }
-  };
-}
-function create_if_block_18(ctx) {
-  let elasticview;
-  let current;
-  elasticview = new ElasticView_default({
-    props: {
-      app: (
-        /*app*/
-        ctx[0]
-      ),
-      fileManager: (
-        /*fileManager*/
-        ctx[1]
-      ),
-      projectId: (
-        /*selectedProjectId*/
-        ctx[4]
-      )
-    }
-  });
-  return {
-    c() {
-      create_component(elasticview.$$.fragment);
-    },
-    m(target, anchor) {
-      mount_component(elasticview, target, anchor);
-      current = true;
-    },
-    p(ctx2, dirty) {
-      const elasticview_changes = {};
-      if (dirty & /*app*/
-      1)
-        elasticview_changes.app = /*app*/
-        ctx2[0];
-      if (dirty & /*fileManager*/
-      2)
-        elasticview_changes.fileManager = /*fileManager*/
-        ctx2[1];
-      if (dirty & /*selectedProjectId*/
-      16)
-        elasticview_changes.projectId = /*selectedProjectId*/
-        ctx2[4];
-      elasticview.$set(elasticview_changes);
-    },
-    i(local) {
-      if (current)
-        return;
-      transition_in(elasticview.$$.fragment, local);
-      current = true;
-    },
-    o(local) {
-      transition_out(elasticview.$$.fragment, local);
-      current = false;
-    },
-    d(detaching) {
-      destroy_component(elasticview, detaching);
     }
   };
 }
 function create_if_block4(ctx) {
-  let projectshub;
-  let current;
-  projectshub = new AgingView_default({
-    props: {
-      app: (
-        /*app*/
-        ctx[0]
-      ),
-      fileManager: (
-        /*fileManager*/
-        ctx[1]
-      ),
-      plugin: (
-        /*plugin*/
-        ctx[2]
-      ),
-      onSelect: (
-        /*func*/
-        ctx[12]
-      )
-    }
-  });
+  let p_1;
+  let t_value = (
+    /*showArchived*/
+    ctx[0] ? "No archived projects." : 'No active projects yet. Click "+ New Project" above to build your first project workspace!'
+  );
+  let t;
   return {
     c() {
-      create_component(projectshub.$$.fragment);
+      p_1 = element("p");
+      t = text(t_value);
+      attr(p_1, "class", "pos-empty");
     },
     m(target, anchor) {
-      mount_component(projectshub, target, anchor);
-      current = true;
+      insert(target, p_1, anchor);
+      append(p_1, t);
     },
     p(ctx2, dirty) {
-      const projectshub_changes = {};
-      if (dirty & /*app*/
-      1)
-        projectshub_changes.app = /*app*/
-        ctx2[0];
-      if (dirty & /*fileManager*/
-      2)
-        projectshub_changes.fileManager = /*fileManager*/
-        ctx2[1];
-      if (dirty & /*plugin*/
-      4)
-        projectshub_changes.plugin = /*plugin*/
-        ctx2[2];
-      if (dirty & /*selectedProjectId, mode*/
-      24)
-        projectshub_changes.onSelect = /*func*/
-        ctx2[12];
-      projectshub.$set(projectshub_changes);
-    },
-    i(local) {
-      if (current)
-        return;
-      transition_in(projectshub.$$.fragment, local);
-      current = true;
-    },
-    o(local) {
-      transition_out(projectshub.$$.fragment, local);
-      current = false;
-    },
-    d(detaching) {
-      destroy_component(projectshub, detaching);
-    }
-  };
-}
-function create_fragment5(ctx) {
-  let div3;
-  let div1;
-  let button0;
-  let t1;
-  let button1;
-  let t3;
-  let t4;
-  let div0;
-  let t5;
-  let button2;
-  let t7;
-  let button3;
-  let t9;
-  let div2;
-  let current_block_type_index;
-  let if_block1;
-  let current;
-  let mounted;
-  let dispose;
-  let if_block0 = (
-    /*mode*/
-    ctx[3] !== "projects" && create_if_block_34(ctx)
-  );
-  const if_block_creators = [create_if_block4, create_if_block_18, create_if_block_24];
-  const if_blocks = [];
-  function select_block_type(ctx2, dirty) {
-    if (
-      /*mode*/
-      ctx2[3] === "projects"
-    )
-      return 0;
-    if (
-      /*mode*/
-      ctx2[3] === "elastic"
-    )
-      return 1;
-    if (
-      /*mode*/
-      ctx2[3] === "deadlines"
-    )
-      return 2;
-    return -1;
-  }
-  if (~(current_block_type_index = select_block_type(ctx, -1))) {
-    if_block1 = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](ctx);
-  }
-  return {
-    c() {
-      div3 = element("div");
-      div1 = element("div");
-      button0 = element("button");
-      button0.textContent = "Elastic";
-      t1 = space();
-      button1 = element("button");
-      button1.textContent = "Deadlines";
-      t3 = space();
-      if (if_block0)
-        if_block0.c();
-      t4 = space();
-      div0 = element("div");
-      t5 = space();
-      button2 = element("button");
-      button2.textContent = "Project Hub";
-      t7 = space();
-      button3 = element("button");
-      button3.textContent = "[Settings]";
-      t9 = space();
-      div2 = element("div");
-      if (if_block1)
-        if_block1.c();
-      attr(button0, "class", "pos-mode-btn");
-      toggle_class(
-        button0,
-        "pos-mode-active",
-        /*mode*/
-        ctx[3] === "elastic"
-      );
-      attr(button1, "class", "pos-mode-btn");
-      toggle_class(
-        button1,
-        "pos-mode-active",
-        /*mode*/
-        ctx[3] === "deadlines"
-      );
-      set_style(div0, "flex", "1");
-      attr(button2, "class", "pos-mode-btn");
-      toggle_class(
-        button2,
-        "pos-mode-active",
-        /*mode*/
-        ctx[3] === "projects"
-      );
-      attr(button3, "class", "pos-settings-btn");
-      set_style(button3, "background", "transparent");
-      set_style(button3, "border", "none");
-      set_style(button3, "font-size", "1.2em");
-      set_style(button3, "cursor", "pointer");
-      set_style(button3, "color", "var(--text-muted)");
-      attr(button3, "title", "Settings");
-      attr(div1, "class", "pos-mode-bar");
-      attr(div2, "class", "pos-content");
-      attr(div3, "class", "pos-view");
-    },
-    m(target, anchor) {
-      insert(target, div3, anchor);
-      append(div3, div1);
-      append(div1, button0);
-      append(div1, t1);
-      append(div1, button1);
-      append(div1, t3);
-      if (if_block0)
-        if_block0.m(div1, null);
-      append(div1, t4);
-      append(div1, div0);
-      append(div1, t5);
-      append(div1, button2);
-      append(div1, t7);
-      append(div1, button3);
-      append(div3, t9);
-      append(div3, div2);
-      if (~current_block_type_index) {
-        if_blocks[current_block_type_index].m(div2, null);
-      }
-      current = true;
-      if (!mounted) {
-        dispose = [
-          listen(
-            button0,
-            "click",
-            /*click_handler*/
-            ctx[7]
-          ),
-          listen(
-            button1,
-            "click",
-            /*click_handler_1*/
-            ctx[8]
-          ),
-          listen(
-            button2,
-            "click",
-            /*click_handler_2*/
-            ctx[10]
-          ),
-          listen(
-            button3,
-            "click",
-            /*click_handler_3*/
-            ctx[11]
-          )
-        ];
-        mounted = true;
-      }
-    },
-    p(ctx2, [dirty]) {
-      if (!current || dirty & /*mode*/
-      8) {
-        toggle_class(
-          button0,
-          "pos-mode-active",
-          /*mode*/
-          ctx2[3] === "elastic"
-        );
-      }
-      if (!current || dirty & /*mode*/
-      8) {
-        toggle_class(
-          button1,
-          "pos-mode-active",
-          /*mode*/
-          ctx2[3] === "deadlines"
-        );
-      }
-      if (
-        /*mode*/
-        ctx2[3] !== "projects"
-      ) {
-        if (if_block0) {
-          if_block0.p(ctx2, dirty);
-        } else {
-          if_block0 = create_if_block_34(ctx2);
-          if_block0.c();
-          if_block0.m(div1, t4);
-        }
-      } else if (if_block0) {
-        if_block0.d(1);
-        if_block0 = null;
-      }
-      if (!current || dirty & /*mode*/
-      8) {
-        toggle_class(
-          button2,
-          "pos-mode-active",
-          /*mode*/
-          ctx2[3] === "projects"
-        );
-      }
-      let previous_block_index = current_block_type_index;
-      current_block_type_index = select_block_type(ctx2, dirty);
-      if (current_block_type_index === previous_block_index) {
-        if (~current_block_type_index) {
-          if_blocks[current_block_type_index].p(ctx2, dirty);
-        }
-      } else {
-        if (if_block1) {
-          group_outros();
-          transition_out(if_blocks[previous_block_index], 1, 1, () => {
-            if_blocks[previous_block_index] = null;
-          });
-          check_outros();
-        }
-        if (~current_block_type_index) {
-          if_block1 = if_blocks[current_block_type_index];
-          if (!if_block1) {
-            if_block1 = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](ctx2);
-            if_block1.c();
-          } else {
-            if_block1.p(ctx2, dirty);
-          }
-          transition_in(if_block1, 1);
-          if_block1.m(div2, null);
-        } else {
-          if_block1 = null;
-        }
-      }
-    },
-    i(local) {
-      if (current)
-        return;
-      transition_in(if_block1);
-      current = true;
-    },
-    o(local) {
-      transition_out(if_block1);
-      current = false;
+      if (dirty[0] & /*showArchived*/
+      1 && t_value !== (t_value = /*showArchived*/
+      ctx2[0] ? "No archived projects." : 'No active projects yet. Click "+ New Project" above to build your first project workspace!'))
+        set_data(t, t_value);
     },
     d(detaching) {
       if (detaching) {
-        detach(div3);
+        detach(p_1);
       }
-      if (if_block0)
-        if_block0.d();
-      if (~current_block_type_index) {
-        if_blocks[current_block_type_index].d();
+    }
+  };
+}
+function create_if_block_63(ctx) {
+  let span;
+  return {
+    c() {
+      span = element("span");
+      span.textContent = "ARCHIVED";
+      set_style(span, "font-size", "0.7em");
+      set_style(span, "margin-left", "8px");
+      set_style(span, "padding", "2px 6px");
+      set_style(span, "background", "rgba(0,0,0,0.1)");
+      set_style(span, "border-radius", "4px");
+    },
+    m(target, anchor) {
+      insert(target, span, anchor);
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(span);
       }
-      mounted = false;
-      run_all(dispose);
     }
   };
-}
-function instance5($$self, $$props, $$invalidate) {
-  let activeProjects;
-  let $projectsStore;
-  component_subscribe($$self, projectsStore, ($$value) => $$invalidate(6, $projectsStore = $$value));
-  let { app } = $$props;
-  let { fileManager } = $$props;
-  let { plugin } = $$props;
-  let mode = "elastic";
-  let selectedProjectId = "all";
-  const click_handler = () => $$invalidate(3, mode = "elastic");
-  const click_handler_1 = () => $$invalidate(3, mode = "deadlines");
-  function select_change_handler() {
-    selectedProjectId = select_value(this);
-    $$invalidate(4, selectedProjectId);
-    $$invalidate(5, activeProjects), $$invalidate(6, $projectsStore);
-  }
-  const click_handler_2 = () => $$invalidate(3, mode = "projects");
-  const click_handler_3 = () => {
-    if (app.setting) {
-      app.setting.open();
-      app.setting.openTabById("proxima");
-    }
-  };
-  const func2 = (id, m) => {
-    $$invalidate(4, selectedProjectId = id);
-    $$invalidate(3, mode = m);
-  };
-  $$self.$$set = ($$props2) => {
-    if ("app" in $$props2)
-      $$invalidate(0, app = $$props2.app);
-    if ("fileManager" in $$props2)
-      $$invalidate(1, fileManager = $$props2.fileManager);
-    if ("plugin" in $$props2)
-      $$invalidate(2, plugin = $$props2.plugin);
-  };
-  $$self.$$.update = () => {
-    if ($$self.$$.dirty & /*$projectsStore*/
-    64) {
-      $:
-        $$invalidate(5, activeProjects = $projectsStore.filter((p) => p.status === "active"));
-    }
-  };
-  return [
-    app,
-    fileManager,
-    plugin,
-    mode,
-    selectedProjectId,
-    activeProjects,
-    $projectsStore,
-    click_handler,
-    click_handler_1,
-    select_change_handler,
-    click_handler_2,
-    click_handler_3,
-    func2
-  ];
-}
-var App3 = class extends SvelteComponent {
-  constructor(options) {
-    super();
-    init(this, options, instance5, create_fragment5, safe_not_equal, { app: 0, fileManager: 1, plugin: 2 });
-  }
-};
-var App_default = App3;
-
-// src/ui/views/ProjectsView.svelte
-var import_obsidian6 = require("obsidian");
-
-// src/ui/views/components/ProjectTaskBoard.svelte
-function get_each_context5(ctx, list, i) {
-  const child_ctx = ctx.slice();
-  child_ctx[38] = list[i];
-  child_ctx[40] = i;
-  return child_ctx;
-}
-function get_each_context_13(ctx, list, i) {
-  const child_ctx = ctx.slice();
-  child_ctx[41] = list[i];
-  child_ctx[43] = i;
-  return child_ctx;
-}
-function get_each_context_23(ctx, list, i) {
-  const child_ctx = ctx.slice();
-  child_ctx[44] = list[i];
-  return child_ctx;
 }
 function create_if_block_54(ctx) {
   let div2;
-  return {
-    c() {
-      div2 = element("div");
-      attr(div2, "class", "pos-board-col-placeholder");
-      set_style(div2, "width", "300px");
-      set_style(div2, "min-width", "300px");
-      set_style(div2, "border", "2px dashed var(--interactive-accent)");
-      set_style(div2, "border-radius", "8px");
-      set_style(div2, "margin", "0 10px");
-      set_style(div2, "background", "rgba(var(--interactive-accent-rgb), 0.05)");
-    },
-    m(target, anchor) {
-      insert(target, div2, anchor);
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(div2);
-      }
-    }
-  };
-}
-function create_if_block_44(ctx) {
-  let div2;
-  return {
-    c() {
-      div2 = element("div");
-      attr(div2, "class", "pos-drag-placeholder");
-      set_style(
-        div2,
-        "height",
-        /*dragHeight*/
-        ctx[6] + "px"
-      );
-    },
-    m(target, anchor) {
-      insert(target, div2, anchor);
-    },
-    p(ctx2, dirty) {
-      if (dirty[0] & /*dragHeight*/
-      64) {
-        set_style(
-          div2,
-          "height",
-          /*dragHeight*/
-          ctx2[6] + "px"
-        );
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(div2);
-      }
-    }
-  };
-}
-function create_if_block_35(ctx) {
-  let div2;
   let t_value = (
-    /*task*/
-    ctx[41].description + ""
+    /*p*/
+    ctx[29].description + ""
   );
   let t;
   return {
@@ -11643,9 +10294,9 @@ function create_if_block_35(ctx) {
       append(div2, t);
     },
     p(ctx2, dirty) {
-      if (dirty[0] & /*columns*/
-      128 && t_value !== (t_value = /*task*/
-      ctx2[41].description + ""))
+      if (dirty[0] & /*displayProjects*/
+      4 && t_value !== (t_value = /*p*/
+      ctx2[29].description + ""))
         set_data(t, t_value);
     },
     d(detaching) {
@@ -11655,47 +10306,35 @@ function create_if_block_35(ctx) {
     }
   };
 }
-function create_else_block3(ctx) {
+function create_if_block_44(ctx) {
   let span;
-  let t0_value = (
-    /*prop*/
-    ctx[44].name + ""
-  );
   let t0;
-  let t1;
-  let t2_value = (
-    /*prop*/
-    ctx[44].value + ""
+  let t1_value = (
+    /*overdue*/
+    ctx[34] + ""
   );
+  let t1;
   let t2;
-  let t3;
   return {
     c() {
       span = element("span");
-      t0 = text(t0_value);
-      t1 = text(": ");
-      t2 = text(t2_value);
-      t3 = space();
-      attr(span, "class", "pos-tag-pill");
-      set_style(span, "background-color", "var(--background-modifier-border)");
-      set_style(span, "color", "var(--text-muted)");
+      t0 = text("\u26A0\uFE0F ");
+      t1 = text(t1_value);
+      t2 = text(" Overdue");
+      attr(span, "title", "Overdue Tasks");
+      set_style(span, "color", "#dc3545");
     },
     m(target, anchor) {
       insert(target, span, anchor);
       append(span, t0);
       append(span, t1);
       append(span, t2);
-      append(span, t3);
     },
     p(ctx2, dirty) {
-      if (dirty[0] & /*columns*/
-      128 && t0_value !== (t0_value = /*prop*/
-      ctx2[44].name + ""))
-        set_data(t0, t0_value);
-      if (dirty[0] & /*columns*/
-      128 && t2_value !== (t2_value = /*prop*/
-      ctx2[44].value + ""))
-        set_data(t2, t2_value);
+      if (dirty[0] & /*tasks, displayProjects, now*/
+      44 && t1_value !== (t1_value = /*overdue*/
+      ctx2[34] + ""))
+        set_data(t1, t1_value);
     },
     d(detaching) {
       if (detaching) {
@@ -11704,68 +10343,35 @@ function create_else_block3(ctx) {
     }
   };
 }
-function create_if_block_25(ctx) {
+function create_if_block_34(ctx) {
   let span;
-  let t0_value = (
-    /*prop*/
-    ctx[44].value + ""
-  );
   let t0;
+  let t1_value = (
+    /*highPriority*/
+    ctx[36] + ""
+  );
   let t1;
+  let t2;
   return {
     c() {
       span = element("span");
-      t0 = text(t0_value);
-      t1 = space();
-      attr(span, "class", "pos-tag-pill");
-      set_style(
-        span,
-        "background-color",
-        /*prop*/
-        ctx[44].color + "20"
-      );
-      set_style(
-        span,
-        "color",
-        /*prop*/
-        ctx[44].color
-      );
-      set_style(span, "border", "1px solid " + /*prop*/
-      ctx[44].color + "40");
+      t0 = text("\u{1F525} ");
+      t1 = text(t1_value);
+      t2 = text(" P1");
+      attr(span, "title", "High Priority Tasks");
+      set_style(span, "color", "#ff6b6b");
     },
     m(target, anchor) {
       insert(target, span, anchor);
       append(span, t0);
       append(span, t1);
+      append(span, t2);
     },
     p(ctx2, dirty) {
-      if (dirty[0] & /*columns*/
-      128 && t0_value !== (t0_value = /*prop*/
-      ctx2[44].value + ""))
-        set_data(t0, t0_value);
-      if (dirty[0] & /*columns*/
-      128) {
-        set_style(
-          span,
-          "background-color",
-          /*prop*/
-          ctx2[44].color + "20"
-        );
-      }
-      if (dirty[0] & /*columns*/
-      128) {
-        set_style(
-          span,
-          "color",
-          /*prop*/
-          ctx2[44].color
-        );
-      }
-      if (dirty[0] & /*columns*/
-      128) {
-        set_style(span, "border", "1px solid " + /*prop*/
-        ctx2[44].color + "40");
-      }
+      if (dirty[0] & /*tasks, displayProjects*/
+      36 && t1_value !== (t1_value = /*highPriority*/
+      ctx2[36] + ""))
+        set_data(t1, t1_value);
     },
     d(detaching) {
       if (detaching) {
@@ -11774,1356 +10380,83 @@ function create_if_block_25(ctx) {
     }
   };
 }
-function create_each_block_23(ctx) {
-  let if_block_anchor;
-  function select_block_type(ctx2, dirty) {
-    if (
-      /*prop*/
-      ctx2[44].color
-    )
-      return create_if_block_25;
-    return create_else_block3;
-  }
-  let current_block_type = select_block_type(ctx, [-1, -1]);
-  let if_block = current_block_type(ctx);
-  return {
-    c() {
-      if_block.c();
-      if_block_anchor = empty();
-    },
-    m(target, anchor) {
-      if_block.m(target, anchor);
-      insert(target, if_block_anchor, anchor);
-    },
-    p(ctx2, dirty) {
-      if (current_block_type === (current_block_type = select_block_type(ctx2, dirty)) && if_block) {
-        if_block.p(ctx2, dirty);
-      } else {
-        if_block.d(1);
-        if_block = current_block_type(ctx2);
-        if (if_block) {
-          if_block.c();
-          if_block.m(if_block_anchor.parentNode, if_block_anchor);
-        }
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(if_block_anchor);
-      }
-      if_block.d(detaching);
-    }
-  };
-}
-function create_each_block_13(key_1, ctx) {
-  let first;
-  let t0;
-  let div5;
-  let div3;
-  let div2;
-  let div0;
-  let t1_value = (
-    /*task*/
-    ctx[41].name + ""
-  );
-  let t1;
-  let t2;
-  let t3;
-  let div1;
-  let span;
-  let t4;
-  let t5_value = (
-    /*task*/
-    (ctx[41].weight || 1) + ""
-  );
-  let t5;
-  let t6;
-  let t7;
-  let div4;
-  let button;
-  let mounted;
-  let dispose;
-  let if_block0 = (
-    /*dragOverStatus*/
-    ctx[4] === /*col*/
-    ctx[38].id && /*dragOverIndex*/
-    ctx[5] === /*i*/
-    ctx[43] && create_if_block_44(ctx)
-  );
-  let if_block1 = (
-    /*task*/
-    ctx[41].description && create_if_block_35(ctx)
-  );
-  let each_value_2 = ensure_array_like(
-    /*getCustomProps*/
-    ctx[8](
-      /*task*/
-      ctx[41]
-    )
-  );
-  let each_blocks = [];
-  for (let i = 0; i < each_value_2.length; i += 1) {
-    each_blocks[i] = create_each_block_23(get_each_context_23(ctx, each_value_2, i));
-  }
-  function click_handler() {
-    return (
-      /*click_handler*/
-      ctx[30](
-        /*task*/
-        ctx[41]
-      )
-    );
-  }
-  function click_handler_1() {
-    return (
-      /*click_handler_1*/
-      ctx[31](
-        /*task*/
-        ctx[41]
-      )
-    );
-  }
-  function dragstart_handler_1(...args) {
-    return (
-      /*dragstart_handler_1*/
-      ctx[32](
-        /*task*/
-        ctx[41],
-        ...args
-      )
-    );
-  }
-  return {
-    key: key_1,
-    first: null,
-    c() {
-      first = empty();
-      if (if_block0)
-        if_block0.c();
-      t0 = space();
-      div5 = element("div");
-      div3 = element("div");
-      div2 = element("div");
-      div0 = element("div");
-      t1 = text(t1_value);
-      t2 = space();
-      if (if_block1)
-        if_block1.c();
-      t3 = space();
-      div1 = element("div");
-      span = element("span");
-      t4 = text("W:");
-      t5 = text(t5_value);
-      t6 = space();
-      for (let i = 0; i < each_blocks.length; i += 1) {
-        each_blocks[i].c();
-      }
-      t7 = space();
-      div4 = element("div");
-      button = element("button");
-      button.textContent = "Delete";
-      attr(div0, "class", "pos-card-name");
-      attr(div1, "class", "pos-ptc-meta");
-      attr(div2, "class", "pos-ptc-body");
-      set_style(div2, "cursor", "pointer");
-      attr(div3, "class", "pos-ptc-header");
-      attr(button, "class", "pos-del");
-      attr(div4, "class", "pos-ptc-acts");
-      attr(div5, "class", "pos-card pos-board-card");
-      attr(div5, "draggable", "true");
-      toggle_class(
-        div5,
-        "pos-dragging-source",
-        /*dragId*/
-        ctx[3] === /*task*/
-        ctx[41].id
-      );
-      this.first = first;
-    },
-    m(target, anchor) {
-      insert(target, first, anchor);
-      if (if_block0)
-        if_block0.m(target, anchor);
-      insert(target, t0, anchor);
-      insert(target, div5, anchor);
-      append(div5, div3);
-      append(div3, div2);
-      append(div2, div0);
-      append(div0, t1);
-      append(div2, t2);
-      if (if_block1)
-        if_block1.m(div2, null);
-      append(div2, t3);
-      append(div2, div1);
-      append(div1, span);
-      append(span, t4);
-      append(span, t5);
-      append(div1, t6);
-      for (let i = 0; i < each_blocks.length; i += 1) {
-        if (each_blocks[i]) {
-          each_blocks[i].m(div1, null);
-        }
-      }
-      append(div5, t7);
-      append(div5, div4);
-      append(div4, button);
-      if (!mounted) {
-        dispose = [
-          listen(div2, "click", click_handler),
-          listen(button, "click", click_handler_1),
-          listen(div5, "dragstart", dragstart_handler_1),
-          listen(
-            div5,
-            "dragend",
-            /*handleDragEnd*/
-            ctx[14]
-          )
-        ];
-        mounted = true;
-      }
-    },
-    p(new_ctx, dirty) {
-      ctx = new_ctx;
-      if (
-        /*dragOverStatus*/
-        ctx[4] === /*col*/
-        ctx[38].id && /*dragOverIndex*/
-        ctx[5] === /*i*/
-        ctx[43]
-      ) {
-        if (if_block0) {
-          if_block0.p(ctx, dirty);
-        } else {
-          if_block0 = create_if_block_44(ctx);
-          if_block0.c();
-          if_block0.m(t0.parentNode, t0);
-        }
-      } else if (if_block0) {
-        if_block0.d(1);
-        if_block0 = null;
-      }
-      if (dirty[0] & /*columns*/
-      128 && t1_value !== (t1_value = /*task*/
-      ctx[41].name + ""))
-        set_data(t1, t1_value);
-      if (
-        /*task*/
-        ctx[41].description
-      ) {
-        if (if_block1) {
-          if_block1.p(ctx, dirty);
-        } else {
-          if_block1 = create_if_block_35(ctx);
-          if_block1.c();
-          if_block1.m(div2, t3);
-        }
-      } else if (if_block1) {
-        if_block1.d(1);
-        if_block1 = null;
-      }
-      if (dirty[0] & /*columns*/
-      128 && t5_value !== (t5_value = /*task*/
-      (ctx[41].weight || 1) + ""))
-        set_data(t5, t5_value);
-      if (dirty[0] & /*getCustomProps, columns*/
-      384) {
-        each_value_2 = ensure_array_like(
-          /*getCustomProps*/
-          ctx[8](
-            /*task*/
-            ctx[41]
-          )
-        );
-        let i;
-        for (i = 0; i < each_value_2.length; i += 1) {
-          const child_ctx = get_each_context_23(ctx, each_value_2, i);
-          if (each_blocks[i]) {
-            each_blocks[i].p(child_ctx, dirty);
-          } else {
-            each_blocks[i] = create_each_block_23(child_ctx);
-            each_blocks[i].c();
-            each_blocks[i].m(div1, null);
-          }
-        }
-        for (; i < each_blocks.length; i += 1) {
-          each_blocks[i].d(1);
-        }
-        each_blocks.length = each_value_2.length;
-      }
-      if (dirty[0] & /*dragId, columns*/
-      136) {
-        toggle_class(
-          div5,
-          "pos-dragging-source",
-          /*dragId*/
-          ctx[3] === /*task*/
-          ctx[41].id
-        );
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(first);
-        detach(t0);
-        detach(div5);
-      }
-      if (if_block0)
-        if_block0.d(detaching);
-      if (if_block1)
-        if_block1.d();
-      destroy_each(each_blocks, detaching);
-      mounted = false;
-      run_all(dispose);
-    }
-  };
-}
-function create_if_block_19(ctx) {
-  let div2;
-  return {
-    c() {
-      div2 = element("div");
-      attr(div2, "class", "pos-drag-placeholder");
-      set_style(
-        div2,
-        "height",
-        /*dragHeight*/
-        ctx[6] + "px"
-      );
-    },
-    m(target, anchor) {
-      insert(target, div2, anchor);
-    },
-    p(ctx2, dirty) {
-      if (dirty[0] & /*dragHeight*/
-      64) {
-        set_style(
-          div2,
-          "height",
-          /*dragHeight*/
-          ctx2[6] + "px"
-        );
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(div2);
-      }
-    }
-  };
-}
-function create_each_block5(key_1, ctx) {
-  let first;
-  let t0;
-  let div2;
-  let h4;
-  let span;
-  let t1_value = (
-    /*col*/
-    ctx[38].name + ""
-  );
-  let t1;
-  let t2;
-  let t3_value = (
-    /*col*/
-    ctx[38].tasks.length + ""
-  );
-  let t3;
-  let t4;
-  let t5;
-  let input;
-  let input_value_value;
-  let t6;
-  let div1;
-  let div0;
-  let each_blocks = [];
-  let each_1_lookup = /* @__PURE__ */ new Map();
-  let t7;
-  let t8;
-  let button;
-  let mounted;
-  let dispose;
-  let if_block0 = (
-    /*dragOverColId*/
-    ctx[1] && /*dragOverColIndex*/
-    ctx[2] === /*colIdx*/
-    ctx[40] && create_if_block_54(ctx)
-  );
-  function change_handler(...args) {
-    return (
-      /*change_handler*/
-      ctx[26](
-        /*col*/
-        ctx[38],
-        ...args
-      )
-    );
-  }
-  function dragstart_handler(...args) {
-    return (
-      /*dragstart_handler*/
-      ctx[27](
-        /*col*/
-        ctx[38],
-        ...args
-      )
-    );
-  }
-  function dragover_handler(...args) {
-    return (
-      /*dragover_handler*/
-      ctx[28](
-        /*col*/
-        ctx[38],
-        ...args
-      )
-    );
-  }
-  function drop_handler(...args) {
-    return (
-      /*drop_handler*/
-      ctx[29](
-        /*col*/
-        ctx[38],
-        ...args
-      )
-    );
-  }
-  let each_value_1 = ensure_array_like(
-    /*col*/
-    ctx[38].tasks
-  );
-  const get_key = (ctx2) => (
-    /*task*/
-    ctx2[41].id
-  );
-  for (let i = 0; i < each_value_1.length; i += 1) {
-    let child_ctx = get_each_context_13(ctx, each_value_1, i);
-    let key = get_key(child_ctx);
-    each_1_lookup.set(key, each_blocks[i] = create_each_block_13(key, child_ctx));
-  }
-  let if_block1 = (
-    /*dragOverStatus*/
-    ctx[4] === /*col*/
-    ctx[38].id && /*dragOverIndex*/
-    ctx[5] >= /*col*/
-    ctx[38].tasks.length && create_if_block_19(ctx)
-  );
-  function click_handler_2() {
-    return (
-      /*click_handler_2*/
-      ctx[33](
-        /*col*/
-        ctx[38]
-      )
-    );
-  }
-  function dragover_handler_1(...args) {
-    return (
-      /*dragover_handler_1*/
-      ctx[34](
-        /*col*/
-        ctx[38],
-        ...args
-      )
-    );
-  }
-  function drop_handler_1(...args) {
-    return (
-      /*drop_handler_1*/
-      ctx[35](
-        /*col*/
-        ctx[38],
-        ...args
-      )
-    );
-  }
-  return {
-    key: key_1,
-    first: null,
-    c() {
-      first = empty();
-      if (if_block0)
-        if_block0.c();
-      t0 = space();
-      div2 = element("div");
-      h4 = element("h4");
-      span = element("span");
-      t1 = text(t1_value);
-      t2 = text(" (");
-      t3 = text(t3_value);
-      t4 = text(")");
-      t5 = space();
-      input = element("input");
-      t6 = space();
-      div1 = element("div");
-      div0 = element("div");
-      for (let i = 0; i < each_blocks.length; i += 1) {
-        each_blocks[i].c();
-      }
-      t7 = space();
-      if (if_block1)
-        if_block1.c();
-      t8 = space();
-      button = element("button");
-      button.textContent = "+ Add Task";
-      set_style(span, "cursor", "grab");
-      attr(input, "type", "color");
-      input.value = input_value_value = /*col*/
-      ctx[38].color;
-      set_style(input, "width", "20px");
-      set_style(input, "height", "20px");
-      set_style(input, "padding", "0");
-      set_style(input, "border", "none");
-      set_style(input, "cursor", "pointer");
-      set_style(input, "background", "none");
-      attr(input, "title", "Change column color");
-      attr(h4, "class", "pos-board-col-title");
-      set_style(
-        h4,
-        "color",
-        /*col*/
-        ctx[38].color
-      );
-      set_style(h4, "border-bottom", "2px solid " + /*col*/
-      ctx[38].color + "40");
-      set_style(h4, "display", "flex");
-      set_style(h4, "align-items", "center");
-      set_style(h4, "justify-content", "space-between");
-      attr(h4, "draggable", "true");
-      attr(button, "class", "pos-board-add-btn");
-      attr(div0, "class", "pos-board-list");
-      attr(div1, "class", "pos-board-list-wrapper");
-      attr(div2, "class", "pos-board-col");
-      toggle_class(
-        div2,
-        "pos-dragging-source",
-        /*dragColId*/
-        ctx[0] === /*col*/
-        ctx[38].id
-      );
-      toggle_class(div2, "pos-col-elastic", ["backlog", "running", "review"].includes(
-        /*col*/
-        ctx[38].id
-      ));
-      this.first = first;
-    },
-    m(target, anchor) {
-      insert(target, first, anchor);
-      if (if_block0)
-        if_block0.m(target, anchor);
-      insert(target, t0, anchor);
-      insert(target, div2, anchor);
-      append(div2, h4);
-      append(h4, span);
-      append(span, t1);
-      append(span, t2);
-      append(span, t3);
-      append(span, t4);
-      append(h4, t5);
-      append(h4, input);
-      append(div2, t6);
-      append(div2, div1);
-      append(div1, div0);
-      for (let i = 0; i < each_blocks.length; i += 1) {
-        if (each_blocks[i]) {
-          each_blocks[i].m(div0, null);
-        }
-      }
-      append(div0, t7);
-      if (if_block1)
-        if_block1.m(div0, null);
-      append(div0, t8);
-      append(div0, button);
-      if (!mounted) {
-        dispose = [
-          listen(input, "change", change_handler),
-          listen(h4, "dragstart", dragstart_handler),
-          listen(
-            h4,
-            "dragend",
-            /*handleColDragEnd*/
-            ctx[10]
-          ),
-          listen(h4, "dragover", dragover_handler),
-          listen(h4, "drop", drop_handler),
-          listen(button, "click", click_handler_2),
-          listen(div1, "dragover", dragover_handler_1),
-          listen(div1, "drop", drop_handler_1)
-        ];
-        mounted = true;
-      }
-    },
-    p(new_ctx, dirty) {
-      ctx = new_ctx;
-      if (
-        /*dragOverColId*/
-        ctx[1] && /*dragOverColIndex*/
-        ctx[2] === /*colIdx*/
-        ctx[40]
-      ) {
-        if (if_block0) {
-        } else {
-          if_block0 = create_if_block_54(ctx);
-          if_block0.c();
-          if_block0.m(t0.parentNode, t0);
-        }
-      } else if (if_block0) {
-        if_block0.d(1);
-        if_block0 = null;
-      }
-      if (dirty[0] & /*columns*/
-      128 && t1_value !== (t1_value = /*col*/
-      ctx[38].name + ""))
-        set_data(t1, t1_value);
-      if (dirty[0] & /*columns*/
-      128 && t3_value !== (t3_value = /*col*/
-      ctx[38].tasks.length + ""))
-        set_data(t3, t3_value);
-      if (dirty[0] & /*columns*/
-      128 && input_value_value !== (input_value_value = /*col*/
-      ctx[38].color)) {
-        input.value = input_value_value;
-      }
-      if (dirty[0] & /*columns*/
-      128) {
-        set_style(
-          h4,
-          "color",
-          /*col*/
-          ctx[38].color
-        );
-      }
-      if (dirty[0] & /*columns*/
-      128) {
-        set_style(h4, "border-bottom", "2px solid " + /*col*/
-        ctx[38].color + "40");
-      }
-      if (dirty[0] & /*dragId, columns, handleDragStart, handleDragEnd, deleteTask, editTask, getCustomProps, dragHeight, dragOverStatus, dragOverIndex*/
-      811512) {
-        each_value_1 = ensure_array_like(
-          /*col*/
-          ctx[38].tasks
-        );
-        each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx, each_value_1, each_1_lookup, div0, destroy_block, create_each_block_13, t7, get_each_context_13);
-      }
-      if (
-        /*dragOverStatus*/
-        ctx[4] === /*col*/
-        ctx[38].id && /*dragOverIndex*/
-        ctx[5] >= /*col*/
-        ctx[38].tasks.length
-      ) {
-        if (if_block1) {
-          if_block1.p(ctx, dirty);
-        } else {
-          if_block1 = create_if_block_19(ctx);
-          if_block1.c();
-          if_block1.m(div0, t8);
-        }
-      } else if (if_block1) {
-        if_block1.d(1);
-        if_block1 = null;
-      }
-      if (dirty[0] & /*dragColId, columns*/
-      129) {
-        toggle_class(
-          div2,
-          "pos-dragging-source",
-          /*dragColId*/
-          ctx[0] === /*col*/
-          ctx[38].id
-        );
-      }
-      if (dirty[0] & /*columns*/
-      128) {
-        toggle_class(div2, "pos-col-elastic", ["backlog", "running", "review"].includes(
-          /*col*/
-          ctx[38].id
-        ));
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(first);
-        detach(t0);
-        detach(div2);
-      }
-      if (if_block0)
-        if_block0.d(detaching);
-      for (let i = 0; i < each_blocks.length; i += 1) {
-        each_blocks[i].d();
-      }
-      if (if_block1)
-        if_block1.d();
-      mounted = false;
-      run_all(dispose);
-    }
-  };
-}
-function create_if_block5(ctx) {
-  let div2;
-  return {
-    c() {
-      div2 = element("div");
-      attr(div2, "class", "pos-board-col-placeholder");
-      set_style(div2, "width", "300px");
-      set_style(div2, "min-width", "300px");
-      set_style(div2, "border", "2px dashed var(--interactive-accent)");
-      set_style(div2, "border-radius", "8px");
-      set_style(div2, "margin", "0 10px");
-      set_style(div2, "background", "rgba(var(--interactive-accent-rgb), 0.05)");
-    },
-    m(target, anchor) {
-      insert(target, div2, anchor);
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(div2);
-      }
-    }
-  };
-}
-function create_fragment6(ctx) {
-  let div2;
-  let each_blocks = [];
-  let each_1_lookup = /* @__PURE__ */ new Map();
+function create_else_block_2(ctx) {
   let t;
-  let each_value = ensure_array_like(
-    /*columns*/
-    ctx[7]
-  );
-  const get_key = (ctx2) => (
-    /*col*/
-    ctx2[38].id
-  );
-  for (let i = 0; i < each_value.length; i += 1) {
-    let child_ctx = get_each_context5(ctx, each_value, i);
-    let key = get_key(child_ctx);
-    each_1_lookup.set(key, each_blocks[i] = create_each_block5(key, child_ctx));
-  }
-  let if_block = (
-    /*dragOverColId*/
-    ctx[1] && /*dragOverColIndex*/
-    ctx[2] >= /*columns*/
-    ctx[7].length && create_if_block5(ctx)
-  );
   return {
     c() {
-      div2 = element("div");
-      for (let i = 0; i < each_blocks.length; i += 1) {
-        each_blocks[i].c();
-      }
-      t = space();
-      if (if_block)
-        if_block.c();
-      attr(div2, "class", "pos-board-workspace");
+      t = text("No upcoming deadlines");
     },
     m(target, anchor) {
-      insert(target, div2, anchor);
-      for (let i = 0; i < each_blocks.length; i += 1) {
-        if (each_blocks[i]) {
-          each_blocks[i].m(div2, null);
-        }
-      }
-      append(div2, t);
-      if (if_block)
-        if_block.m(div2, null);
+      insert(target, t, anchor);
     },
-    p(ctx2, dirty) {
-      if (dirty[0] & /*dragColId, columns, handleDragOver, handleDrop, createPlannedTask, dragHeight, dragOverStatus, dragOverIndex, dragId, handleDragStart, handleDragEnd, deleteTask, editTask, getCustomProps, handleColDragStart, handleColDragEnd, handleColDrop, updateColumnColor, dragOverColId, dragOverColIndex*/
-      1048575) {
-        each_value = ensure_array_like(
-          /*columns*/
-          ctx2[7]
-        );
-        each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx2, each_value, each_1_lookup, div2, destroy_block, create_each_block5, t, get_each_context5);
-      }
-      if (
-        /*dragOverColId*/
-        ctx2[1] && /*dragOverColIndex*/
-        ctx2[2] >= /*columns*/
-        ctx2[7].length
-      ) {
-        if (if_block) {
-        } else {
-          if_block = create_if_block5(ctx2);
-          if_block.c();
-          if_block.m(div2, null);
-        }
-      } else if (if_block) {
-        if_block.d(1);
-        if_block = null;
-      }
-    },
-    i: noop,
-    o: noop,
+    p: noop,
     d(detaching) {
       if (detaching) {
-        detach(div2);
+        detach(t);
       }
-      for (let i = 0; i < each_blocks.length; i += 1) {
-        each_blocks[i].d();
-      }
-      if (if_block)
-        if_block.d();
     }
   };
 }
-function handleColDragOver(e, id) {
-}
-function instance6($$self, $$props, $$invalidate) {
-  let settingsStatuses;
-  let statuses;
-  let columns;
-  let { app } = $$props;
-  let { fileManager } = $$props;
-  let { projectId } = $$props;
-  let { projectTasks } = $$props;
-  const sortTasks = (tasks) => tasks.sort((a, b) => {
-    const pA = a.properties && a.properties["priority"] ? parseInt(a.properties["priority"], 10) : 3;
-    const pB = b.properties && b.properties["priority"] ? parseInt(b.properties["priority"], 10) : 3;
-    return pA - pB || a.orderIndex - b.orderIndex;
-  });
-  function getCustomProps(task) {
-    if (!task.properties || !fileManager.plugin.settings.taskSchema)
-      return [];
-    const res = [];
-    fileManager.plugin.settings.taskSchema.forEach((schema) => {
-      const val = task.properties[schema.id];
-      if (val) {
-        if (schema.type === "select" || schema.type === "multi-select") {
-          const vals = Array.isArray(val) ? val : [val];
-          vals.forEach((v) => {
-            const opt = (schema.options || []).find((o) => o.id === v);
-            if (opt)
-              res.push({
-                name: schema.name,
-                value: opt.name,
-                color: opt.color
-              });
-          });
-        } else if (schema.type === "checkbox") {
-          res.push({
-            name: schema.name,
-            value: val ? "Yes" : "No"
-          });
-        } else if (schema.type === "relation") {
-          const vals = Array.isArray(val) ? val : [val];
-          vals.forEach((v) => res.push({ name: schema.name, value: v }));
-        } else if (schema.type === "formula" || schema.type === "rollup") {
-          res.push({ name: schema.name, value: String(val) });
-        } else {
-          res.push({ name: schema.name, value: String(val) });
-        }
-      }
-    });
-    return res;
-  }
-  let dragColId = null;
-  let dragOverColId = null;
-  let dragOverColIndex = -1;
-  function handleColDragStart(e, id) {
-    if (e.dataTransfer) {
-      e.dataTransfer.effectAllowed = "move";
-      e.dataTransfer.setData("col-id", id);
-    }
-    setTimeout(
-      () => {
-        $$invalidate(0, dragColId = id);
-      },
-      0
-    );
-  }
-  function handleColDragEnd() {
-    $$invalidate(0, dragColId = null);
-    $$invalidate(1, dragOverColId = null);
-    $$invalidate(2, dragOverColIndex = -1);
-  }
-  async function handleColDrop(e, id) {
-    e.preventDefault();
-    if (!dragColId || dragColId === id)
-      return;
-    const targetIdx = dragOverColIndex;
-    const settings = fileManager.plugin.settings;
-    if (!settings.statuses)
-      settings.statuses = [];
-    const sourceColObj = columns.find((c) => c.id === dragColId);
-    const destColObj = columns.find((c) => c.id === id);
-    if (!settings.statuses.find((s) => s.id === dragColId)) {
-      settings.statuses.push({
-        id: dragColId,
-        name: (sourceColObj == null ? void 0 : sourceColObj.name) || dragColId,
-        color: (sourceColObj == null ? void 0 : sourceColObj.color) || "#a29bfe"
-      });
-    }
-    if (!settings.statuses.find((s) => s.id === id)) {
-      settings.statuses.push({
-        id,
-        name: (destColObj == null ? void 0 : destColObj.name) || id,
-        color: (destColObj == null ? void 0 : destColObj.color) || "#a29bfe"
-      });
-    }
-    const fromIndex = settings.statuses.findIndex((s) => s.id === dragColId);
-    const oldToIndex = settings.statuses.findIndex((s) => s.id === id);
-    const [movedItem] = settings.statuses.splice(fromIndex, 1);
-    const newToIndex = settings.statuses.findIndex((s) => s.id === id);
-    const finalIndex = fromIndex < oldToIndex ? newToIndex + 1 : newToIndex;
-    settings.statuses.splice(finalIndex, 0, movedItem);
-    await fileManager.plugin.saveSettings();
-    $$invalidate(20, fileManager.plugin.settings = settings, fileManager);
-    $$invalidate(0, dragColId = null);
-    $$invalidate(1, dragOverColId = null);
-  }
-  async function updateColumnColor(colId, newColor) {
-    const settings = fileManager.plugin.settings;
-    let col = settings.statuses.find((s) => s.id === colId);
-    if (!col) {
-      const colObj = columns.find((c) => c.id === colId);
-      col = {
-        id: colId,
-        name: (colObj == null ? void 0 : colObj.name) || colId,
-        color: newColor
-      };
-      settings.statuses.push(col);
-    } else {
-      col.color = newColor;
-    }
-    await fileManager.plugin.saveSettings();
-    $$invalidate(20, fileManager.plugin.settings = settings, fileManager);
-  }
-  let dragId = null;
-  let dragOverStatus = null;
-  let dragOverIndex = -1;
-  let dragHeight = 60;
-  function handleDragStart(e, id) {
-    const target = e.target.closest(".pos-board-card");
-    if (target) {
-      const rect = target.getBoundingClientRect();
-      $$invalidate(6, dragHeight = rect.height);
-      if (e.dataTransfer) {
-        e.dataTransfer.effectAllowed = "move";
-        e.dataTransfer.setData("text/plain", id);
-        const clone = target.cloneNode(true);
-        clone.style.position = "absolute";
-        clone.style.top = "-9999px";
-        clone.style.left = "-9999px";
-        clone.style.width = rect.width + "px";
-        clone.style.height = rect.height + "px";
-        clone.style.opacity = "1";
-        clone.classList.remove("pos-dragging-source");
-        document.body.appendChild(clone);
-        e.dataTransfer.setDragImage(clone, e.clientX - rect.left, e.clientY - rect.top);
-        setTimeout(
-          () => {
-            if (clone.parentNode)
-              clone.parentNode.removeChild(clone);
-          },
-          50
-        );
-      }
-    } else {
-      if (e.dataTransfer)
-        e.dataTransfer.setData("text/plain", id);
-    }
-    setTimeout(
-      () => {
-        $$invalidate(3, dragId = id);
-      },
-      0
-    );
-  }
-  function handleDragEnd() {
-    $$invalidate(3, dragId = null);
-    $$invalidate(4, dragOverStatus = null);
-    $$invalidate(5, dragOverIndex = -1);
-  }
-  function handleDragOver(e, status) {
-    if (dragColId)
-      return;
-    e.preventDefault();
-    if (e.dataTransfer)
-      e.dataTransfer.dropEffect = "move";
-    const listWrapper = e.currentTarget.querySelector(".pos-board-list");
-    if (!listWrapper)
-      return;
-    const cards = Array.from(listWrapper.querySelectorAll(".pos-board-card:not(.pos-dragging-source)"));
-    const mouseY = e.clientY;
-    let targetIndex = cards.length;
-    for (let i = 0; i < cards.length; i++) {
-      const rect = cards[i].getBoundingClientRect();
-      const middle = rect.top + rect.height / 2;
-      if (mouseY < middle) {
-        targetIndex = i;
-        break;
-      }
-    }
-    $$invalidate(4, dragOverStatus = status);
-    $$invalidate(5, dragOverIndex = targetIndex);
-  }
-  async function handleDrop(e, status) {
-    var _a;
-    e.preventDefault();
-    if (!dragId)
-      return;
-    const targetIndex = dragOverIndex === -1 ? ((_a = columns.find((c) => c.id === status)) == null ? void 0 : _a.tasks.length) || 0 : dragOverIndex;
-    const task = projectTasks.find((t) => t.id === dragId);
-    $$invalidate(3, dragId = null);
-    $$invalidate(4, dragOverStatus = null);
-    $$invalidate(5, dragOverIndex = -1);
-    if (!task)
-      return;
-    const oldStatus = task.status;
-    const allTasksOfProject = projectTasks;
-    const destCol = allTasksOfProject.filter((t) => t.status === status && t.id !== task.id);
-    destCol.splice(targetIndex, 0, { ...task, status });
-    const promises = destCol.map((t, idx) => {
-      if (t.id === task.id || t.orderIndex !== idx) {
-        return fileManager.updateTask(t.id, {
-          orderIndex: idx,
-          status: t.id === task.id ? status : t.status
-        });
-      }
-      return Promise.resolve();
-    });
-    if (oldStatus !== status) {
-      const sourceCol = allTasksOfProject.filter((t) => t.status === oldStatus && t.id !== task.id);
-      sourceCol.forEach((t, idx) => {
-        if (t.orderIndex !== idx)
-          promises.push(fileManager.updateTask(t.id, { orderIndex: idx }));
-      });
-    }
-    await Promise.all(promises);
-  }
-  function createPlannedTask(statusId) {
-    new NewTaskModal(
-      app,
-      async (name) => {
-        let pid = projectId;
-        if (pid === "-- All Projects --")
-          pid = "";
-        await fileManager.createTask({ name, project: pid, status: statusId });
-      }
-    ).open();
-  }
-  function editTask(task) {
-    new QuickEditTaskModal(
-      app,
-      fileManager.plugin,
-      task,
-      async (updates) => {
-        await fileManager.updateTask(task.id, updates);
-      }
-    ).open();
-  }
-  async function updateStatus(task, status) {
-    await fileManager.updateTask(task.id, { status });
-  }
-  async function deleteTask(id) {
-    await fileManager.deleteTask(id);
-  }
-  const change_handler = (col, e) => updateColumnColor(col.id, e.currentTarget.value);
-  const dragstart_handler = (col, e) => handleColDragStart(e, col.id);
-  const dragover_handler = (col, e) => handleColDragOver(e, col.id);
-  const drop_handler = (col, e) => handleColDrop(e, col.id);
-  const click_handler = (task) => editTask(task);
-  const click_handler_1 = (task) => deleteTask(task.id);
-  const dragstart_handler_1 = (task, e) => handleDragStart(e, task.id);
-  const click_handler_2 = (col) => createPlannedTask(col.id);
-  const dragover_handler_1 = (col, e) => handleDragOver(e, col.id);
-  const drop_handler_1 = (col, e) => handleDrop(e, col.id);
-  $$self.$$set = ($$props2) => {
-    if ("app" in $$props2)
-      $$invalidate(21, app = $$props2.app);
-    if ("fileManager" in $$props2)
-      $$invalidate(20, fileManager = $$props2.fileManager);
-    if ("projectId" in $$props2)
-      $$invalidate(22, projectId = $$props2.projectId);
-    if ("projectTasks" in $$props2)
-      $$invalidate(23, projectTasks = $$props2.projectTasks);
-  };
-  $$self.$$.update = () => {
-    if ($$self.$$.dirty[0] & /*fileManager*/
-    1048576) {
-      $:
-        $$invalidate(25, settingsStatuses = fileManager.plugin.settings.statuses || []);
-    }
-    if ($$self.$$.dirty[0] & /*settingsStatuses, projectTasks*/
-    41943040) {
-      $:
-        $$invalidate(24, statuses = (() => {
-          const cols = [
-            {
-              id: "backlog",
-              name: "Elastic Backlog",
-              color: "#636e72"
-            }
-          ];
-          settingsStatuses.forEach((s) => {
-            if (!cols.find((c) => c.id === s.id))
-              cols.push(s);
-          });
-          const activeStatuses = new Set(projectTasks.map((t) => t.status));
-          activeStatuses.forEach((statusId) => {
-            if (!cols.find((c) => c.id === statusId)) {
-              if (statusId === "running")
-                cols.push({
-                  id: "running",
-                  name: "Elastic Running",
-                  color: "#00b894"
-                });
-              else if (statusId === "review")
-                cols.push({
-                  id: "review",
-                  name: "Elastic Review",
-                  color: "#fdcb6e"
-                });
-              else
-                cols.push({
-                  id: statusId,
-                  name: statusId,
-                  color: "#a29bfe"
-                });
-            }
-          });
-          return cols;
-        })());
-    }
-    if ($$self.$$.dirty[0] & /*statuses, projectTasks*/
-    25165824) {
-      $:
-        $$invalidate(7, columns = statuses.map((s) => ({
-          ...s,
-          tasks: sortTasks(projectTasks.filter((t) => t.status === s.id))
-        })));
-    }
-  };
-  return [
-    dragColId,
-    dragOverColId,
-    dragOverColIndex,
-    dragId,
-    dragOverStatus,
-    dragOverIndex,
-    dragHeight,
-    columns,
-    getCustomProps,
-    handleColDragStart,
-    handleColDragEnd,
-    handleColDrop,
-    updateColumnColor,
-    handleDragStart,
-    handleDragEnd,
-    handleDragOver,
-    handleDrop,
-    createPlannedTask,
-    editTask,
-    deleteTask,
-    fileManager,
-    app,
-    projectId,
-    projectTasks,
-    statuses,
-    settingsStatuses,
-    change_handler,
-    dragstart_handler,
-    dragover_handler,
-    drop_handler,
-    click_handler,
-    click_handler_1,
-    dragstart_handler_1,
-    click_handler_2,
-    dragover_handler_1,
-    drop_handler_1
-  ];
-}
-var ProjectTaskBoard = class extends SvelteComponent {
-  constructor(options) {
-    super();
-    init(
-      this,
-      options,
-      instance6,
-      create_fragment6,
-      safe_not_equal,
-      {
-        app: 21,
-        fileManager: 20,
-        projectId: 22,
-        projectTasks: 23
-      },
-      null,
-      [-1, -1]
-    );
-  }
-};
-var ProjectTaskBoard_default = ProjectTaskBoard;
-
-// src/ui/views/components/ProjectTaskGrid.svelte
-var import_obsidian5 = require("obsidian");
-function get_each_context6(ctx, list, i) {
-  const child_ctx = ctx.slice();
-  child_ctx[38] = list[i];
-  return child_ctx;
-}
-function get_each_context_14(ctx, list, i) {
-  const child_ctx = ctx.slice();
-  child_ctx[41] = list[i];
-  return child_ctx;
-}
-function get_each_context_24(ctx, list, i) {
-  const child_ctx = ctx.slice();
-  child_ctx[41] = list[i];
-  return child_ctx;
-}
-function create_if_block_64(ctx) {
-  let div2;
-  let button;
+function create_if_block_24(ctx) {
+  let t0;
+  let t1_value = new Date(
+    /*nearestDeadline*/
+    ctx[38]
+  ).toLocaleDateString() + "";
   let t1;
-  let mounted;
-  let dispose;
-  let each_value_2 = ensure_array_like(
-    /*uniqueTags*/
-    ctx[10]
-  );
-  let each_blocks = [];
-  for (let i = 0; i < each_value_2.length; i += 1) {
-    each_blocks[i] = create_each_block_24(get_each_context_24(ctx, each_value_2, i));
-  }
   return {
     c() {
-      div2 = element("div");
-      button = element("button");
-      button.textContent = "All Tags";
-      t1 = space();
-      for (let i = 0; i < each_blocks.length; i += 1) {
-        each_blocks[i].c();
-      }
-      attr(button, "class", "pos-tag-filter-pill");
-      toggle_class(
-        button,
-        "active",
-        /*tagFilter*/
-        ctx[4] === null
-      );
-      attr(div2, "class", "pos-tag-filter-bar");
+      t0 = text("Next Deadline: ");
+      t1 = text(t1_value);
     },
     m(target, anchor) {
-      insert(target, div2, anchor);
-      append(div2, button);
-      append(div2, t1);
-      for (let i = 0; i < each_blocks.length; i += 1) {
-        if (each_blocks[i]) {
-          each_blocks[i].m(div2, null);
-        }
-      }
-      if (!mounted) {
-        dispose = listen(
-          button,
-          "click",
-          /*click_handler*/
-          ctx[22]
-        );
-        mounted = true;
-      }
+      insert(target, t0, anchor);
+      insert(target, t1, anchor);
     },
     p(ctx2, dirty) {
-      if (dirty[0] & /*tagFilter*/
-      16) {
-        toggle_class(
-          button,
-          "active",
-          /*tagFilter*/
-          ctx2[4] === null
-        );
-      }
-      if (dirty[0] & /*tagFilter, uniqueTags*/
-      1040) {
-        each_value_2 = ensure_array_like(
-          /*uniqueTags*/
-          ctx2[10]
-        );
-        let i;
-        for (i = 0; i < each_value_2.length; i += 1) {
-          const child_ctx = get_each_context_24(ctx2, each_value_2, i);
-          if (each_blocks[i]) {
-            each_blocks[i].p(child_ctx, dirty);
-          } else {
-            each_blocks[i] = create_each_block_24(child_ctx);
-            each_blocks[i].c();
-            each_blocks[i].m(div2, null);
-          }
-        }
-        for (; i < each_blocks.length; i += 1) {
-          each_blocks[i].d(1);
-        }
-        each_blocks.length = each_value_2.length;
-      }
+      if (dirty[0] & /*tasks, displayProjects, now*/
+      44 && t1_value !== (t1_value = new Date(
+        /*nearestDeadline*/
+        ctx2[38]
+      ).toLocaleDateString() + ""))
+        set_data(t1, t1_value);
     },
     d(detaching) {
       if (detaching) {
-        detach(div2);
+        detach(t0);
+        detach(t1);
       }
-      destroy_each(each_blocks, detaching);
-      mounted = false;
-      dispose();
     }
   };
 }
-function create_each_block_24(ctx) {
+function create_else_block_12(ctx) {
   let button;
-  let t_value = (
-    /*tag*/
-    ctx[41] + ""
-  );
-  let t;
   let mounted;
   let dispose;
-  function click_handler_1() {
+  function click_handler_3() {
     return (
-      /*click_handler_1*/
-      ctx[23](
-        /*tag*/
-        ctx[41]
+      /*click_handler_3*/
+      ctx[25](
+        /*p*/
+        ctx[29]
       )
     );
   }
   return {
     c() {
       button = element("button");
-      t = text(t_value);
-      attr(button, "class", "pos-tag-filter-pill");
-      toggle_class(
-        button,
-        "active",
-        /*tagFilter*/
-        ctx[4] === /*tag*/
-        ctx[41]
-      );
+      button.textContent = "Restore";
+      attr(button, "title", "Restore project");
     },
     m(target, anchor) {
       insert(target, button, anchor);
-      append(button, t);
       if (!mounted) {
-        dispose = listen(button, "click", click_handler_1);
+        dispose = listen(button, "click", click_handler_3);
         mounted = true;
       }
     },
     p(new_ctx, dirty) {
       ctx = new_ctx;
-      if (dirty[0] & /*uniqueTags*/
-      1024 && t_value !== (t_value = /*tag*/
-      ctx[41] + ""))
-        set_data(t, t_value);
-      if (dirty[0] & /*tagFilter, uniqueTags*/
-      1040) {
-        toggle_class(
-          button,
-          "active",
-          /*tagFilter*/
-          ctx[4] === /*tag*/
-          ctx[41]
-        );
-      }
     },
     d(detaching) {
       if (detaching) {
@@ -13134,469 +10467,157 @@ function create_each_block_24(ctx) {
     }
   };
 }
-function create_if_block_55(ctx) {
-  let div1;
-  let span;
-  let t0_value = (
-    /*selectedTaskIds*/
-    ctx[7].size + ""
-  );
-  let t0;
-  let t1;
-  let t2;
-  let div0;
-  let button0;
-  let t4;
-  let button1;
-  let t6;
-  let button2;
-  let t8;
-  let button3;
+function create_if_block_14(ctx) {
+  let button;
   let mounted;
   let dispose;
-  return {
-    c() {
-      div1 = element("div");
-      span = element("span");
-      t0 = text(t0_value);
-      t1 = text(" tasks selected");
-      t2 = space();
-      div0 = element("div");
-      button0 = element("button");
-      button0.textContent = "Activate (Move to Backlog)";
-      t4 = space();
-      button1 = element("button");
-      button1.textContent = "Deactivate (Move to Planned)";
-      t6 = space();
-      button2 = element("button");
-      button2.textContent = "Complete";
-      t8 = space();
-      button3 = element("button");
-      button3.textContent = "Delete Permanently";
-      attr(span, "class", "pos-bulk-bar-count");
-      attr(button0, "class", "pos-bulk-act-btn activate");
-      attr(button1, "class", "pos-bulk-act-btn plan");
-      attr(button2, "class", "pos-bulk-act-btn complete");
-      attr(button3, "class", "pos-bulk-act-btn delete pos-del");
-      attr(div0, "class", "pos-bulk-bar-acts");
-      attr(div1, "class", "pos-bulk-bar");
-    },
-    m(target, anchor) {
-      insert(target, div1, anchor);
-      append(div1, span);
-      append(span, t0);
-      append(span, t1);
-      append(div1, t2);
-      append(div1, div0);
-      append(div0, button0);
-      append(div0, t4);
-      append(div0, button1);
-      append(div0, t6);
-      append(div0, button2);
-      append(div0, t8);
-      append(div0, button3);
-      if (!mounted) {
-        dispose = [
-          listen(
-            button0,
-            "click",
-            /*bulkActivate*/
-            ctx[13]
-          ),
-          listen(
-            button1,
-            "click",
-            /*bulkPlan*/
-            ctx[14]
-          ),
-          listen(
-            button2,
-            "click",
-            /*bulkComplete*/
-            ctx[15]
-          ),
-          listen(
-            button3,
-            "click",
-            /*bulkDelete*/
-            ctx[16]
-          )
-        ];
-        mounted = true;
-      }
-    },
-    p(ctx2, dirty) {
-      if (dirty[0] & /*selectedTaskIds*/
-      128 && t0_value !== (t0_value = /*selectedTaskIds*/
-      ctx2[7].size + ""))
-        set_data(t0, t0_value);
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(div1);
-      }
-      mounted = false;
-      run_all(dispose);
-    }
-  };
-}
-function create_else_block4(ctx) {
-  let each_blocks = [];
-  let each_1_lookup = /* @__PURE__ */ new Map();
-  let each_1_anchor;
-  let each_value = ensure_array_like(
-    /*sortedTasks*/
-    ctx[8]
-  );
-  const get_key = (ctx2) => (
-    /*task*/
-    ctx2[38].id
-  );
-  for (let i = 0; i < each_value.length; i += 1) {
-    let child_ctx = get_each_context6(ctx, each_value, i);
-    let key = get_key(child_ctx);
-    each_1_lookup.set(key, each_blocks[i] = create_each_block6(key, child_ctx));
-  }
-  return {
-    c() {
-      for (let i = 0; i < each_blocks.length; i += 1) {
-        each_blocks[i].c();
-      }
-      each_1_anchor = empty();
-    },
-    m(target, anchor) {
-      for (let i = 0; i < each_blocks.length; i += 1) {
-        if (each_blocks[i]) {
-          each_blocks[i].m(target, anchor);
-        }
-      }
-      insert(target, each_1_anchor, anchor);
-    },
-    p(ctx2, dirty) {
-      if (dirty[0] & /*selectedTaskIds, sortedTasks, fileManager, tagFilter, editTask, toggleSelection*/
-      264593) {
-        each_value = ensure_array_like(
-          /*sortedTasks*/
-          ctx2[8]
-        );
-        each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx2, each_value, each_1_lookup, each_1_anchor.parentNode, destroy_block, create_each_block6, each_1_anchor, get_each_context6);
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(each_1_anchor);
-      }
-      for (let i = 0; i < each_blocks.length; i += 1) {
-        each_blocks[i].d(detaching);
-      }
-    }
-  };
-}
-function create_if_block6(ctx) {
-  let tr;
-  return {
-    c() {
-      tr = element("tr");
-      tr.innerHTML = `<td colspan="8" class="pos-empty-grid">No tasks match your search filters.</td>`;
-    },
-    m(target, anchor) {
-      insert(target, tr, anchor);
-    },
-    p: noop,
-    d(detaching) {
-      if (detaching) {
-        detach(tr);
-      }
-    }
-  };
-}
-function create_if_block_45(ctx) {
-  let span;
-  let t_value = (
-    /*task*/
-    ctx[38].description + ""
-  );
-  let t;
-  return {
-    c() {
-      span = element("span");
-      t = text(t_value);
-      attr(span, "class", "pos-td-task-desc");
-    },
-    m(target, anchor) {
-      insert(target, span, anchor);
-      append(span, t);
-    },
-    p(ctx2, dirty) {
-      if (dirty[0] & /*sortedTasks*/
-      256 && t_value !== (t_value = /*task*/
-      ctx2[38].description + ""))
-        set_data(t, t_value);
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(span);
-      }
-    }
-  };
-}
-function create_else_block_12(ctx) {
-  let span;
-  return {
-    c() {
-      span = element("span");
-      span.textContent = "Low";
-      attr(span, "class", "pos-priority-badge low");
-    },
-    m(target, anchor) {
-      insert(target, span, anchor);
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(span);
-      }
-    }
-  };
-}
-function create_if_block_36(ctx) {
-  let span;
-  return {
-    c() {
-      span = element("span");
-      span.textContent = "Medium";
-      attr(span, "class", "pos-priority-badge medium");
-    },
-    m(target, anchor) {
-      insert(target, span, anchor);
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(span);
-      }
-    }
-  };
-}
-function create_if_block_26(ctx) {
-  let span;
-  return {
-    c() {
-      span = element("span");
-      span.textContent = "High";
-      attr(span, "class", "pos-priority-badge high");
-    },
-    m(target, anchor) {
-      insert(target, span, anchor);
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(span);
-      }
-    }
-  };
-}
-function create_if_block_110(ctx) {
-  let each_1_anchor;
-  let each_value_1 = ensure_array_like(
-    /*task*/
-    ctx[38].tags
-  );
-  let each_blocks = [];
-  for (let i = 0; i < each_value_1.length; i += 1) {
-    each_blocks[i] = create_each_block_14(get_each_context_14(ctx, each_value_1, i));
-  }
-  return {
-    c() {
-      for (let i = 0; i < each_blocks.length; i += 1) {
-        each_blocks[i].c();
-      }
-      each_1_anchor = empty();
-    },
-    m(target, anchor) {
-      for (let i = 0; i < each_blocks.length; i += 1) {
-        if (each_blocks[i]) {
-          each_blocks[i].m(target, anchor);
-        }
-      }
-      insert(target, each_1_anchor, anchor);
-    },
-    p(ctx2, dirty) {
-      if (dirty[0] & /*tagFilter, sortedTasks*/
-      272) {
-        each_value_1 = ensure_array_like(
-          /*task*/
-          ctx2[38].tags
-        );
-        let i;
-        for (i = 0; i < each_value_1.length; i += 1) {
-          const child_ctx = get_each_context_14(ctx2, each_value_1, i);
-          if (each_blocks[i]) {
-            each_blocks[i].p(child_ctx, dirty);
-          } else {
-            each_blocks[i] = create_each_block_14(child_ctx);
-            each_blocks[i].c();
-            each_blocks[i].m(each_1_anchor.parentNode, each_1_anchor);
-          }
-        }
-        for (; i < each_blocks.length; i += 1) {
-          each_blocks[i].d(1);
-        }
-        each_blocks.length = each_value_1.length;
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(each_1_anchor);
-      }
-      destroy_each(each_blocks, detaching);
-    }
-  };
-}
-function create_each_block_14(ctx) {
-  let span;
-  let t_value = (
-    /*tag*/
-    ctx[41] + ""
-  );
-  let t;
-  let mounted;
-  let dispose;
-  function click_handler_9() {
+  function click_handler_2() {
     return (
-      /*click_handler_9*/
-      ctx[35](
-        /*tag*/
-        ctx[41]
+      /*click_handler_2*/
+      ctx[24](
+        /*p*/
+        ctx[29]
       )
     );
   }
   return {
     c() {
-      span = element("span");
-      t = text(t_value);
-      attr(span, "class", "pos-tag-pill");
-      set_style(span, "cursor", "pointer");
+      button = element("button");
+      button.textContent = "Archive";
+      attr(button, "title", "Archive project");
     },
     m(target, anchor) {
-      insert(target, span, anchor);
-      append(span, t);
+      insert(target, button, anchor);
       if (!mounted) {
-        dispose = listen(span, "click", stop_propagation(click_handler_9));
+        dispose = listen(button, "click", click_handler_2);
         mounted = true;
       }
     },
     p(new_ctx, dirty) {
       ctx = new_ctx;
-      if (dirty[0] & /*sortedTasks*/
-      256 && t_value !== (t_value = /*tag*/
-      ctx[41] + ""))
-        set_data(t, t_value);
     },
     d(detaching) {
       if (detaching) {
-        detach(span);
+        detach(button);
       }
       mounted = false;
       dispose();
     }
   };
 }
-function create_each_block6(key_1, ctx) {
-  let tr;
-  let td0;
-  let input;
-  let input_checked_value;
-  let t0;
-  let td1;
+function create_each_block4(key_1, ctx) {
+  let div8;
   let div0;
-  let span0;
-  let t1_value = (
-    /*task*/
-    ctx[38].name + ""
+  let t0_value = (
+    /*p*/
+    ctx[29].name + ""
   );
+  let t0;
   let t1;
   let t2;
   let t3;
-  let td2;
-  let span1;
-  let t4_value = (
-    /*task*/
-    ctx[38].status.toUpperCase() + ""
-  );
-  let t4;
-  let span1_class_value;
-  let t5;
-  let td3;
-  let t6;
-  let td4;
   let div1;
-  let t7;
-  let td5;
-  let t8_value = (
-    /*task*/
-    ctx[38].weight + ""
+  let t4;
+  let t5_value = formatAge(
+    /*p*/
+    ctx[29].createdAt,
+    /*now*/
+    ctx[3]
+  ) + "";
+  let t5;
+  let t6;
+  let div6;
+  let div2;
+  let span0;
+  let t7_value = (
+    /*total*/
+    ctx[31] + ""
   );
+  let t7;
   let t8;
   let t9;
-  let td6;
-  let t10_value = new Date(
-    /*task*/
-    ctx[38].createdAt
-  ).toLocaleDateString() + "";
+  let span1;
   let t10;
+  let t11_value = (
+    /*completionPct*/
+    ctx[39] + ""
+  );
   let t11;
-  let td7;
-  let div2;
-  let button;
+  let t12;
   let t13;
+  let t14;
+  let t15;
+  let div3;
+  let t16;
+  let div5;
+  let div4;
+  let t17;
+  let div7;
+  let button0;
+  let t19;
+  let t20;
+  let button1;
+  let t22;
   let mounted;
   let dispose;
-  function change_handler() {
-    return (
-      /*change_handler*/
-      ctx[33](
-        /*task*/
-        ctx[38]
-      )
-    );
-  }
-  function click_handler_8() {
-    return (
-      /*click_handler_8*/
-      ctx[34](
-        /*task*/
-        ctx[38]
-      )
-    );
-  }
   let if_block0 = (
-    /*task*/
-    ctx[38].description && create_if_block_45(ctx)
+    /*showArchived*/
+    ctx[0] && create_if_block_63(ctx)
+  );
+  function click_handler() {
+    return (
+      /*click_handler*/
+      ctx[22](
+        /*p*/
+        ctx[29]
+      )
+    );
+  }
+  let if_block1 = (
+    /*p*/
+    ctx[29].description && create_if_block_54(ctx)
+  );
+  let if_block2 = (
+    /*overdue*/
+    ctx[34] > 0 && create_if_block_44(ctx)
+  );
+  let if_block3 = (
+    /*highPriority*/
+    ctx[36] > 0 && create_if_block_34(ctx)
   );
   function select_block_type_1(ctx2, dirty) {
     if (
-      /*task*/
-      ctx2[38].priority === 1
+      /*nearestDeadline*/
+      ctx2[38]
     )
-      return create_if_block_26;
-    if (
-      /*task*/
-      ctx2[38].priority === 2
-    )
-      return create_if_block_36;
-    return create_else_block_12;
+      return create_if_block_24;
+    return create_else_block_2;
   }
   let current_block_type = select_block_type_1(ctx, [-1, -1]);
-  let if_block1 = current_block_type(ctx);
-  let if_block2 = (
-    /*task*/
-    ctx[38].tags && create_if_block_110(ctx)
-  );
-  function click_handler_10() {
+  let if_block4 = current_block_type(ctx);
+  function click_handler_1() {
     return (
-      /*click_handler_10*/
-      ctx[36](
-        /*task*/
-        ctx[38]
+      /*click_handler_1*/
+      ctx[23](
+        /*p*/
+        ctx[29]
+      )
+    );
+  }
+  function select_block_type_2(ctx2, dirty) {
+    if (!/*showArchived*/
+    ctx2[0])
+      return create_if_block_14;
+    return create_else_block_12;
+  }
+  let current_block_type_1 = select_block_type_2(ctx, [-1, -1]);
+  let if_block5 = current_block_type_1(ctx);
+  function click_handler_4() {
+    return (
+      /*click_handler_4*/
+      ctx[26](
+        /*p*/
+        ctx[29]
       )
     );
   }
@@ -13604,145 +10625,175 @@ function create_each_block6(key_1, ctx) {
     key: key_1,
     first: null,
     c() {
-      tr = element("tr");
-      td0 = element("td");
-      input = element("input");
-      t0 = space();
-      td1 = element("td");
+      div8 = element("div");
       div0 = element("div");
-      span0 = element("span");
-      t1 = text(t1_value);
-      t2 = space();
+      t0 = text(t0_value);
+      t1 = space();
       if (if_block0)
         if_block0.c();
+      t2 = space();
+      if (if_block1)
+        if_block1.c();
       t3 = space();
-      td2 = element("td");
-      span1 = element("span");
-      t4 = text(t4_value);
-      t5 = space();
-      td3 = element("td");
-      if_block1.c();
-      t6 = space();
-      td4 = element("td");
       div1 = element("div");
+      t4 = text("Age: ");
+      t5 = text(t5_value);
+      t6 = space();
+      div6 = element("div");
+      div2 = element("div");
+      span0 = element("span");
+      t7 = text(t7_value);
+      t8 = text(" Tasks");
+      t9 = space();
+      span1 = element("span");
+      t10 = text("\u2705 ");
+      t11 = text(t11_value);
+      t12 = text("%");
+      t13 = space();
       if (if_block2)
         if_block2.c();
-      t7 = space();
-      td5 = element("td");
-      t8 = text(t8_value);
-      t9 = space();
-      td6 = element("td");
-      t10 = text(t10_value);
-      t11 = space();
-      td7 = element("td");
-      div2 = element("div");
-      button = element("button");
-      button.textContent = "Delete";
-      t13 = space();
-      attr(input, "type", "checkbox");
-      input.checked = input_checked_value = /*selectedTaskIds*/
-      ctx[7].has(
-        /*task*/
-        ctx[38].id
+      t14 = space();
+      if (if_block3)
+        if_block3.c();
+      t15 = space();
+      div3 = element("div");
+      if_block4.c();
+      t16 = space();
+      div5 = element("div");
+      div4 = element("div");
+      t17 = space();
+      div7 = element("div");
+      button0 = element("button");
+      button0.textContent = "Open Workspace";
+      t19 = space();
+      if_block5.c();
+      t20 = space();
+      button1 = element("button");
+      button1.textContent = "Delete";
+      t22 = space();
+      attr(div0, "class", "pos-card-name");
+      set_style(div0, "cursor", "pointer");
+      set_style(div0, "font-weight", "bold");
+      set_style(div0, "font-size", "1.15em");
+      attr(div1, "class", "pos-age");
+      attr(span0, "title", "Total Tasks");
+      attr(span1, "title", "Completion");
+      set_style(div2, "display", "flex");
+      set_style(div2, "align-items", "center");
+      set_style(div2, "gap", "12px");
+      set_style(div2, "font-weight", "600");
+      set_style(div3, "font-size", "0.9em");
+      set_style(div3, "opacity", "0.8");
+      set_style(div4, "height", "100%");
+      set_style(
+        div4,
+        "width",
+        /*completionPct*/
+        ctx[39] + "%"
       );
-      attr(td0, "class", "pos-td-check");
-      attr(span0, "class", "pos-td-task-title");
-      attr(div0, "class", "pos-td-name-cell");
-      attr(td1, "class", "pos-td-name");
-      attr(span1, "class", span1_class_value = "pos-ptc-status-badge " + /*task*/
-      ctx[38].status);
-      attr(td2, "class", "pos-td-status");
-      attr(td3, "class", "pos-td-priority");
-      attr(div1, "class", "pos-card-meta");
-      attr(td4, "class", "pos-td-tags");
-      attr(td5, "class", "pos-td-weight font-mono");
-      attr(td6, "class", "pos-td-date font-mono");
-      attr(button, "class", "pos-del");
-      attr(div2, "class", "pos-grid-row-acts");
-      attr(td7, "class", "pos-td-acts");
-      toggle_class(
-        tr,
-        "selected",
-        /*selectedTaskIds*/
-        ctx[7].has(
-          /*task*/
-          ctx[38].id
-        )
-      );
-      toggle_class(
-        tr,
-        "completed",
-        /*task*/
-        ctx[38].isCompleted
-      );
-      this.first = tr;
+      set_style(div4, "background", "#28a745");
+      set_style(div4, "transition", "width 0.3s");
+      set_style(div5, "width", "100%");
+      set_style(div5, "height", "6px");
+      set_style(div5, "background", "rgba(0,0,0,0.1)");
+      set_style(div5, "border-radius", "3px");
+      set_style(div5, "overflow", "hidden");
+      set_style(div5, "margin-top", "4px");
+      attr(div6, "class", "pos-card-meta");
+      set_style(div6, "display", "flex");
+      set_style(div6, "flex-direction", "column");
+      set_style(div6, "gap", "8px");
+      set_style(div6, "margin-top", "12px");
+      attr(button0, "class", "pos-ptc-start-btn");
+      attr(button1, "class", "pos-del");
+      attr(button1, "title", "Delete project");
+      attr(div7, "class", "pos-card-acts");
+      set_style(div7, "margin-top", "16px");
+      set_style(div7, "display", "flex");
+      set_style(div7, "gap", "8px");
+      set_style(div7, "flex-wrap", "wrap");
+      attr(div8, "class", "pos-card pos-project-card");
+      set_style(div8, "background-color", "hsl(" + /*showArchived*/
+      (ctx[0] ? "0, 0%, 90%" : (
+        /*getHue*/
+        ctx[6](
+          /*p*/
+          ctx[29].createdAt,
+          /*range*/
+          ctx[4],
+          /*minTime*/
+          ctx[1]
+        ) + ", 70%, 90%"
+      )) + ")");
+      this.first = div8;
     },
     m(target, anchor) {
-      insert(target, tr, anchor);
-      append(tr, td0);
-      append(td0, input);
-      append(tr, t0);
-      append(tr, td1);
-      append(td1, div0);
-      append(div0, span0);
-      append(span0, t1);
-      append(div0, t2);
+      insert(target, div8, anchor);
+      append(div8, div0);
+      append(div0, t0);
+      append(div0, t1);
       if (if_block0)
         if_block0.m(div0, null);
-      append(tr, t3);
-      append(tr, td2);
-      append(td2, span1);
-      append(span1, t4);
-      append(tr, t5);
-      append(tr, td3);
-      if_block1.m(td3, null);
-      append(tr, t6);
-      append(tr, td4);
-      append(td4, div1);
+      append(div8, t2);
+      if (if_block1)
+        if_block1.m(div8, null);
+      append(div8, t3);
+      append(div8, div1);
+      append(div1, t4);
+      append(div1, t5);
+      append(div8, t6);
+      append(div8, div6);
+      append(div6, div2);
+      append(div2, span0);
+      append(span0, t7);
+      append(span0, t8);
+      append(div2, t9);
+      append(div2, span1);
+      append(span1, t10);
+      append(span1, t11);
+      append(span1, t12);
+      append(div2, t13);
       if (if_block2)
-        if_block2.m(div1, null);
-      append(tr, t7);
-      append(tr, td5);
-      append(td5, t8);
-      append(tr, t9);
-      append(tr, td6);
-      append(td6, t10);
-      append(tr, t11);
-      append(tr, td7);
-      append(td7, div2);
-      append(div2, button);
-      append(tr, t13);
+        if_block2.m(div2, null);
+      append(div2, t14);
+      if (if_block3)
+        if_block3.m(div2, null);
+      append(div6, t15);
+      append(div6, div3);
+      if_block4.m(div3, null);
+      append(div6, t16);
+      append(div6, div5);
+      append(div5, div4);
+      append(div8, t17);
+      append(div8, div7);
+      append(div7, button0);
+      append(div7, t19);
+      if_block5.m(div7, null);
+      append(div7, t20);
+      append(div7, button1);
+      append(div8, t22);
       if (!mounted) {
         dispose = [
-          listen(input, "change", change_handler),
-          listen(span0, "click", click_handler_8),
-          listen(button, "click", click_handler_10)
+          listen(div0, "click", click_handler),
+          listen(button0, "click", click_handler_1),
+          listen(button1, "click", click_handler_4)
         ];
         mounted = true;
       }
     },
     p(new_ctx, dirty) {
       ctx = new_ctx;
-      if (dirty[0] & /*selectedTaskIds, sortedTasks*/
-      384 && input_checked_value !== (input_checked_value = /*selectedTaskIds*/
-      ctx[7].has(
-        /*task*/
-        ctx[38].id
-      ))) {
-        input.checked = input_checked_value;
-      }
-      if (dirty[0] & /*sortedTasks*/
-      256 && t1_value !== (t1_value = /*task*/
-      ctx[38].name + ""))
-        set_data(t1, t1_value);
+      if (dirty[0] & /*displayProjects*/
+      4 && t0_value !== (t0_value = /*p*/
+      ctx[29].name + ""))
+        set_data(t0, t0_value);
       if (
-        /*task*/
-        ctx[38].description
+        /*showArchived*/
+        ctx[0]
       ) {
         if (if_block0) {
-          if_block0.p(ctx, dirty);
         } else {
-          if_block0 = create_if_block_45(ctx);
+          if_block0 = create_if_block_63(ctx);
           if_block0.c();
           if_block0.m(div0, null);
         }
@@ -13750,575 +10801,259 @@ function create_each_block6(key_1, ctx) {
         if_block0.d(1);
         if_block0 = null;
       }
-      if (dirty[0] & /*sortedTasks*/
-      256 && t4_value !== (t4_value = /*task*/
-      ctx[38].status.toUpperCase() + ""))
-        set_data(t4, t4_value);
-      if (dirty[0] & /*sortedTasks*/
-      256 && span1_class_value !== (span1_class_value = "pos-ptc-status-badge " + /*task*/
-      ctx[38].status)) {
-        attr(span1, "class", span1_class_value);
-      }
-      if (current_block_type !== (current_block_type = select_block_type_1(ctx, dirty))) {
-        if_block1.d(1);
-        if_block1 = current_block_type(ctx);
-        if (if_block1) {
-          if_block1.c();
-          if_block1.m(td3, null);
-        }
-      }
       if (
-        /*task*/
-        ctx[38].tags
+        /*p*/
+        ctx[29].description
+      ) {
+        if (if_block1) {
+          if_block1.p(ctx, dirty);
+        } else {
+          if_block1 = create_if_block_54(ctx);
+          if_block1.c();
+          if_block1.m(div8, t3);
+        }
+      } else if (if_block1) {
+        if_block1.d(1);
+        if_block1 = null;
+      }
+      if (dirty[0] & /*displayProjects, now*/
+      12 && t5_value !== (t5_value = formatAge(
+        /*p*/
+        ctx[29].createdAt,
+        /*now*/
+        ctx[3]
+      ) + ""))
+        set_data(t5, t5_value);
+      if (dirty[0] & /*tasks, displayProjects*/
+      36 && t7_value !== (t7_value = /*total*/
+      ctx[31] + ""))
+        set_data(t7, t7_value);
+      if (dirty[0] & /*tasks, displayProjects*/
+      36 && t11_value !== (t11_value = /*completionPct*/
+      ctx[39] + ""))
+        set_data(t11, t11_value);
+      if (
+        /*overdue*/
+        ctx[34] > 0
       ) {
         if (if_block2) {
           if_block2.p(ctx, dirty);
         } else {
-          if_block2 = create_if_block_110(ctx);
+          if_block2 = create_if_block_44(ctx);
           if_block2.c();
-          if_block2.m(div1, null);
+          if_block2.m(div2, t14);
         }
       } else if (if_block2) {
         if_block2.d(1);
         if_block2 = null;
       }
-      if (dirty[0] & /*sortedTasks*/
-      256 && t8_value !== (t8_value = /*task*/
-      ctx[38].weight + ""))
-        set_data(t8, t8_value);
-      if (dirty[0] & /*sortedTasks*/
-      256 && t10_value !== (t10_value = new Date(
-        /*task*/
-        ctx[38].createdAt
-      ).toLocaleDateString() + ""))
-        set_data(t10, t10_value);
-      if (dirty[0] & /*selectedTaskIds, sortedTasks*/
-      384) {
-        toggle_class(
-          tr,
-          "selected",
-          /*selectedTaskIds*/
-          ctx[7].has(
-            /*task*/
-            ctx[38].id
-          )
+      if (
+        /*highPriority*/
+        ctx[36] > 0
+      ) {
+        if (if_block3) {
+          if_block3.p(ctx, dirty);
+        } else {
+          if_block3 = create_if_block_34(ctx);
+          if_block3.c();
+          if_block3.m(div2, null);
+        }
+      } else if (if_block3) {
+        if_block3.d(1);
+        if_block3 = null;
+      }
+      if (current_block_type === (current_block_type = select_block_type_1(ctx, dirty)) && if_block4) {
+        if_block4.p(ctx, dirty);
+      } else {
+        if_block4.d(1);
+        if_block4 = current_block_type(ctx);
+        if (if_block4) {
+          if_block4.c();
+          if_block4.m(div3, null);
+        }
+      }
+      if (dirty[0] & /*tasks, displayProjects*/
+      36) {
+        set_style(
+          div4,
+          "width",
+          /*completionPct*/
+          ctx[39] + "%"
         );
       }
-      if (dirty[0] & /*sortedTasks*/
-      256) {
-        toggle_class(
-          tr,
-          "completed",
-          /*task*/
-          ctx[38].isCompleted
-        );
+      if (current_block_type_1 === (current_block_type_1 = select_block_type_2(ctx, dirty)) && if_block5) {
+        if_block5.p(ctx, dirty);
+      } else {
+        if_block5.d(1);
+        if_block5 = current_block_type_1(ctx);
+        if (if_block5) {
+          if_block5.c();
+          if_block5.m(div7, t20);
+        }
+      }
+      if (dirty[0] & /*showArchived, displayProjects, range, minTime*/
+      23) {
+        set_style(div8, "background-color", "hsl(" + /*showArchived*/
+        (ctx[0] ? "0, 0%, 90%" : (
+          /*getHue*/
+          ctx[6](
+            /*p*/
+            ctx[29].createdAt,
+            /*range*/
+            ctx[4],
+            /*minTime*/
+            ctx[1]
+          ) + ", 70%, 90%"
+        )) + ")");
       }
     },
     d(detaching) {
       if (detaching) {
-        detach(tr);
+        detach(div8);
       }
       if (if_block0)
         if_block0.d();
-      if_block1.d();
+      if (if_block1)
+        if_block1.d();
       if (if_block2)
         if_block2.d();
+      if (if_block3)
+        if_block3.d();
+      if_block4.d();
+      if_block5.d();
       mounted = false;
       run_all(dispose);
     }
   };
 }
-function create_fragment7(ctx) {
-  let div2;
-  let t0;
+function create_fragment4(ctx) {
+  let div4;
+  let div3;
   let div0;
-  let input0;
+  let h2;
   let t1;
-  let select0;
-  let option0;
-  let option1;
-  let option2;
-  let option3;
-  let t6;
-  let select1;
-  let option4;
-  let option5;
-  let option5_value_value;
-  let option6;
-  let option6_value_value;
-  let option7;
-  let option7_value_value;
-  let t11;
-  let t12;
+  let button;
+  let t3;
   let div1;
-  let table;
-  let thead;
-  let tr;
-  let th0;
-  let input1;
-  let t13;
-  let th1;
-  let t14;
-  let t15_value = (
-    /*sortBy*/
-    ctx[5] === "name" ? (
-      /*sortOrder*/
-      ctx[6] === "asc" ? "\u25B2" : "\u25BC"
-    ) : ""
-  );
-  let t15;
-  let t16;
-  let th2;
-  let t17;
-  let t18_value = (
-    /*sortBy*/
-    ctx[5] === "status" ? (
-      /*sortOrder*/
-      ctx[6] === "asc" ? "\u25B2" : "\u25BC"
-    ) : ""
-  );
-  let t18;
-  let t19;
-  let th3;
-  let t20;
-  let t21_value = (
-    /*sortBy*/
-    ctx[5] === "priority" ? (
-      /*sortOrder*/
-      ctx[6] === "asc" ? "\u25B2" : "\u25BC"
-    ) : ""
-  );
-  let t21;
-  let t22;
-  let th4;
-  let t23;
-  let t24_value = (
-    /*sortBy*/
-    ctx[5] === "tags" ? (
-      /*sortOrder*/
-      ctx[6] === "asc" ? "\u25B2" : "\u25BC"
-    ) : ""
-  );
-  let t24;
-  let t25;
-  let th5;
-  let t26;
-  let t27_value = (
-    /*sortBy*/
-    ctx[5] === "weight" ? (
-      /*sortOrder*/
-      ctx[6] === "asc" ? "\u25B2" : "\u25BC"
-    ) : ""
-  );
-  let t27;
-  let t28;
-  let th6;
-  let t29;
-  let t30_value = (
-    /*sortBy*/
-    ctx[5] === "createdAt" ? (
-      /*sortOrder*/
-      ctx[6] === "asc" ? "\u25B2" : "\u25BC"
-    ) : ""
-  );
-  let t30;
-  let t31;
-  let th7;
-  let t33;
-  let tbody;
+  let p_1;
+  let t5;
+  let label;
+  let input;
+  let t6;
+  let span;
+  let t8;
+  let div2;
   let mounted;
   let dispose;
-  let if_block0 = (
-    /*uniqueTags*/
-    ctx[10].length > 0 && create_if_block_64(ctx)
-  );
-  let if_block1 = (
-    /*selectedTaskIds*/
-    ctx[7].size > 0 && create_if_block_55(ctx)
-  );
   function select_block_type(ctx2, dirty) {
     if (
-      /*sortedTasks*/
-      ctx2[8].length === 0
+      /*displayProjects*/
+      ctx2[2].length === 0
     )
-      return create_if_block6;
+      return create_if_block4;
     return create_else_block4;
   }
   let current_block_type = select_block_type(ctx, [-1, -1]);
-  let if_block2 = current_block_type(ctx);
+  let if_block = current_block_type(ctx);
   return {
     c() {
-      div2 = element("div");
-      if (if_block0)
-        if_block0.c();
-      t0 = space();
+      div4 = element("div");
+      div3 = element("div");
       div0 = element("div");
-      input0 = element("input");
+      h2 = element("h2");
+      h2.textContent = "Projects Hub";
       t1 = space();
-      select0 = element("select");
-      option0 = element("option");
-      option0.textContent = "All Task States";
-      option1 = element("option");
-      option1.textContent = "Planned (Inactive)";
-      option2 = element("option");
-      option2.textContent = "Active (Backlog/Running)";
-      option3 = element("option");
-      option3.textContent = "Review (Completed)";
-      t6 = space();
-      select1 = element("select");
-      option4 = element("option");
-      option4.textContent = "All Priorities";
-      option5 = element("option");
-      option5.textContent = "High Priority";
-      option6 = element("option");
-      option6.textContent = "Medium Priority";
-      option7 = element("option");
-      option7.textContent = "Low Priority";
-      t11 = space();
-      if (if_block1)
-        if_block1.c();
-      t12 = space();
+      button = element("button");
+      button.textContent = "+ New Project";
+      t3 = space();
       div1 = element("div");
-      table = element("table");
-      thead = element("thead");
-      tr = element("tr");
-      th0 = element("th");
-      input1 = element("input");
-      t13 = space();
-      th1 = element("th");
-      t14 = text("Task Name ");
-      t15 = text(t15_value);
-      t16 = space();
-      th2 = element("th");
-      t17 = text("Status ");
-      t18 = text(t18_value);
-      t19 = space();
-      th3 = element("th");
-      t20 = text("Priority ");
-      t21 = text(t21_value);
-      t22 = space();
-      th4 = element("th");
-      t23 = text("Tags ");
-      t24 = text(t24_value);
-      t25 = space();
-      th5 = element("th");
-      t26 = text("Weight ");
-      t27 = text(t27_value);
-      t28 = space();
-      th6 = element("th");
-      t29 = text("Created ");
-      t30 = text(t30_value);
-      t31 = space();
-      th7 = element("th");
-      th7.textContent = "Actions";
-      t33 = space();
-      tbody = element("tbody");
-      if_block2.c();
-      attr(input0, "type", "text");
-      attr(input0, "placeholder", "Search planned task names or descriptions...");
-      attr(input0, "class", "pos-grid-search-input");
-      option0.__value = "all";
-      set_input_value(option0, option0.__value);
-      option1.__value = "planned";
-      set_input_value(option1, option1.__value);
-      option2.__value = "active";
-      set_input_value(option2, option2.__value);
-      option3.__value = "review";
-      set_input_value(option3, option3.__value);
-      attr(select0, "class", "pos-grid-select-filter");
-      if (
-        /*statusFilter*/
-        ctx[2] === void 0
-      )
-        add_render_callback(() => (
-          /*select0_change_handler*/
-          ctx[25].call(select0)
-        ));
-      option4.__value = "all";
-      set_input_value(option4, option4.__value);
-      option5.__value = option5_value_value = 1;
-      set_input_value(option5, option5.__value);
-      option6.__value = option6_value_value = 2;
-      set_input_value(option6, option6.__value);
-      option7.__value = option7_value_value = 3;
-      set_input_value(option7, option7.__value);
-      attr(select1, "class", "pos-grid-select-filter");
-      if (
-        /*priorityFilter*/
-        ctx[3] === void 0
-      )
-        add_render_callback(() => (
-          /*select1_change_handler*/
-          ctx[26].call(select1)
-        ));
-      attr(div0, "class", "pos-grid-filter-bar");
-      attr(input1, "type", "checkbox");
-      input1.checked = /*allSelected*/
-      ctx[9];
-      attr(th0, "class", "pos-th-check");
-      attr(th1, "class", "pos-th-name");
-      attr(th2, "class", "pos-th-status");
-      attr(th3, "class", "pos-th-priority");
-      attr(th4, "class", "pos-th-tags");
-      attr(th5, "class", "pos-th-weight");
-      attr(th6, "class", "pos-th-date");
-      attr(th7, "class", "pos-th-acts");
-      attr(table, "class", "pos-grid-table");
-      attr(div1, "class", "pos-grid-table-container");
-      attr(div2, "class", "pos-grid-workspace");
+      p_1 = element("p");
+      p_1.textContent = "Select or create a workspace to manage project notes and tasks modularly in a central tab.";
+      t5 = space();
+      label = element("label");
+      input = element("input");
+      t6 = space();
+      span = element("span");
+      span.textContent = "Show Archived Projects";
+      t8 = space();
+      div2 = element("div");
+      if_block.c();
+      attr(h2, "class", "pos-workspace-title");
+      set_style(h2, "margin", "0");
+      attr(button, "class", "pos-modal-primary pos-create-new-project-btn");
+      attr(div0, "class", "pos-workspace-header-row");
+      set_style(div0, "display", "flex");
+      set_style(div0, "justify-content", "space-between");
+      set_style(div0, "align-items", "center");
+      set_style(div0, "margin-bottom", "12px");
+      attr(p_1, "class", "pos-subtitle");
+      set_style(p_1, "margin-bottom", "0");
+      attr(input, "type", "checkbox");
+      set_style(label, "display", "flex");
+      set_style(label, "align-items", "center");
+      set_style(label, "gap", "8px");
+      set_style(label, "cursor", "pointer");
+      set_style(label, "font-size", "0.9em");
+      set_style(div1, "display", "flex");
+      set_style(div1, "justify-content", "space-between");
+      set_style(div1, "align-items", "center");
+      set_style(div1, "margin-bottom", "20px");
+      attr(div2, "class", "pos-project-list");
+      attr(div3, "class", "pos-projects-central-pane");
+      attr(div4, "class", "pos-projects-selection-layout");
     },
     m(target, anchor) {
-      insert(target, div2, anchor);
-      if (if_block0)
-        if_block0.m(div2, null);
-      append(div2, t0);
-      append(div2, div0);
-      append(div0, input0);
-      set_input_value(
-        input0,
-        /*searchQuery*/
-        ctx[1]
-      );
+      insert(target, div4, anchor);
+      append(div4, div3);
+      append(div3, div0);
+      append(div0, h2);
       append(div0, t1);
-      append(div0, select0);
-      append(select0, option0);
-      append(select0, option1);
-      append(select0, option2);
-      append(select0, option3);
-      select_option(
-        select0,
-        /*statusFilter*/
-        ctx[2],
-        true
-      );
-      append(div0, t6);
-      append(div0, select1);
-      append(select1, option4);
-      append(select1, option5);
-      append(select1, option6);
-      append(select1, option7);
-      select_option(
-        select1,
-        /*priorityFilter*/
-        ctx[3],
-        true
-      );
-      append(div2, t11);
-      if (if_block1)
-        if_block1.m(div2, null);
-      append(div2, t12);
-      append(div2, div1);
-      append(div1, table);
-      append(table, thead);
-      append(thead, tr);
-      append(tr, th0);
-      append(th0, input1);
-      append(tr, t13);
-      append(tr, th1);
-      append(th1, t14);
-      append(th1, t15);
-      append(tr, t16);
-      append(tr, th2);
-      append(th2, t17);
-      append(th2, t18);
-      append(tr, t19);
-      append(tr, th3);
-      append(th3, t20);
-      append(th3, t21);
-      append(tr, t22);
-      append(tr, th4);
-      append(th4, t23);
-      append(th4, t24);
-      append(tr, t25);
-      append(tr, th5);
-      append(th5, t26);
-      append(th5, t27);
-      append(tr, t28);
-      append(tr, th6);
-      append(th6, t29);
-      append(th6, t30);
-      append(tr, t31);
-      append(tr, th7);
-      append(table, t33);
-      append(table, tbody);
-      if_block2.m(tbody, null);
+      append(div0, button);
+      append(div3, t3);
+      append(div3, div1);
+      append(div1, p_1);
+      append(div1, t5);
+      append(div1, label);
+      append(label, input);
+      input.checked = /*showArchived*/
+      ctx[0];
+      append(label, t6);
+      append(label, span);
+      append(div3, t8);
+      append(div3, div2);
+      if_block.m(div2, null);
       if (!mounted) {
         dispose = [
           listen(
-            input0,
-            "input",
-            /*input0_input_handler*/
-            ctx[24]
+            button,
+            "click",
+            /*handleCreateProject*/
+            ctx[7]
           ),
           listen(
-            select0,
+            input,
             "change",
-            /*select0_change_handler*/
-            ctx[25]
-          ),
-          listen(
-            select1,
-            "change",
-            /*select1_change_handler*/
-            ctx[26]
-          ),
-          listen(
-            input1,
-            "change",
-            /*toggleSelectAll*/
-            ctx[12]
-          ),
-          listen(
-            th1,
-            "click",
-            /*click_handler_2*/
-            ctx[27]
-          ),
-          listen(
-            th2,
-            "click",
-            /*click_handler_3*/
-            ctx[28]
-          ),
-          listen(
-            th3,
-            "click",
-            /*click_handler_4*/
-            ctx[29]
-          ),
-          listen(
-            th4,
-            "click",
-            /*click_handler_5*/
-            ctx[30]
-          ),
-          listen(
-            th5,
-            "click",
-            /*click_handler_6*/
-            ctx[31]
-          ),
-          listen(
-            th6,
-            "click",
-            /*click_handler_7*/
-            ctx[32]
+            /*input_change_handler*/
+            ctx[21]
           )
         ];
         mounted = true;
       }
     },
     p(ctx2, dirty) {
-      if (
-        /*uniqueTags*/
-        ctx2[10].length > 0
-      ) {
-        if (if_block0) {
-          if_block0.p(ctx2, dirty);
-        } else {
-          if_block0 = create_if_block_64(ctx2);
-          if_block0.c();
-          if_block0.m(div2, t0);
-        }
-      } else if (if_block0) {
-        if_block0.d(1);
-        if_block0 = null;
+      if (dirty[0] & /*showArchived*/
+      1) {
+        input.checked = /*showArchived*/
+        ctx2[0];
       }
-      if (dirty[0] & /*searchQuery*/
-      2 && input0.value !== /*searchQuery*/
-      ctx2[1]) {
-        set_input_value(
-          input0,
-          /*searchQuery*/
-          ctx2[1]
-        );
-      }
-      if (dirty[0] & /*statusFilter*/
-      4) {
-        select_option(
-          select0,
-          /*statusFilter*/
-          ctx2[2]
-        );
-      }
-      if (dirty[0] & /*priorityFilter*/
-      8) {
-        select_option(
-          select1,
-          /*priorityFilter*/
-          ctx2[3]
-        );
-      }
-      if (
-        /*selectedTaskIds*/
-        ctx2[7].size > 0
-      ) {
-        if (if_block1) {
-          if_block1.p(ctx2, dirty);
-        } else {
-          if_block1 = create_if_block_55(ctx2);
-          if_block1.c();
-          if_block1.m(div2, t12);
-        }
-      } else if (if_block1) {
-        if_block1.d(1);
-        if_block1 = null;
-      }
-      if (dirty[0] & /*allSelected*/
-      512) {
-        input1.checked = /*allSelected*/
-        ctx2[9];
-      }
-      if (dirty[0] & /*sortBy, sortOrder*/
-      96 && t15_value !== (t15_value = /*sortBy*/
-      ctx2[5] === "name" ? (
-        /*sortOrder*/
-        ctx2[6] === "asc" ? "\u25B2" : "\u25BC"
-      ) : ""))
-        set_data(t15, t15_value);
-      if (dirty[0] & /*sortBy, sortOrder*/
-      96 && t18_value !== (t18_value = /*sortBy*/
-      ctx2[5] === "status" ? (
-        /*sortOrder*/
-        ctx2[6] === "asc" ? "\u25B2" : "\u25BC"
-      ) : ""))
-        set_data(t18, t18_value);
-      if (dirty[0] & /*sortBy, sortOrder*/
-      96 && t21_value !== (t21_value = /*sortBy*/
-      ctx2[5] === "priority" ? (
-        /*sortOrder*/
-        ctx2[6] === "asc" ? "\u25B2" : "\u25BC"
-      ) : ""))
-        set_data(t21, t21_value);
-      if (dirty[0] & /*sortBy, sortOrder*/
-      96 && t24_value !== (t24_value = /*sortBy*/
-      ctx2[5] === "tags" ? (
-        /*sortOrder*/
-        ctx2[6] === "asc" ? "\u25B2" : "\u25BC"
-      ) : ""))
-        set_data(t24, t24_value);
-      if (dirty[0] & /*sortBy, sortOrder*/
-      96 && t27_value !== (t27_value = /*sortBy*/
-      ctx2[5] === "weight" ? (
-        /*sortOrder*/
-        ctx2[6] === "asc" ? "\u25B2" : "\u25BC"
-      ) : ""))
-        set_data(t27, t27_value);
-      if (dirty[0] & /*sortBy, sortOrder*/
-      96 && t30_value !== (t30_value = /*sortBy*/
-      ctx2[5] === "createdAt" ? (
-        /*sortOrder*/
-        ctx2[6] === "asc" ? "\u25B2" : "\u25BC"
-      ) : ""))
-        set_data(t30, t30_value);
-      if (current_block_type === (current_block_type = select_block_type(ctx2, dirty)) && if_block2) {
-        if_block2.p(ctx2, dirty);
+      if (current_block_type === (current_block_type = select_block_type(ctx2, dirty)) && if_block) {
+        if_block.p(ctx2, dirty);
       } else {
-        if_block2.d(1);
-        if_block2 = current_block_type(ctx2);
-        if (if_block2) {
-          if_block2.c();
-          if_block2.m(tbody, null);
+        if_block.d(1);
+        if_block = current_block_type(ctx2);
+        if (if_block) {
+          if_block.c();
+          if_block.m(div2, null);
         }
       }
     },
@@ -14326,269 +11061,217 @@ function create_fragment7(ctx) {
     o: noop,
     d(detaching) {
       if (detaching) {
-        detach(div2);
+        detach(div4);
       }
-      if (if_block0)
-        if_block0.d();
-      if (if_block1)
-        if_block1.d();
-      if_block2.d();
+      if_block.d();
       mounted = false;
       run_all(dispose);
     }
   };
 }
-function instance7($$self, $$props, $$invalidate) {
-  let uniqueTags;
-  let filteredTasks;
-  let sortedTasks;
-  let allSelected;
+function instance4($$self, $$props, $$invalidate) {
+  let displayProjects;
+  let tasks;
+  let allTimes;
+  let minTime;
+  let maxTime;
+  let range;
+  let $tasksStore;
+  let $projectsStore;
+  component_subscribe($$self, tasksStore, ($$value) => $$invalidate(19, $tasksStore = $$value));
+  component_subscribe($$self, projectsStore, ($$value) => $$invalidate(20, $projectsStore = $$value));
   let { app } = $$props;
   let { fileManager } = $$props;
-  let { projectTasks } = $$props;
-  let searchQuery = "";
-  let statusFilter = "all";
-  let priorityFilter = "all";
-  let tagFilter = null;
-  let sortBy = "name";
-  let sortOrder = "asc";
-  let selectedTaskIds = /* @__PURE__ */ new Set();
-  function toggleSelection(id) {
-    if (selectedTaskIds.has(id)) {
-      selectedTaskIds.delete(id);
-    } else {
-      selectedTaskIds.add(id);
-    }
-    $$invalidate(7, selectedTaskIds);
+  let { plugin } = $$props;
+  let { isFullPage = false } = $$props;
+  let { onSelect } = $$props;
+  let showArchived = false;
+  let timer;
+  let now2 = Date.now();
+  onMount(() => {
+    timer = window.setInterval(
+      () => {
+        $$invalidate(3, now2 = Date.now());
+      },
+      6e4
+    );
+  });
+  onDestroy(() => {
+    window.clearInterval(timer);
+  });
+  function getHue(createdAt, range2, minTime2) {
+    const tMs = new Date(createdAt).getTime();
+    const ratio = range2 > 1 ? (tMs - minTime2) / range2 : 0;
+    return 120 * (1 - ratio);
   }
-  function toggleSelectAll() {
-    if (allSelected) {
-      sortedTasks.forEach((t) => selectedTaskIds.delete(t.id));
-    } else {
-      sortedTasks.forEach((t) => selectedTaskIds.add(t.id));
-    }
-    $$invalidate(7, selectedTaskIds);
-  }
-  async function bulkActivate() {
-    if (selectedTaskIds.size === 0)
-      return;
-    const ids = Array.from(selectedTaskIds);
-    await Promise.all(ids.map((id) => fileManager.updateTask(id, { status: "backlog", isCompleted: false })));
-    selectedTaskIds.clear();
-    $$invalidate(7, selectedTaskIds);
-  }
-  async function bulkPlan() {
-    if (selectedTaskIds.size === 0)
-      return;
-    const ids = Array.from(selectedTaskIds);
-    await Promise.all(ids.map((id) => fileManager.updateTask(id, { status: "planned", isCompleted: false })));
-    selectedTaskIds.clear();
-    $$invalidate(7, selectedTaskIds);
-  }
-  async function bulkComplete() {
-    if (selectedTaskIds.size === 0)
-      return;
-    const ids = Array.from(selectedTaskIds);
-    await Promise.all(ids.map((id) => fileManager.updateTask(id, { status: "review", isCompleted: true })));
-    selectedTaskIds.clear();
-    $$invalidate(7, selectedTaskIds);
-  }
-  function bulkDelete() {
-    if (selectedTaskIds.size === 0)
-      return;
-    new ConfirmModal(
+  function handleCreateProject() {
+    new NewProjectModal(
       app,
-      "Bulk Delete Tasks",
-      `Permanently delete all ${selectedTaskIds.size} selected tasks?`,
-      async () => {
-        const ids = Array.from(selectedTaskIds);
-        await Promise.all(ids.map((id) => fileManager.deleteTask(id)));
-        selectedTaskIds.clear();
-        $$invalidate(7, selectedTaskIds);
+      async (name, desc) => {
+        const id = `proj-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`;
+        const fm = {
+          type: "project",
+          name,
+          description: desc || "",
+          createdAt: (/* @__PURE__ */ new Date()).toISOString(),
+          status: "active"
+        };
+        const content = "---\n" + Object.entries(fm).map(([k, v]) => `${k}: ${v}`).join("\n") + "\n---\n\n# " + name + "\n";
+        await fileManager.ensureFolder(`projects/${id}`);
+        await app.vault.create(`projects/${id}/index.md`, content);
+        await fileManager.loadAll();
+        if (isFullPage) {
+          onSelect(id, "elastic");
+        } else {
+          plugin.activateWorkspaceView(id);
+        }
+        new import_obsidian4.Notice("Project created successfully!");
       }
     ).open();
   }
-  function toggleSort(field) {
-    if (sortBy === field) {
-      $$invalidate(6, sortOrder = sortOrder === "asc" ? "desc" : "asc");
-    } else {
-      $$invalidate(5, sortBy = field);
-      $$invalidate(6, sortOrder = "asc");
-    }
-  }
-  function editTask(task) {
-    new QuickEditTaskModal(
-      app,
-      fileManager.plugin,
-      task,
-      async (updates) => {
-        await fileManager.updateTask(task.id, updates);
+  async function handleDeleteProject(id) {
+    if (confirm("Delete project and ALL its child tasks? This will permanently delete the Markdown files of all tasks inside this project.")) {
+      const file = app.vault.getAbstractFileByPath(`projects/${id}.md`) || app.vault.getAbstractFileByPath(`projects/${id}/index.md`);
+      if (file) {
+        await app.vault.delete(file);
+        const linked = tasks.filter((t) => t.project === id);
+        for (const t of linked) {
+          await fileManager.deleteTask(t.id);
+        }
+        await fileManager.loadAll();
+        new import_obsidian4.Notice("Project deleted.");
       }
-    ).open();
-  }
-  function openTaskFile(taskId) {
-    const file = app.vault.getAbstractFileByPath(`tasks/${taskId}.md`);
-    if (file instanceof import_obsidian5.TFile) {
-      app.workspace.getLeaf().openFile(file);
     }
   }
-  const click_handler = () => $$invalidate(4, tagFilter = null);
-  const click_handler_1 = (tag) => $$invalidate(4, tagFilter = tag);
-  function input0_input_handler() {
-    searchQuery = this.value;
-    $$invalidate(1, searchQuery);
+  async function handleArchiveProject(id) {
+    if (confirm("Archive this project?")) {
+      await fileManager.archiveProject(id);
+      new import_obsidian4.Notice("Project archived.");
+    }
   }
-  function select0_change_handler() {
-    statusFilter = select_value(this);
-    $$invalidate(2, statusFilter);
+  async function handleUnarchiveProject(id) {
+    if (confirm("Restore this project to active status?")) {
+      await fileManager.unarchiveProject(id);
+      new import_obsidian4.Notice("Project restored.");
+    }
   }
-  function select1_change_handler() {
-    priorityFilter = select_value(this);
-    $$invalidate(3, priorityFilter);
+  function handleSelectProject(id) {
+    if (isFullPage) {
+      onSelect(id, "elastic");
+    } else {
+      plugin.activateWorkspaceView(id);
+    }
   }
-  const click_handler_2 = () => toggleSort("name");
-  const click_handler_3 = () => toggleSort("status");
-  const click_handler_4 = () => toggleSort("priority");
-  const click_handler_5 = () => toggleSort("tags");
-  const click_handler_6 = () => toggleSort("weight");
-  const click_handler_7 = () => toggleSort("createdAt");
-  const change_handler = (task) => toggleSelection(task.id);
-  const click_handler_8 = (task) => editTask(task);
-  const click_handler_9 = (tag) => $$invalidate(4, tagFilter = tag);
-  const click_handler_10 = (task) => fileManager.deleteTask(task.id);
+  function input_change_handler() {
+    showArchived = this.checked;
+    $$invalidate(0, showArchived);
+  }
+  const click_handler = (p) => handleSelectProject(p.id);
+  const click_handler_1 = (p) => handleSelectProject(p.id);
+  const click_handler_2 = (p) => handleArchiveProject(p.id);
+  const click_handler_3 = (p) => handleUnarchiveProject(p.id);
+  const click_handler_4 = (p) => handleDeleteProject(p.id);
+  const func2 = (p, t) => t.project === p.id;
   $$self.$$set = ($$props2) => {
     if ("app" in $$props2)
-      $$invalidate(19, app = $$props2.app);
+      $$invalidate(12, app = $$props2.app);
     if ("fileManager" in $$props2)
-      $$invalidate(0, fileManager = $$props2.fileManager);
-    if ("projectTasks" in $$props2)
-      $$invalidate(20, projectTasks = $$props2.projectTasks);
+      $$invalidate(13, fileManager = $$props2.fileManager);
+    if ("plugin" in $$props2)
+      $$invalidate(14, plugin = $$props2.plugin);
+    if ("isFullPage" in $$props2)
+      $$invalidate(15, isFullPage = $$props2.isFullPage);
+    if ("onSelect" in $$props2)
+      $$invalidate(16, onSelect = $$props2.onSelect);
   };
   $$self.$$.update = () => {
-    if ($$self.$$.dirty[0] & /*projectTasks*/
-    1048576) {
+    if ($$self.$$.dirty[0] & /*$projectsStore, showArchived*/
+    1048577) {
       $:
-        $$invalidate(10, uniqueTags = Array.from(new Set(projectTasks.flatMap((t) => t.tags || []))).sort());
+        $$invalidate(2, displayProjects = $projectsStore.filter((p) => showArchived ? p.status === "archived" : p.status === "active"));
     }
-    if ($$self.$$.dirty[0] & /*projectTasks, searchQuery, statusFilter, priorityFilter, tagFilter*/
-    1048606) {
+    if ($$self.$$.dirty[0] & /*$tasksStore*/
+    524288) {
       $:
-        $$invalidate(21, filteredTasks = projectTasks.filter((task) => {
-          const matchesSearch = task.name.toLowerCase().includes(searchQuery.toLowerCase()) || task.description.toLowerCase().includes(searchQuery.toLowerCase());
-          if (!matchesSearch)
-            return false;
-          if (statusFilter === "planned" && task.status !== "planned")
-            return false;
-          if (statusFilter === "active" && task.status !== "backlog" && task.status !== "running")
-            return false;
-          if (statusFilter === "review" && task.status !== "review")
-            return false;
-          if (priorityFilter !== "all" && task.priority !== priorityFilter)
-            return false;
-          if (tagFilter && !(task.tags || []).includes(tagFilter))
-            return false;
-          return true;
-        }));
+        $$invalidate(5, tasks = $tasksStore);
     }
-    if ($$self.$$.dirty[0] & /*filteredTasks, sortBy, sortOrder*/
-    2097248) {
+    if ($$self.$$.dirty[0] & /*displayProjects*/
+    4) {
       $:
-        $$invalidate(8, sortedTasks = [...filteredTasks].sort((a, b) => {
-          if (sortBy === "tags") {
-            const aCount = (a.tags || []).length;
-            const bCount = (b.tags || []).length;
-            if (aCount !== bCount)
-              return sortOrder === "asc" ? aCount - bCount : bCount - aCount;
-            const aName = (a.tags || []).join(", ").toLowerCase();
-            const bName = (b.tags || []).join(", ").toLowerCase();
-            if (aName < bName)
-              return sortOrder === "asc" ? -1 : 1;
-            if (aName > bName)
-              return sortOrder === "asc" ? 1 : -1;
-            return 0;
-          }
-          let fieldA = a[sortBy];
-          let fieldB = b[sortBy];
-          if (typeof fieldA === "string") {
-            fieldA = fieldA.toLowerCase();
-            fieldB = fieldB.toLowerCase();
-          }
-          if (fieldA < fieldB)
-            return sortOrder === "asc" ? -1 : 1;
-          if (fieldA > fieldB)
-            return sortOrder === "asc" ? 1 : -1;
-          return 0;
-        }));
+        $$invalidate(18, allTimes = displayProjects.map((p) => new Date(p.createdAt).getTime()));
     }
-    if ($$self.$$.dirty[0] & /*sortedTasks, selectedTaskIds*/
-    384) {
+    if ($$self.$$.dirty[0] & /*allTimes*/
+    262144) {
       $:
-        $$invalidate(9, allSelected = sortedTasks.length > 0 && sortedTasks.every((t) => selectedTaskIds.has(t.id)));
+        $$invalidate(1, minTime = Math.min(...allTimes));
+    }
+    if ($$self.$$.dirty[0] & /*allTimes*/
+    262144) {
+      $:
+        $$invalidate(17, maxTime = Math.max(...allTimes));
+    }
+    if ($$self.$$.dirty[0] & /*maxTime, minTime*/
+    131074) {
+      $:
+        $$invalidate(4, range = maxTime - minTime || 1);
     }
   };
   return [
-    fileManager,
-    searchQuery,
-    statusFilter,
-    priorityFilter,
-    tagFilter,
-    sortBy,
-    sortOrder,
-    selectedTaskIds,
-    sortedTasks,
-    allSelected,
-    uniqueTags,
-    toggleSelection,
-    toggleSelectAll,
-    bulkActivate,
-    bulkPlan,
-    bulkComplete,
-    bulkDelete,
-    toggleSort,
-    editTask,
+    showArchived,
+    minTime,
+    displayProjects,
+    now2,
+    range,
+    tasks,
+    getHue,
+    handleCreateProject,
+    handleDeleteProject,
+    handleArchiveProject,
+    handleUnarchiveProject,
+    handleSelectProject,
     app,
-    projectTasks,
-    filteredTasks,
+    fileManager,
+    plugin,
+    isFullPage,
+    onSelect,
+    maxTime,
+    allTimes,
+    $tasksStore,
+    $projectsStore,
+    input_change_handler,
     click_handler,
     click_handler_1,
-    input0_input_handler,
-    select0_change_handler,
-    select1_change_handler,
     click_handler_2,
     click_handler_3,
     click_handler_4,
-    click_handler_5,
-    click_handler_6,
-    click_handler_7,
-    change_handler,
-    click_handler_8,
-    click_handler_9,
-    click_handler_10
+    func2
   ];
 }
-var ProjectTaskGrid = class extends SvelteComponent {
+var AgingView = class extends SvelteComponent {
   constructor(options) {
     super();
     init(
       this,
       options,
-      instance7,
-      create_fragment7,
+      instance4,
+      create_fragment4,
       safe_not_equal,
       {
-        app: 19,
-        fileManager: 0,
-        projectTasks: 20
+        app: 12,
+        fileManager: 13,
+        plugin: 14,
+        isFullPage: 15,
+        onSelect: 16
       },
       null,
       [-1, -1]
     );
   }
 };
-var ProjectTaskGrid_default = ProjectTaskGrid;
+var AgingView_default = AgingView;
 
 // src/ui/views/ProjectsView.svelte
-function get_each_context7(ctx, list, i) {
+function get_each_context5(ctx, list, i) {
   const child_ctx = ctx.slice();
   child_ctx[31] = list[i];
   return child_ctx;
@@ -14635,7 +11318,7 @@ function create_else_block5(ctx) {
   let current;
   let mounted;
   let dispose;
-  const if_block_creators = [create_if_block_111, create_if_block_46, create_else_block_22];
+  const if_block_creators = [create_if_block_15, create_if_block_45, create_else_block_22];
   const if_blocks = [];
   function select_block_type_1(ctx2, dirty) {
     if (
@@ -14865,7 +11548,7 @@ function create_else_block5(ctx) {
     }
   };
 }
-function create_if_block7(ctx) {
+function create_if_block5(ctx) {
   let projectshub;
   let current;
   projectshub = new AgingView_default({
@@ -14937,7 +11620,7 @@ function create_else_block_22(ctx) {
   let if_block;
   let if_block_anchor;
   let current;
-  const if_block_creators = [create_if_block_56, create_else_block_3];
+  const if_block_creators = [create_if_block_55, create_else_block_3];
   const if_blocks = [];
   function select_block_type_3(ctx2, dirty) {
     if (
@@ -14999,7 +11682,7 @@ function create_else_block_22(ctx) {
     }
   };
 }
-function create_if_block_46(ctx) {
+function create_if_block_45(ctx) {
   let div2;
   let projectdeadlines;
   let current;
@@ -15073,7 +11756,7 @@ function create_if_block_46(ctx) {
     }
   };
 }
-function create_if_block_111(ctx) {
+function create_if_block_15(ctx) {
   let div8;
   let div3;
   let div0;
@@ -15097,14 +11780,14 @@ function create_if_block_111(ctx) {
   let dispose;
   let if_block0 = (
     /*showNewFileMenu*/
-    ctx[7] && create_if_block_37(ctx)
+    ctx[7] && create_if_block_35(ctx)
   );
   function select_block_type_2(ctx2, dirty) {
     if (
       /*projectFiles*/
       ctx2[6].length === 0
     )
-      return create_if_block_27;
+      return create_if_block_25;
     return create_else_block_13;
   }
   let current_block_type = select_block_type_2(ctx, [-1, -1]);
@@ -15201,7 +11884,7 @@ function create_if_block_111(ctx) {
         if (if_block0) {
           if_block0.p(ctx2, dirty);
         } else {
-          if_block0 = create_if_block_37(ctx2);
+          if_block0 = create_if_block_35(ctx2);
           if_block0.c();
           if_block0.m(div4, null);
         }
@@ -15301,7 +11984,7 @@ function create_else_block_3(ctx) {
     }
   };
 }
-function create_if_block_56(ctx) {
+function create_if_block_55(ctx) {
   let projecttaskboard;
   let current;
   projecttaskboard = new ProjectTaskBoard_default({
@@ -15367,7 +12050,7 @@ function create_if_block_56(ctx) {
     }
   };
 }
-function create_if_block_37(ctx) {
+function create_if_block_35(ctx) {
   let div2;
   let button0;
   let t1;
@@ -15438,7 +12121,7 @@ function create_else_block_13(ctx) {
   );
   let each_blocks = [];
   for (let i = 0; i < each_value.length; i += 1) {
-    each_blocks[i] = create_each_block7(get_each_context7(ctx, each_value, i));
+    each_blocks[i] = create_each_block5(get_each_context5(ctx, each_value, i));
   }
   return {
     c() {
@@ -15464,11 +12147,11 @@ function create_else_block_13(ctx) {
         );
         let i;
         for (i = 0; i < each_value.length; i += 1) {
-          const child_ctx = get_each_context7(ctx2, each_value, i);
+          const child_ctx = get_each_context5(ctx2, each_value, i);
           if (each_blocks[i]) {
             each_blocks[i].p(child_ctx, dirty);
           } else {
-            each_blocks[i] = create_each_block7(child_ctx);
+            each_blocks[i] = create_each_block5(child_ctx);
             each_blocks[i].c();
             each_blocks[i].m(each_1_anchor.parentNode, each_1_anchor);
           }
@@ -15487,7 +12170,7 @@ function create_else_block_13(ctx) {
     }
   };
 }
-function create_if_block_27(ctx) {
+function create_if_block_25(ctx) {
   let div2;
   return {
     c() {
@@ -15506,7 +12189,7 @@ function create_if_block_27(ctx) {
     }
   };
 }
-function create_each_block7(ctx) {
+function create_each_block5(ctx) {
   let button;
   let span0;
   let t0_value = fileIcon(
@@ -15629,12 +12312,12 @@ function create_each_block7(ctx) {
     }
   };
 }
-function create_fragment8(ctx) {
+function create_fragment5(ctx) {
   let current_block_type_index;
   let if_block;
   let if_block_anchor;
   let current;
-  const if_block_creators = [create_if_block7, create_else_block5];
+  const if_block_creators = [create_if_block5, create_else_block5];
   const if_blocks = [];
   function select_block_type(ctx2, dirty) {
     if (!/*selectedProject*/
@@ -15730,7 +12413,7 @@ function formatFileDate(mtime) {
     minute: "2-digit"
   });
 }
-function instance8($$self, $$props, $$invalidate) {
+function instance5($$self, $$props, $$invalidate) {
   let activeProjects;
   let $projectsStore;
   let $tasksStore;
@@ -15762,7 +12445,7 @@ function instance8($$self, $$props, $$invalidate) {
   }
   function openFile(filePath) {
     const file = app.vault.getAbstractFileByPath(filePath);
-    if (file instanceof import_obsidian6.TFile) {
+    if (file instanceof import_obsidian5.TFile) {
       app.workspace.getLeaf("tab").openFile(file);
     }
   }
@@ -15815,9 +12498,9 @@ tags: [excalidraw]
       const file = await fileManager.createProjectFile(selectedProject.id, filename, content);
       refreshProjectFiles(selectedProject.id);
       app.workspace.getLeaf("tab").openFile(file);
-      new import_obsidian6.Notice(`Created ${filename}`);
+      new import_obsidian5.Notice(`Created ${filename}`);
     } catch (e) {
-      new import_obsidian6.Notice("Failed to create file: " + e.message);
+      new import_obsidian5.Notice("Failed to create file: " + e.message);
     }
   }
   const func2 = (id, m) => {
@@ -15882,7 +12565,7 @@ tags: [excalidraw]
       $: {
         if (previewEl && projectContent !== void 0 && selectedProject) {
           previewEl.empty();
-          import_obsidian6.MarkdownRenderer.renderMarkdown(projectContent, previewEl, fileManager.resolveProjectNotePath(selectedProject.id) || `projects/${selectedProject.id}.md`, plugin);
+          import_obsidian5.MarkdownRenderer.renderMarkdown(projectContent, previewEl, fileManager.resolveProjectNotePath(selectedProject.id) || `projects/${selectedProject.id}.md`, plugin);
         }
       }
     }
@@ -15924,8 +12607,8 @@ var ProjectsView = class extends SvelteComponent {
     init(
       this,
       options,
-      instance8,
-      create_fragment8,
+      instance5,
+      create_fragment5,
       safe_not_equal,
       {
         app: 1,
@@ -15939,6 +12622,3748 @@ var ProjectsView = class extends SvelteComponent {
   }
 };
 var ProjectsView_default = ProjectsView;
+
+// src/ui/views/ElasticView.svelte
+var import_obsidian6 = require("obsidian");
+function get_each_context6(ctx, list, i) {
+  const child_ctx = ctx.slice();
+  child_ctx[77] = list[i];
+  child_ctx[79] = i;
+  return child_ctx;
+}
+function get_each_context_14(ctx, list, i) {
+  const child_ctx = ctx.slice();
+  child_ctx[80] = list[i];
+  return child_ctx;
+}
+function get_each_context_24(ctx, list, i) {
+  const child_ctx = ctx.slice();
+  child_ctx[77] = list[i];
+  child_ctx[79] = i;
+  const constants_0 = (
+    /*timeline*/
+    child_ctx[8].find(function func2(...args) {
+      return (
+        /*func*/
+        ctx[59](
+          /*task*/
+          child_ctx[77],
+          ...args
+        )
+      );
+    })
+  );
+  child_ctx[83] = constants_0;
+  return child_ctx;
+}
+function get_each_context_33(ctx, list, i) {
+  const child_ctx = ctx.slice();
+  child_ctx[80] = list[i];
+  return child_ctx;
+}
+function get_each_context_43(ctx, list, i) {
+  const child_ctx = ctx.slice();
+  child_ctx[77] = list[i];
+  child_ctx[79] = i;
+  return child_ctx;
+}
+function get_each_context_52(ctx, list, i) {
+  const child_ctx = ctx.slice();
+  child_ctx[80] = list[i];
+  return child_ctx;
+}
+function create_if_block_152(ctx) {
+  let div2;
+  return {
+    c() {
+      div2 = element("div");
+      attr(div2, "class", "pos-drag-placeholder");
+      set_style(
+        div2,
+        "height",
+        /*dragHeight*/
+        ctx[15] + "px"
+      );
+    },
+    m(target, anchor) {
+      insert(target, div2, anchor);
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*dragHeight*/
+      32768) {
+        set_style(
+          div2,
+          "height",
+          /*dragHeight*/
+          ctx2[15] + "px"
+        );
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div2);
+      }
+    }
+  };
+}
+function create_if_block_142(ctx) {
+  let div2;
+  let t_value = (
+    /*task*/
+    ctx[77].description + ""
+  );
+  let t;
+  return {
+    c() {
+      div2 = element("div");
+      t = text(t_value);
+      attr(div2, "class", "pos-card-desc");
+    },
+    m(target, anchor) {
+      insert(target, div2, anchor);
+      append(div2, t);
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*backlog*/
+      262144 && t_value !== (t_value = /*task*/
+      ctx2[77].description + ""))
+        set_data(t, t_value);
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div2);
+      }
+    }
+  };
+}
+function create_if_block_132(ctx) {
+  let div2;
+  let each_value_5 = ensure_array_like(
+    /*getCustomProps*/
+    ctx[19](
+      /*task*/
+      ctx[77]
+    )
+  );
+  let each_blocks = [];
+  for (let i = 0; i < each_value_5.length; i += 1) {
+    each_blocks[i] = create_each_block_52(get_each_context_52(ctx, each_value_5, i));
+  }
+  return {
+    c() {
+      div2 = element("div");
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        each_blocks[i].c();
+      }
+      attr(div2, "class", "pos-card-meta");
+    },
+    m(target, anchor) {
+      insert(target, div2, anchor);
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        if (each_blocks[i]) {
+          each_blocks[i].m(div2, null);
+        }
+      }
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*getCustomProps, backlog*/
+      786432) {
+        each_value_5 = ensure_array_like(
+          /*getCustomProps*/
+          ctx2[19](
+            /*task*/
+            ctx2[77]
+          )
+        );
+        let i;
+        for (i = 0; i < each_value_5.length; i += 1) {
+          const child_ctx = get_each_context_52(ctx2, each_value_5, i);
+          if (each_blocks[i]) {
+            each_blocks[i].p(child_ctx, dirty);
+          } else {
+            each_blocks[i] = create_each_block_52(child_ctx);
+            each_blocks[i].c();
+            each_blocks[i].m(div2, null);
+          }
+        }
+        for (; i < each_blocks.length; i += 1) {
+          each_blocks[i].d(1);
+        }
+        each_blocks.length = each_value_5.length;
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div2);
+      }
+      destroy_each(each_blocks, detaching);
+    }
+  };
+}
+function create_each_block_52(ctx) {
+  let span;
+  let t_value = (
+    /*cp*/
+    ctx[80].value + ""
+  );
+  let t;
+  let span_title_value;
+  let span_style_value;
+  return {
+    c() {
+      span = element("span");
+      t = text(t_value);
+      attr(span, "class", "pos-tag-pill");
+      attr(span, "title", span_title_value = /*cp*/
+      ctx[80].name);
+      attr(span, "style", span_style_value = /*cp*/
+      ctx[80].color ? `background-color: ${/*cp*/
+      ctx[80].color}; border-color: ${/*cp*/
+      ctx[80].color}; color: #fff;` : "");
+    },
+    m(target, anchor) {
+      insert(target, span, anchor);
+      append(span, t);
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*backlog*/
+      262144 && t_value !== (t_value = /*cp*/
+      ctx2[80].value + ""))
+        set_data(t, t_value);
+      if (dirty[0] & /*backlog*/
+      262144 && span_title_value !== (span_title_value = /*cp*/
+      ctx2[80].name)) {
+        attr(span, "title", span_title_value);
+      }
+      if (dirty[0] & /*backlog*/
+      262144 && span_style_value !== (span_style_value = /*cp*/
+      ctx2[80].color ? `background-color: ${/*cp*/
+      ctx2[80].color}; border-color: ${/*cp*/
+      ctx2[80].color}; color: #fff;` : "")) {
+        attr(span, "style", span_style_value);
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(span);
+      }
+    }
+  };
+}
+function create_each_block_43(key_1, ctx) {
+  let first;
+  let t0;
+  let div3;
+  let div1;
+  let div0;
+  let t1_value = (
+    /*task*/
+    ctx[77].name + ""
+  );
+  let t1;
+  let t2;
+  let t3;
+  let show_if = (
+    /*getCustomProps*/
+    ctx[19](
+      /*task*/
+      ctx[77]
+    ).length > 0
+  );
+  let t4;
+  let div2;
+  let button;
+  let mounted;
+  let dispose;
+  let if_block0 = (
+    /*dragOverStatus*/
+    ctx[13] === /*sBacklog*/
+    ctx[9].id && /*dragOverIndex*/
+    ctx[14] === /*i*/
+    ctx[79] && create_if_block_152(ctx)
+  );
+  let if_block1 = (
+    /*task*/
+    ctx[77].description && create_if_block_142(ctx)
+  );
+  let if_block2 = show_if && create_if_block_132(ctx);
+  function click_handler_3() {
+    return (
+      /*click_handler_3*/
+      ctx[47](
+        /*task*/
+        ctx[77]
+      )
+    );
+  }
+  function click_handler_4() {
+    return (
+      /*click_handler_4*/
+      ctx[48](
+        /*task*/
+        ctx[77]
+      )
+    );
+  }
+  function dragstart_handler(...args) {
+    return (
+      /*dragstart_handler*/
+      ctx[49](
+        /*task*/
+        ctx[77],
+        ...args
+      )
+    );
+  }
+  return {
+    key: key_1,
+    first: null,
+    c() {
+      first = empty();
+      if (if_block0)
+        if_block0.c();
+      t0 = space();
+      div3 = element("div");
+      div1 = element("div");
+      div0 = element("div");
+      t1 = text(t1_value);
+      t2 = space();
+      if (if_block1)
+        if_block1.c();
+      t3 = space();
+      if (if_block2)
+        if_block2.c();
+      t4 = space();
+      div2 = element("div");
+      button = element("button");
+      button.textContent = "Delete";
+      attr(div0, "class", "pos-card-name");
+      set_style(div1, "cursor", "pointer");
+      attr(button, "class", "pos-del");
+      attr(div2, "class", "pos-card-acts");
+      attr(div3, "class", "pos-card");
+      attr(div3, "draggable", "true");
+      toggle_class(
+        div3,
+        "pos-dragging-source",
+        /*dragId*/
+        ctx[12] === /*task*/
+        ctx[77].id
+      );
+      this.first = first;
+    },
+    m(target, anchor) {
+      insert(target, first, anchor);
+      if (if_block0)
+        if_block0.m(target, anchor);
+      insert(target, t0, anchor);
+      insert(target, div3, anchor);
+      append(div3, div1);
+      append(div1, div0);
+      append(div0, t1);
+      append(div1, t2);
+      if (if_block1)
+        if_block1.m(div1, null);
+      append(div1, t3);
+      if (if_block2)
+        if_block2.m(div1, null);
+      append(div3, t4);
+      append(div3, div2);
+      append(div2, button);
+      if (!mounted) {
+        dispose = [
+          listen(div1, "click", click_handler_3),
+          listen(button, "click", click_handler_4),
+          listen(div3, "dragstart", dragstart_handler),
+          listen(
+            div3,
+            "dragend",
+            /*handleDragEnd*/
+            ctx[29]
+          )
+        ];
+        mounted = true;
+      }
+    },
+    p(new_ctx, dirty) {
+      ctx = new_ctx;
+      if (
+        /*dragOverStatus*/
+        ctx[13] === /*sBacklog*/
+        ctx[9].id && /*dragOverIndex*/
+        ctx[14] === /*i*/
+        ctx[79]
+      ) {
+        if (if_block0) {
+          if_block0.p(ctx, dirty);
+        } else {
+          if_block0 = create_if_block_152(ctx);
+          if_block0.c();
+          if_block0.m(t0.parentNode, t0);
+        }
+      } else if (if_block0) {
+        if_block0.d(1);
+        if_block0 = null;
+      }
+      if (dirty[0] & /*backlog*/
+      262144 && t1_value !== (t1_value = /*task*/
+      ctx[77].name + ""))
+        set_data(t1, t1_value);
+      if (
+        /*task*/
+        ctx[77].description
+      ) {
+        if (if_block1) {
+          if_block1.p(ctx, dirty);
+        } else {
+          if_block1 = create_if_block_142(ctx);
+          if_block1.c();
+          if_block1.m(div1, t3);
+        }
+      } else if (if_block1) {
+        if_block1.d(1);
+        if_block1 = null;
+      }
+      if (dirty[0] & /*backlog*/
+      262144)
+        show_if = /*getCustomProps*/
+        ctx[19](
+          /*task*/
+          ctx[77]
+        ).length > 0;
+      if (show_if) {
+        if (if_block2) {
+          if_block2.p(ctx, dirty);
+        } else {
+          if_block2 = create_if_block_132(ctx);
+          if_block2.c();
+          if_block2.m(div1, null);
+        }
+      } else if (if_block2) {
+        if_block2.d(1);
+        if_block2 = null;
+      }
+      if (dirty[0] & /*dragId, backlog*/
+      266240) {
+        toggle_class(
+          div3,
+          "pos-dragging-source",
+          /*dragId*/
+          ctx[12] === /*task*/
+          ctx[77].id
+        );
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(first);
+        detach(t0);
+        detach(div3);
+      }
+      if (if_block0)
+        if_block0.d(detaching);
+      if (if_block1)
+        if_block1.d();
+      if (if_block2)
+        if_block2.d();
+      mounted = false;
+      run_all(dispose);
+    }
+  };
+}
+function create_if_block_122(ctx) {
+  let div2;
+  return {
+    c() {
+      div2 = element("div");
+      attr(div2, "class", "pos-drag-placeholder");
+      set_style(
+        div2,
+        "height",
+        /*dragHeight*/
+        ctx[15] + "px"
+      );
+    },
+    m(target, anchor) {
+      insert(target, div2, anchor);
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*dragHeight*/
+      32768) {
+        set_style(
+          div2,
+          "height",
+          /*dragHeight*/
+          ctx2[15] + "px"
+        );
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div2);
+      }
+    }
+  };
+}
+function create_if_block_112(ctx) {
+  let div2;
+  return {
+    c() {
+      div2 = element("div");
+      attr(div2, "class", "pos-drag-placeholder");
+      set_style(
+        div2,
+        "height",
+        /*dragHeight*/
+        ctx[15] + "px"
+      );
+    },
+    m(target, anchor) {
+      insert(target, div2, anchor);
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*dragHeight*/
+      32768) {
+        set_style(
+          div2,
+          "height",
+          /*dragHeight*/
+          ctx2[15] + "px"
+        );
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div2);
+      }
+    }
+  };
+}
+function create_if_block_102(ctx) {
+  let div2;
+  let t_value = (
+    /*task*/
+    ctx[77].description + ""
+  );
+  let t;
+  return {
+    c() {
+      div2 = element("div");
+      t = text(t_value);
+      attr(div2, "class", "pos-card-desc");
+    },
+    m(target, anchor) {
+      insert(target, div2, anchor);
+      append(div2, t);
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*running*/
+      128 && t_value !== (t_value = /*task*/
+      ctx2[77].description + ""))
+        set_data(t, t_value);
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div2);
+      }
+    }
+  };
+}
+function create_if_block_92(ctx) {
+  let each_1_anchor;
+  let each_value_3 = ensure_array_like(
+    /*getCustomProps*/
+    ctx[19](
+      /*task*/
+      ctx[77]
+    )
+  );
+  let each_blocks = [];
+  for (let i = 0; i < each_value_3.length; i += 1) {
+    each_blocks[i] = create_each_block_33(get_each_context_33(ctx, each_value_3, i));
+  }
+  return {
+    c() {
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        each_blocks[i].c();
+      }
+      each_1_anchor = empty();
+    },
+    m(target, anchor) {
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        if (each_blocks[i]) {
+          each_blocks[i].m(target, anchor);
+        }
+      }
+      insert(target, each_1_anchor, anchor);
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*getCustomProps, running*/
+      524416) {
+        each_value_3 = ensure_array_like(
+          /*getCustomProps*/
+          ctx2[19](
+            /*task*/
+            ctx2[77]
+          )
+        );
+        let i;
+        for (i = 0; i < each_value_3.length; i += 1) {
+          const child_ctx = get_each_context_33(ctx2, each_value_3, i);
+          if (each_blocks[i]) {
+            each_blocks[i].p(child_ctx, dirty);
+          } else {
+            each_blocks[i] = create_each_block_33(child_ctx);
+            each_blocks[i].c();
+            each_blocks[i].m(each_1_anchor.parentNode, each_1_anchor);
+          }
+        }
+        for (; i < each_blocks.length; i += 1) {
+          each_blocks[i].d(1);
+        }
+        each_blocks.length = each_value_3.length;
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(each_1_anchor);
+      }
+      destroy_each(each_blocks, detaching);
+    }
+  };
+}
+function create_each_block_33(ctx) {
+  let span;
+  let t_value = (
+    /*cp*/
+    ctx[80].value + ""
+  );
+  let t;
+  let span_title_value;
+  let span_style_value;
+  return {
+    c() {
+      span = element("span");
+      t = text(t_value);
+      attr(span, "class", "pos-tag-pill");
+      attr(span, "title", span_title_value = /*cp*/
+      ctx[80].name);
+      attr(span, "style", span_style_value = /*cp*/
+      ctx[80].color ? `background-color: ${/*cp*/
+      ctx[80].color}; border-color: ${/*cp*/
+      ctx[80].color}; color: #fff;` : "");
+    },
+    m(target, anchor) {
+      insert(target, span, anchor);
+      append(span, t);
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*running*/
+      128 && t_value !== (t_value = /*cp*/
+      ctx2[80].value + ""))
+        set_data(t, t_value);
+      if (dirty[0] & /*running*/
+      128 && span_title_value !== (span_title_value = /*cp*/
+      ctx2[80].name)) {
+        attr(span, "title", span_title_value);
+      }
+      if (dirty[0] & /*running*/
+      128 && span_style_value !== (span_style_value = /*cp*/
+      ctx2[80].color ? `background-color: ${/*cp*/
+      ctx2[80].color}; border-color: ${/*cp*/
+      ctx2[80].color}; color: #fff;` : "")) {
+        attr(span, "style", span_style_value);
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(span);
+      }
+    }
+  };
+}
+function create_if_block_82(ctx) {
+  let span;
+  let t0;
+  let t1_value = (
+    /*task*/
+    ctx[77].fixedDuration + ""
+  );
+  let t1;
+  let t2;
+  return {
+    c() {
+      span = element("span");
+      t0 = text("Fixed ");
+      t1 = text(t1_value);
+      t2 = text("m");
+    },
+    m(target, anchor) {
+      insert(target, span, anchor);
+      append(span, t0);
+      append(span, t1);
+      append(span, t2);
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*running*/
+      128 && t1_value !== (t1_value = /*task*/
+      ctx2[77].fixedDuration + ""))
+        set_data(t1, t1_value);
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(span);
+      }
+    }
+  };
+}
+function create_if_block_73(ctx) {
+  let span;
+  let t0_value = fmtTime(
+    /*ti*/
+    ctx[83].endTime
+  ) + "";
+  let t0;
+  let t1;
+  let t2_value = fmtDur(Math.round(
+    /*ti*/
+    ctx[83].calculatedDuration
+  )) + "";
+  let t2;
+  let t3;
+  return {
+    c() {
+      span = element("span");
+      t0 = text(t0_value);
+      t1 = text(" (");
+      t2 = text(t2_value);
+      t3 = text(")");
+    },
+    m(target, anchor) {
+      insert(target, span, anchor);
+      append(span, t0);
+      append(span, t1);
+      append(span, t2);
+      append(span, t3);
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*timeline, running*/
+      384 && t0_value !== (t0_value = fmtTime(
+        /*ti*/
+        ctx2[83].endTime
+      ) + ""))
+        set_data(t0, t0_value);
+      if (dirty[0] & /*timeline, running*/
+      384 && t2_value !== (t2_value = fmtDur(Math.round(
+        /*ti*/
+        ctx2[83].calculatedDuration
+      )) + ""))
+        set_data(t2, t2_value);
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(span);
+      }
+    }
+  };
+}
+function create_if_block_64(ctx) {
+  let input;
+  let input_value_value;
+  let mounted;
+  let dispose;
+  function change_handler_1(...args) {
+    return (
+      /*change_handler_1*/
+      ctx[56](
+        /*task*/
+        ctx[77],
+        ...args
+      )
+    );
+  }
+  return {
+    c() {
+      input = element("input");
+      attr(input, "type", "number");
+      attr(input, "min", "1");
+      attr(input, "class", "pos-fixed-input");
+      input.value = input_value_value = /*task*/
+      ctx[77].fixedDuration || 30;
+    },
+    m(target, anchor) {
+      insert(target, input, anchor);
+      if (!mounted) {
+        dispose = [
+          listen(input, "click", stop_propagation(
+            /*click_handler_1*/
+            ctx[39]
+          )),
+          listen(input, "keydown", stop_propagation(
+            /*keydown_handler*/
+            ctx[40]
+          )),
+          listen(input, "keypress", stop_propagation(
+            /*keypress_handler*/
+            ctx[41]
+          )),
+          listen(input, "keyup", stop_propagation(
+            /*keyup_handler*/
+            ctx[42]
+          )),
+          listen(input, "change", change_handler_1)
+        ];
+        mounted = true;
+      }
+    },
+    p(new_ctx, dirty) {
+      ctx = new_ctx;
+      if (dirty[0] & /*running*/
+      128 && input_value_value !== (input_value_value = /*task*/
+      ctx[77].fixedDuration || 30) && input.value !== input_value_value) {
+        input.value = input_value_value;
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(input);
+      }
+      mounted = false;
+      run_all(dispose);
+    }
+  };
+}
+function create_each_block_24(key_1, ctx) {
+  let first;
+  let t0;
+  let div4;
+  let div2;
+  let div0;
+  let t1_value = (
+    /*task*/
+    ctx[77].name + ""
+  );
+  let t1;
+  let t2;
+  let t3;
+  let div1;
+  let show_if = (
+    /*getCustomProps*/
+    ctx[19](
+      /*task*/
+      ctx[77]
+    ).length > 0
+  );
+  let t4;
+  let t5;
+  let t6;
+  let div3;
+  let span1;
+  let button0;
+  let t8;
+  let span0;
+  let t9_value = (
+    /*task*/
+    ctx[77].weight + ""
+  );
+  let t9;
+  let t10;
+  let button1;
+  let t12;
+  let label;
+  let input;
+  let input_checked_value;
+  let t13;
+  let span2;
+  let t15;
+  let t16;
+  let button2;
+  let mounted;
+  let dispose;
+  let if_block0 = (
+    /*dragOverStatus*/
+    ctx[13] === /*sRunning*/
+    ctx[6].id && /*dragOverIndex*/
+    ctx[14] === /*i*/
+    ctx[79] && create_if_block_112(ctx)
+  );
+  let if_block1 = (
+    /*task*/
+    ctx[77].description && create_if_block_102(ctx)
+  );
+  let if_block2 = show_if && create_if_block_92(ctx);
+  let if_block3 = (
+    /*task*/
+    ctx[77].isFixedDuration && /*task*/
+    ctx[77].fixedDuration && create_if_block_82(ctx)
+  );
+  let if_block4 = (
+    /*ti*/
+    ctx[83] && create_if_block_73(ctx)
+  );
+  function click_handler_5() {
+    return (
+      /*click_handler_5*/
+      ctx[52](
+        /*task*/
+        ctx[77]
+      )
+    );
+  }
+  function click_handler_6() {
+    return (
+      /*click_handler_6*/
+      ctx[53](
+        /*task*/
+        ctx[77]
+      )
+    );
+  }
+  function click_handler_7() {
+    return (
+      /*click_handler_7*/
+      ctx[54](
+        /*task*/
+        ctx[77]
+      )
+    );
+  }
+  function change_handler(...args) {
+    return (
+      /*change_handler*/
+      ctx[55](
+        /*task*/
+        ctx[77],
+        ...args
+      )
+    );
+  }
+  let if_block5 = (
+    /*task*/
+    ctx[77].isFixedDuration && create_if_block_64(ctx)
+  );
+  function click_handler_8() {
+    return (
+      /*click_handler_8*/
+      ctx[57](
+        /*task*/
+        ctx[77]
+      )
+    );
+  }
+  function dragstart_handler_1(...args) {
+    return (
+      /*dragstart_handler_1*/
+      ctx[58](
+        /*task*/
+        ctx[77],
+        ...args
+      )
+    );
+  }
+  return {
+    key: key_1,
+    first: null,
+    c() {
+      first = empty();
+      if (if_block0)
+        if_block0.c();
+      t0 = space();
+      div4 = element("div");
+      div2 = element("div");
+      div0 = element("div");
+      t1 = text(t1_value);
+      t2 = space();
+      if (if_block1)
+        if_block1.c();
+      t3 = space();
+      div1 = element("div");
+      if (if_block2)
+        if_block2.c();
+      t4 = space();
+      if (if_block3)
+        if_block3.c();
+      t5 = space();
+      if (if_block4)
+        if_block4.c();
+      t6 = space();
+      div3 = element("div");
+      span1 = element("span");
+      button0 = element("button");
+      button0.textContent = "\u2212";
+      t8 = space();
+      span0 = element("span");
+      t9 = text(t9_value);
+      t10 = space();
+      button1 = element("button");
+      button1.textContent = "+";
+      t12 = space();
+      label = element("label");
+      input = element("input");
+      t13 = space();
+      span2 = element("span");
+      span2.textContent = "Fixed";
+      t15 = space();
+      if (if_block5)
+        if_block5.c();
+      t16 = space();
+      button2 = element("button");
+      button2.textContent = "Delete";
+      attr(div0, "class", "pos-card-name");
+      attr(div1, "class", "pos-card-meta");
+      set_style(div2, "cursor", "pointer");
+      attr(span1, "class", "pos-wg");
+      attr(input, "type", "checkbox");
+      input.checked = input_checked_value = /*task*/
+      ctx[77].isFixedDuration;
+      attr(label, "class", "pos-fixed");
+      attr(button2, "class", "pos-del");
+      attr(div3, "class", "pos-card-acts");
+      attr(div4, "class", "pos-card");
+      set_style(
+        div4,
+        "height",
+        /*taskHeights*/
+        ctx[17][
+          /*task*/
+          ctx[77].id
+        ] ? (
+          /*taskHeights*/
+          ctx[17][
+            /*task*/
+            ctx[77].id
+          ] + "px"
+        ) : "auto"
+      );
+      attr(div4, "draggable", "true");
+      toggle_class(
+        div4,
+        "pos-dragging-source",
+        /*dragId*/
+        ctx[12] === /*task*/
+        ctx[77].id
+      );
+      this.first = first;
+    },
+    m(target, anchor) {
+      insert(target, first, anchor);
+      if (if_block0)
+        if_block0.m(target, anchor);
+      insert(target, t0, anchor);
+      insert(target, div4, anchor);
+      append(div4, div2);
+      append(div2, div0);
+      append(div0, t1);
+      append(div2, t2);
+      if (if_block1)
+        if_block1.m(div2, null);
+      append(div2, t3);
+      append(div2, div1);
+      if (if_block2)
+        if_block2.m(div1, null);
+      append(div1, t4);
+      if (if_block3)
+        if_block3.m(div1, null);
+      append(div1, t5);
+      if (if_block4)
+        if_block4.m(div1, null);
+      append(div4, t6);
+      append(div4, div3);
+      append(div3, span1);
+      append(span1, button0);
+      append(span1, t8);
+      append(span1, span0);
+      append(span0, t9);
+      append(span1, t10);
+      append(span1, button1);
+      append(div3, t12);
+      append(div3, label);
+      append(label, input);
+      append(label, t13);
+      append(label, span2);
+      append(div3, t15);
+      if (if_block5)
+        if_block5.m(div3, null);
+      append(div3, t16);
+      append(div3, button2);
+      if (!mounted) {
+        dispose = [
+          listen(div2, "click", click_handler_5),
+          listen(button0, "click", click_handler_6),
+          listen(button1, "click", click_handler_7),
+          listen(input, "change", change_handler),
+          listen(label, "click", stop_propagation(
+            /*click_handler*/
+            ctx[43]
+          )),
+          listen(button2, "click", click_handler_8),
+          listen(div4, "dragstart", dragstart_handler_1),
+          listen(
+            div4,
+            "dragend",
+            /*handleDragEnd*/
+            ctx[29]
+          )
+        ];
+        mounted = true;
+      }
+    },
+    p(new_ctx, dirty) {
+      ctx = new_ctx;
+      if (
+        /*dragOverStatus*/
+        ctx[13] === /*sRunning*/
+        ctx[6].id && /*dragOverIndex*/
+        ctx[14] === /*i*/
+        ctx[79]
+      ) {
+        if (if_block0) {
+          if_block0.p(ctx, dirty);
+        } else {
+          if_block0 = create_if_block_112(ctx);
+          if_block0.c();
+          if_block0.m(t0.parentNode, t0);
+        }
+      } else if (if_block0) {
+        if_block0.d(1);
+        if_block0 = null;
+      }
+      if (dirty[0] & /*running*/
+      128 && t1_value !== (t1_value = /*task*/
+      ctx[77].name + ""))
+        set_data(t1, t1_value);
+      if (
+        /*task*/
+        ctx[77].description
+      ) {
+        if (if_block1) {
+          if_block1.p(ctx, dirty);
+        } else {
+          if_block1 = create_if_block_102(ctx);
+          if_block1.c();
+          if_block1.m(div2, t3);
+        }
+      } else if (if_block1) {
+        if_block1.d(1);
+        if_block1 = null;
+      }
+      if (dirty[0] & /*running*/
+      128)
+        show_if = /*getCustomProps*/
+        ctx[19](
+          /*task*/
+          ctx[77]
+        ).length > 0;
+      if (show_if) {
+        if (if_block2) {
+          if_block2.p(ctx, dirty);
+        } else {
+          if_block2 = create_if_block_92(ctx);
+          if_block2.c();
+          if_block2.m(div1, t4);
+        }
+      } else if (if_block2) {
+        if_block2.d(1);
+        if_block2 = null;
+      }
+      if (
+        /*task*/
+        ctx[77].isFixedDuration && /*task*/
+        ctx[77].fixedDuration
+      ) {
+        if (if_block3) {
+          if_block3.p(ctx, dirty);
+        } else {
+          if_block3 = create_if_block_82(ctx);
+          if_block3.c();
+          if_block3.m(div1, t5);
+        }
+      } else if (if_block3) {
+        if_block3.d(1);
+        if_block3 = null;
+      }
+      if (
+        /*ti*/
+        ctx[83]
+      ) {
+        if (if_block4) {
+          if_block4.p(ctx, dirty);
+        } else {
+          if_block4 = create_if_block_73(ctx);
+          if_block4.c();
+          if_block4.m(div1, null);
+        }
+      } else if (if_block4) {
+        if_block4.d(1);
+        if_block4 = null;
+      }
+      if (dirty[0] & /*running*/
+      128 && t9_value !== (t9_value = /*task*/
+      ctx[77].weight + ""))
+        set_data(t9, t9_value);
+      if (dirty[0] & /*running*/
+      128 && input_checked_value !== (input_checked_value = /*task*/
+      ctx[77].isFixedDuration)) {
+        input.checked = input_checked_value;
+      }
+      if (
+        /*task*/
+        ctx[77].isFixedDuration
+      ) {
+        if (if_block5) {
+          if_block5.p(ctx, dirty);
+        } else {
+          if_block5 = create_if_block_64(ctx);
+          if_block5.c();
+          if_block5.m(div3, t16);
+        }
+      } else if (if_block5) {
+        if_block5.d(1);
+        if_block5 = null;
+      }
+      if (dirty[0] & /*taskHeights, running*/
+      131200) {
+        set_style(
+          div4,
+          "height",
+          /*taskHeights*/
+          ctx[17][
+            /*task*/
+            ctx[77].id
+          ] ? (
+            /*taskHeights*/
+            ctx[17][
+              /*task*/
+              ctx[77].id
+            ] + "px"
+          ) : "auto"
+        );
+      }
+      if (dirty[0] & /*dragId, running*/
+      4224) {
+        toggle_class(
+          div4,
+          "pos-dragging-source",
+          /*dragId*/
+          ctx[12] === /*task*/
+          ctx[77].id
+        );
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(first);
+        detach(t0);
+        detach(div4);
+      }
+      if (if_block0)
+        if_block0.d(detaching);
+      if (if_block1)
+        if_block1.d();
+      if (if_block2)
+        if_block2.d();
+      if (if_block3)
+        if_block3.d();
+      if (if_block4)
+        if_block4.d();
+      if (if_block5)
+        if_block5.d();
+      mounted = false;
+      run_all(dispose);
+    }
+  };
+}
+function create_if_block_56(ctx) {
+  let div2;
+  return {
+    c() {
+      div2 = element("div");
+      attr(div2, "class", "pos-drag-placeholder");
+      set_style(
+        div2,
+        "height",
+        /*dragHeight*/
+        ctx[15] + "px"
+      );
+    },
+    m(target, anchor) {
+      insert(target, div2, anchor);
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*dragHeight*/
+      32768) {
+        set_style(
+          div2,
+          "height",
+          /*dragHeight*/
+          ctx2[15] + "px"
+        );
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div2);
+      }
+    }
+  };
+}
+function create_if_block_46(ctx) {
+  let div0;
+  let t;
+  let div1;
+  return {
+    c() {
+      div0 = element("div");
+      t = space();
+      div1 = element("div");
+      attr(div0, "class", "pos-wipe");
+      set_style(div0, "top", "0px");
+      set_style(
+        div0,
+        "height",
+        /*lockWipeHeight*/
+        ctx[11] + "px"
+      );
+      attr(div1, "class", "pos-redline");
+      set_style(
+        div1,
+        "top",
+        /*lockLineTop*/
+        ctx[10] + "px"
+      );
+    },
+    m(target, anchor) {
+      insert(target, div0, anchor);
+      insert(target, t, anchor);
+      insert(target, div1, anchor);
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*lockWipeHeight*/
+      2048) {
+        set_style(
+          div0,
+          "height",
+          /*lockWipeHeight*/
+          ctx2[11] + "px"
+        );
+      }
+      if (dirty[0] & /*lockLineTop*/
+      1024) {
+        set_style(
+          div1,
+          "top",
+          /*lockLineTop*/
+          ctx2[10] + "px"
+        );
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div0);
+        detach(t);
+        detach(div1);
+      }
+    }
+  };
+}
+function create_if_block_36(ctx) {
+  let div2;
+  return {
+    c() {
+      div2 = element("div");
+      attr(div2, "class", "pos-drag-placeholder");
+      set_style(
+        div2,
+        "height",
+        /*dragHeight*/
+        ctx[15] + "px"
+      );
+    },
+    m(target, anchor) {
+      insert(target, div2, anchor);
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*dragHeight*/
+      32768) {
+        set_style(
+          div2,
+          "height",
+          /*dragHeight*/
+          ctx2[15] + "px"
+        );
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div2);
+      }
+    }
+  };
+}
+function create_if_block_26(ctx) {
+  let div2;
+  let each_value_1 = ensure_array_like(
+    /*getCustomProps*/
+    ctx[19](
+      /*task*/
+      ctx[77]
+    )
+  );
+  let each_blocks = [];
+  for (let i = 0; i < each_value_1.length; i += 1) {
+    each_blocks[i] = create_each_block_14(get_each_context_14(ctx, each_value_1, i));
+  }
+  return {
+    c() {
+      div2 = element("div");
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        each_blocks[i].c();
+      }
+      attr(div2, "class", "pos-card-meta");
+    },
+    m(target, anchor) {
+      insert(target, div2, anchor);
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        if (each_blocks[i]) {
+          each_blocks[i].m(div2, null);
+        }
+      }
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*getCustomProps, review*/
+      589824) {
+        each_value_1 = ensure_array_like(
+          /*getCustomProps*/
+          ctx2[19](
+            /*task*/
+            ctx2[77]
+          )
+        );
+        let i;
+        for (i = 0; i < each_value_1.length; i += 1) {
+          const child_ctx = get_each_context_14(ctx2, each_value_1, i);
+          if (each_blocks[i]) {
+            each_blocks[i].p(child_ctx, dirty);
+          } else {
+            each_blocks[i] = create_each_block_14(child_ctx);
+            each_blocks[i].c();
+            each_blocks[i].m(div2, null);
+          }
+        }
+        for (; i < each_blocks.length; i += 1) {
+          each_blocks[i].d(1);
+        }
+        each_blocks.length = each_value_1.length;
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div2);
+      }
+      destroy_each(each_blocks, detaching);
+    }
+  };
+}
+function create_each_block_14(ctx) {
+  let span;
+  let t_value = (
+    /*cp*/
+    ctx[80].value + ""
+  );
+  let t;
+  let span_title_value;
+  let span_style_value;
+  return {
+    c() {
+      span = element("span");
+      t = text(t_value);
+      attr(span, "class", "pos-tag-pill");
+      attr(span, "title", span_title_value = /*cp*/
+      ctx[80].name);
+      attr(span, "style", span_style_value = /*cp*/
+      ctx[80].color ? `background-color: ${/*cp*/
+      ctx[80].color}; border-color: ${/*cp*/
+      ctx[80].color}; color: #fff;` : "");
+    },
+    m(target, anchor) {
+      insert(target, span, anchor);
+      append(span, t);
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*review*/
+      65536 && t_value !== (t_value = /*cp*/
+      ctx2[80].value + ""))
+        set_data(t, t_value);
+      if (dirty[0] & /*review*/
+      65536 && span_title_value !== (span_title_value = /*cp*/
+      ctx2[80].name)) {
+        attr(span, "title", span_title_value);
+      }
+      if (dirty[0] & /*review*/
+      65536 && span_style_value !== (span_style_value = /*cp*/
+      ctx2[80].color ? `background-color: ${/*cp*/
+      ctx2[80].color}; border-color: ${/*cp*/
+      ctx2[80].color}; color: #fff;` : "")) {
+        attr(span, "style", span_style_value);
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(span);
+      }
+    }
+  };
+}
+function create_each_block6(key_1, ctx) {
+  let first;
+  let t0;
+  let div3;
+  let div1;
+  let div0;
+  let t1_value = (
+    /*task*/
+    ctx[77].name + ""
+  );
+  let t1;
+  let t2;
+  let show_if = (
+    /*getCustomProps*/
+    ctx[19](
+      /*task*/
+      ctx[77]
+    ).length > 0
+  );
+  let t3;
+  let div2;
+  let button;
+  let mounted;
+  let dispose;
+  let if_block0 = (
+    /*dragOverStatus*/
+    ctx[13] === /*sReview*/
+    ctx[5].id && /*dragOverIndex*/
+    ctx[14] === /*i*/
+    ctx[79] && create_if_block_36(ctx)
+  );
+  let if_block1 = show_if && create_if_block_26(ctx);
+  function click_handler_9() {
+    return (
+      /*click_handler_9*/
+      ctx[63](
+        /*task*/
+        ctx[77]
+      )
+    );
+  }
+  function click_handler_10() {
+    return (
+      /*click_handler_10*/
+      ctx[64](
+        /*task*/
+        ctx[77]
+      )
+    );
+  }
+  function dragstart_handler_2(...args) {
+    return (
+      /*dragstart_handler_2*/
+      ctx[65](
+        /*task*/
+        ctx[77],
+        ...args
+      )
+    );
+  }
+  return {
+    key: key_1,
+    first: null,
+    c() {
+      first = empty();
+      if (if_block0)
+        if_block0.c();
+      t0 = space();
+      div3 = element("div");
+      div1 = element("div");
+      div0 = element("div");
+      t1 = text(t1_value);
+      t2 = space();
+      if (if_block1)
+        if_block1.c();
+      t3 = space();
+      div2 = element("div");
+      button = element("button");
+      button.textContent = "Delete";
+      attr(div0, "class", "pos-card-name");
+      set_style(div1, "cursor", "pointer");
+      attr(button, "class", "pos-del");
+      attr(div2, "class", "pos-card-acts");
+      attr(div3, "class", "pos-card pos-completed");
+      attr(div3, "draggable", "true");
+      toggle_class(
+        div3,
+        "pos-dragging-source",
+        /*dragId*/
+        ctx[12] === /*task*/
+        ctx[77].id
+      );
+      this.first = first;
+    },
+    m(target, anchor) {
+      insert(target, first, anchor);
+      if (if_block0)
+        if_block0.m(target, anchor);
+      insert(target, t0, anchor);
+      insert(target, div3, anchor);
+      append(div3, div1);
+      append(div1, div0);
+      append(div0, t1);
+      append(div1, t2);
+      if (if_block1)
+        if_block1.m(div1, null);
+      append(div3, t3);
+      append(div3, div2);
+      append(div2, button);
+      if (!mounted) {
+        dispose = [
+          listen(div1, "click", click_handler_9),
+          listen(button, "click", click_handler_10),
+          listen(div3, "dragstart", dragstart_handler_2),
+          listen(
+            div3,
+            "dragend",
+            /*handleDragEnd*/
+            ctx[29]
+          )
+        ];
+        mounted = true;
+      }
+    },
+    p(new_ctx, dirty) {
+      ctx = new_ctx;
+      if (
+        /*dragOverStatus*/
+        ctx[13] === /*sReview*/
+        ctx[5].id && /*dragOverIndex*/
+        ctx[14] === /*i*/
+        ctx[79]
+      ) {
+        if (if_block0) {
+          if_block0.p(ctx, dirty);
+        } else {
+          if_block0 = create_if_block_36(ctx);
+          if_block0.c();
+          if_block0.m(t0.parentNode, t0);
+        }
+      } else if (if_block0) {
+        if_block0.d(1);
+        if_block0 = null;
+      }
+      if (dirty[0] & /*review*/
+      65536 && t1_value !== (t1_value = /*task*/
+      ctx[77].name + ""))
+        set_data(t1, t1_value);
+      if (dirty[0] & /*review*/
+      65536)
+        show_if = /*getCustomProps*/
+        ctx[19](
+          /*task*/
+          ctx[77]
+        ).length > 0;
+      if (show_if) {
+        if (if_block1) {
+          if_block1.p(ctx, dirty);
+        } else {
+          if_block1 = create_if_block_26(ctx);
+          if_block1.c();
+          if_block1.m(div1, null);
+        }
+      } else if (if_block1) {
+        if_block1.d(1);
+        if_block1 = null;
+      }
+      if (dirty[0] & /*dragId, review*/
+      69632) {
+        toggle_class(
+          div3,
+          "pos-dragging-source",
+          /*dragId*/
+          ctx[12] === /*task*/
+          ctx[77].id
+        );
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(first);
+        detach(t0);
+        detach(div3);
+      }
+      if (if_block0)
+        if_block0.d(detaching);
+      if (if_block1)
+        if_block1.d();
+      mounted = false;
+      run_all(dispose);
+    }
+  };
+}
+function create_if_block_16(ctx) {
+  let div2;
+  return {
+    c() {
+      div2 = element("div");
+      attr(div2, "class", "pos-drag-placeholder");
+      set_style(
+        div2,
+        "height",
+        /*dragHeight*/
+        ctx[15] + "px"
+      );
+    },
+    m(target, anchor) {
+      insert(target, div2, anchor);
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*dragHeight*/
+      32768) {
+        set_style(
+          div2,
+          "height",
+          /*dragHeight*/
+          ctx2[15] + "px"
+        );
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div2);
+      }
+    }
+  };
+}
+function create_if_block6(ctx) {
+  let div2;
+  let button0;
+  let t1;
+  let button1;
+  let mounted;
+  let dispose;
+  return {
+    c() {
+      div2 = element("div");
+      button0 = element("button");
+      button0.textContent = "Restore All";
+      t1 = space();
+      button1 = element("button");
+      button1.textContent = "Delete All";
+      attr(div2, "class", "pos-bulk-row");
+    },
+    m(target, anchor) {
+      insert(target, div2, anchor);
+      append(div2, button0);
+      append(div2, t1);
+      append(div2, button1);
+      if (!mounted) {
+        dispose = [
+          listen(
+            button0,
+            "click",
+            /*confirmRestoreAll*/
+            ctx[25]
+          ),
+          listen(
+            button1,
+            "click",
+            /*confirmDeleteAll*/
+            ctx[26]
+          )
+        ];
+        mounted = true;
+      }
+    },
+    p: noop,
+    d(detaching) {
+      if (detaching) {
+        detach(div2);
+      }
+      mounted = false;
+      run_all(dispose);
+    }
+  };
+}
+function create_fragment6(ctx) {
+  let div1;
+  let div0;
+  let input0;
+  let t0;
+  let input1;
+  let t1;
+  let button0;
+  let t3;
+  let button1;
+  let t4_value = (
+    /*isLocked*/
+    ctx[3] ? "Unlock" : "Lock"
+  );
+  let t4;
+  let t5;
+  let div12;
+  let div5;
+  let h40;
+  let t6_value = (
+    /*sBacklog*/
+    ctx[9].name + ""
+  );
+  let t6;
+  let t7;
+  let t8_value = (
+    /*backlog*/
+    ctx[18].length + ""
+  );
+  let t8;
+  let t9;
+  let t10;
+  let div4;
+  let div3;
+  let each_blocks_2 = [];
+  let each0_lookup = /* @__PURE__ */ new Map();
+  let t11;
+  let t12;
+  let div2;
+  let button2;
+  let t14;
+  let div8;
+  let h41;
+  let t15_value = (
+    /*sRunning*/
+    ctx[6].name + ""
+  );
+  let t15;
+  let t16;
+  let t17_value = (
+    /*running*/
+    ctx[7].length + ""
+  );
+  let t17;
+  let t18;
+  let t19;
+  let div7;
+  let div6;
+  let each_blocks_1 = [];
+  let each1_lookup = /* @__PURE__ */ new Map();
+  let t20;
+  let t21;
+  let div7_resize_listener;
+  let t22;
+  let div11;
+  let h42;
+  let t23_value = (
+    /*sReview*/
+    ctx[5].name + ""
+  );
+  let t23;
+  let t24;
+  let t25_value = (
+    /*review*/
+    ctx[16].length + ""
+  );
+  let t25;
+  let t26;
+  let t27;
+  let div10;
+  let div9;
+  let each_blocks = [];
+  let each2_lookup = /* @__PURE__ */ new Map();
+  let t28;
+  let t29;
+  let mounted;
+  let dispose;
+  let each_value_4 = ensure_array_like(
+    /*backlog*/
+    ctx[18]
+  );
+  const get_key = (ctx2) => (
+    /*task*/
+    ctx2[77].id
+  );
+  for (let i = 0; i < each_value_4.length; i += 1) {
+    let child_ctx = get_each_context_43(ctx, each_value_4, i);
+    let key = get_key(child_ctx);
+    each0_lookup.set(key, each_blocks_2[i] = create_each_block_43(key, child_ctx));
+  }
+  let if_block0 = (
+    /*dragOverStatus*/
+    ctx[13] === /*sBacklog*/
+    ctx[9].id && /*dragOverIndex*/
+    ctx[14] >= /*backlog*/
+    ctx[18].length && create_if_block_122(ctx)
+  );
+  let each_value_2 = ensure_array_like(
+    /*running*/
+    ctx[7]
+  );
+  const get_key_1 = (ctx2) => (
+    /*task*/
+    ctx2[77].id
+  );
+  for (let i = 0; i < each_value_2.length; i += 1) {
+    let child_ctx = get_each_context_24(ctx, each_value_2, i);
+    let key = get_key_1(child_ctx);
+    each1_lookup.set(key, each_blocks_1[i] = create_each_block_24(key, child_ctx));
+  }
+  let if_block1 = (
+    /*dragOverStatus*/
+    ctx[13] === /*sRunning*/
+    ctx[6].id && /*dragOverIndex*/
+    ctx[14] >= /*running*/
+    ctx[7].length && create_if_block_56(ctx)
+  );
+  let if_block2 = (
+    /*isLocked*/
+    ctx[3] && create_if_block_46(ctx)
+  );
+  let each_value = ensure_array_like(
+    /*review*/
+    ctx[16]
+  );
+  const get_key_2 = (ctx2) => (
+    /*task*/
+    ctx2[77].id
+  );
+  for (let i = 0; i < each_value.length; i += 1) {
+    let child_ctx = get_each_context6(ctx, each_value, i);
+    let key = get_key_2(child_ctx);
+    each2_lookup.set(key, each_blocks[i] = create_each_block6(key, child_ctx));
+  }
+  let if_block3 = (
+    /*dragOverStatus*/
+    ctx[13] === /*sReview*/
+    ctx[5].id && /*dragOverIndex*/
+    ctx[14] >= /*review*/
+    ctx[16].length && create_if_block_16(ctx)
+  );
+  let if_block4 = (
+    /*review*/
+    ctx[16].length > 0 && create_if_block6(ctx)
+  );
+  return {
+    c() {
+      div1 = element("div");
+      div0 = element("div");
+      input0 = element("input");
+      t0 = space();
+      input1 = element("input");
+      t1 = space();
+      button0 = element("button");
+      button0.textContent = "Apply";
+      t3 = space();
+      button1 = element("button");
+      t4 = text(t4_value);
+      t5 = space();
+      div12 = element("div");
+      div5 = element("div");
+      h40 = element("h4");
+      t6 = text(t6_value);
+      t7 = text(" (");
+      t8 = text(t8_value);
+      t9 = text(")");
+      t10 = space();
+      div4 = element("div");
+      div3 = element("div");
+      for (let i = 0; i < each_blocks_2.length; i += 1) {
+        each_blocks_2[i].c();
+      }
+      t11 = space();
+      if (if_block0)
+        if_block0.c();
+      t12 = space();
+      div2 = element("div");
+      button2 = element("button");
+      button2.textContent = "+ New Task";
+      t14 = space();
+      div8 = element("div");
+      h41 = element("h4");
+      t15 = text(t15_value);
+      t16 = text(" (");
+      t17 = text(t17_value);
+      t18 = text(")");
+      t19 = space();
+      div7 = element("div");
+      div6 = element("div");
+      for (let i = 0; i < each_blocks_1.length; i += 1) {
+        each_blocks_1[i].c();
+      }
+      t20 = space();
+      if (if_block1)
+        if_block1.c();
+      t21 = space();
+      if (if_block2)
+        if_block2.c();
+      t22 = space();
+      div11 = element("div");
+      h42 = element("h4");
+      t23 = text(t23_value);
+      t24 = text(" (");
+      t25 = text(t25_value);
+      t26 = text(")");
+      t27 = space();
+      div10 = element("div");
+      div9 = element("div");
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        each_blocks[i].c();
+      }
+      t28 = space();
+      if (if_block3)
+        if_block3.c();
+      t29 = space();
+      if (if_block4)
+        if_block4.c();
+      attr(input0, "type", "date");
+      attr(input1, "type", "time");
+      attr(input1, "step", "60");
+      attr(button1, "class", "pos-lock-btn");
+      toggle_class(
+        button1,
+        "locked",
+        /*isLocked*/
+        ctx[3]
+      );
+      attr(div0, "class", "pos-deadline-controls");
+      attr(div1, "class", "pos-header");
+      attr(h40, "class", "pos-col-title");
+      set_style(
+        h40,
+        "color",
+        /*sBacklog*/
+        ctx[9].color
+      );
+      attr(button2, "class", "pos-newtask-btn");
+      attr(div2, "class", "pos-newtask-row");
+      attr(div3, "class", "pos-list");
+      attr(div4, "class", "pos-list-wrapper");
+      attr(div5, "class", "pos-col");
+      attr(h41, "class", "pos-col-title");
+      set_style(
+        h41,
+        "color",
+        /*sRunning*/
+        ctx[6].color
+      );
+      attr(div6, "class", "pos-list");
+      attr(div7, "class", "pos-list-wrapper");
+      add_render_callback(() => (
+        /*div7_elementresize_handler*/
+        ctx[60].call(div7)
+      ));
+      attr(div8, "class", "pos-col");
+      attr(h42, "class", "pos-col-title");
+      set_style(
+        h42,
+        "color",
+        /*sReview*/
+        ctx[5].color
+      );
+      attr(div9, "class", "pos-list");
+      attr(div10, "class", "pos-list-wrapper");
+      attr(div11, "class", "pos-col");
+      attr(div12, "class", "pos-columns");
+    },
+    m(target, anchor) {
+      insert(target, div1, anchor);
+      append(div1, div0);
+      append(div0, input0);
+      set_input_value(
+        input0,
+        /*dDate*/
+        ctx[1]
+      );
+      append(div0, t0);
+      append(div0, input1);
+      set_input_value(
+        input1,
+        /*dTime*/
+        ctx[2]
+      );
+      append(div0, t1);
+      append(div0, button0);
+      append(div0, t3);
+      append(div0, button1);
+      append(button1, t4);
+      insert(target, t5, anchor);
+      insert(target, div12, anchor);
+      append(div12, div5);
+      append(div5, h40);
+      append(h40, t6);
+      append(h40, t7);
+      append(h40, t8);
+      append(h40, t9);
+      append(div5, t10);
+      append(div5, div4);
+      append(div4, div3);
+      for (let i = 0; i < each_blocks_2.length; i += 1) {
+        if (each_blocks_2[i]) {
+          each_blocks_2[i].m(div3, null);
+        }
+      }
+      append(div3, t11);
+      if (if_block0)
+        if_block0.m(div3, null);
+      append(div3, t12);
+      append(div3, div2);
+      append(div2, button2);
+      append(div12, t14);
+      append(div12, div8);
+      append(div8, h41);
+      append(h41, t15);
+      append(h41, t16);
+      append(h41, t17);
+      append(h41, t18);
+      append(div8, t19);
+      append(div8, div7);
+      append(div7, div6);
+      for (let i = 0; i < each_blocks_1.length; i += 1) {
+        if (each_blocks_1[i]) {
+          each_blocks_1[i].m(div6, null);
+        }
+      }
+      append(div6, t20);
+      if (if_block1)
+        if_block1.m(div6, null);
+      append(div7, t21);
+      if (if_block2)
+        if_block2.m(div7, null);
+      div7_resize_listener = add_iframe_resize_listener(
+        div7,
+        /*div7_elementresize_handler*/
+        ctx[60].bind(div7)
+      );
+      append(div12, t22);
+      append(div12, div11);
+      append(div11, h42);
+      append(h42, t23);
+      append(h42, t24);
+      append(h42, t25);
+      append(h42, t26);
+      append(div11, t27);
+      append(div11, div10);
+      append(div10, div9);
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        if (each_blocks[i]) {
+          each_blocks[i].m(div9, null);
+        }
+      }
+      append(div9, t28);
+      if (if_block3)
+        if_block3.m(div9, null);
+      append(div9, t29);
+      if (if_block4)
+        if_block4.m(div9, null);
+      if (!mounted) {
+        dispose = [
+          listen(
+            input0,
+            "input",
+            /*input0_input_handler*/
+            ctx[44]
+          ),
+          listen(
+            input1,
+            "input",
+            /*input1_input_handler*/
+            ctx[45]
+          ),
+          listen(
+            button0,
+            "click",
+            /*click_handler_2*/
+            ctx[46]
+          ),
+          listen(
+            button1,
+            "click",
+            /*toggleLock*/
+            ctx[27]
+          ),
+          listen(
+            button2,
+            "click",
+            /*createTask*/
+            ctx[20]
+          ),
+          listen(
+            div4,
+            "dragover",
+            /*dragover_handler*/
+            ctx[50]
+          ),
+          listen(
+            div4,
+            "drop",
+            /*drop_handler*/
+            ctx[51]
+          ),
+          listen(
+            div7,
+            "dragover",
+            /*dragover_handler_1*/
+            ctx[61]
+          ),
+          listen(
+            div7,
+            "drop",
+            /*drop_handler_1*/
+            ctx[62]
+          ),
+          listen(
+            div10,
+            "dragover",
+            /*dragover_handler_2*/
+            ctx[66]
+          ),
+          listen(
+            div10,
+            "drop",
+            /*drop_handler_2*/
+            ctx[67]
+          )
+        ];
+        mounted = true;
+      }
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*dDate*/
+      2) {
+        set_input_value(
+          input0,
+          /*dDate*/
+          ctx2[1]
+        );
+      }
+      if (dirty[0] & /*dTime*/
+      4) {
+        set_input_value(
+          input1,
+          /*dTime*/
+          ctx2[2]
+        );
+      }
+      if (dirty[0] & /*isLocked*/
+      8 && t4_value !== (t4_value = /*isLocked*/
+      ctx2[3] ? "Unlock" : "Lock"))
+        set_data(t4, t4_value);
+      if (dirty[0] & /*isLocked*/
+      8) {
+        toggle_class(
+          button1,
+          "locked",
+          /*isLocked*/
+          ctx2[3]
+        );
+      }
+      if (dirty[0] & /*sBacklog*/
+      512 && t6_value !== (t6_value = /*sBacklog*/
+      ctx2[9].name + ""))
+        set_data(t6, t6_value);
+      if (dirty[0] & /*backlog*/
+      262144 && t8_value !== (t8_value = /*backlog*/
+      ctx2[18].length + ""))
+        set_data(t8, t8_value);
+      if (dirty[0] & /*sBacklog*/
+      512) {
+        set_style(
+          h40,
+          "color",
+          /*sBacklog*/
+          ctx2[9].color
+        );
+      }
+      if (dirty[0] & /*dragId, backlog, handleDragStart, handleDragEnd, deleteTask, editTask, getCustomProps, dragHeight, dragOverStatus, sBacklog, dragOverIndex*/
+      825029120) {
+        each_value_4 = ensure_array_like(
+          /*backlog*/
+          ctx2[18]
+        );
+        each_blocks_2 = update_keyed_each(each_blocks_2, dirty, get_key, 1, ctx2, each_value_4, each0_lookup, div3, destroy_block, create_each_block_43, t11, get_each_context_43);
+      }
+      if (
+        /*dragOverStatus*/
+        ctx2[13] === /*sBacklog*/
+        ctx2[9].id && /*dragOverIndex*/
+        ctx2[14] >= /*backlog*/
+        ctx2[18].length
+      ) {
+        if (if_block0) {
+          if_block0.p(ctx2, dirty);
+        } else {
+          if_block0 = create_if_block_122(ctx2);
+          if_block0.c();
+          if_block0.m(div3, t12);
+        }
+      } else if (if_block0) {
+        if_block0.d(1);
+        if_block0 = null;
+      }
+      if (dirty[0] & /*sRunning*/
+      64 && t15_value !== (t15_value = /*sRunning*/
+      ctx2[6].name + ""))
+        set_data(t15, t15_value);
+      if (dirty[0] & /*running*/
+      128 && t17_value !== (t17_value = /*running*/
+      ctx2[7].length + ""))
+        set_data(t17, t17_value);
+      if (dirty[0] & /*sRunning*/
+      64) {
+        set_style(
+          h41,
+          "color",
+          /*sRunning*/
+          ctx2[6].color
+        );
+      }
+      if (dirty[0] & /*taskHeights, running, dragId, handleDragStart, handleDragEnd, deleteTask, setFixed, toggleFixed, fileManager, editTask, timeline, getCustomProps, dragHeight, dragOverStatus, sRunning, dragOverIndex*/
+      837480897) {
+        each_value_2 = ensure_array_like(
+          /*running*/
+          ctx2[7]
+        );
+        each_blocks_1 = update_keyed_each(each_blocks_1, dirty, get_key_1, 1, ctx2, each_value_2, each1_lookup, div6, destroy_block, create_each_block_24, t20, get_each_context_24);
+      }
+      if (
+        /*dragOverStatus*/
+        ctx2[13] === /*sRunning*/
+        ctx2[6].id && /*dragOverIndex*/
+        ctx2[14] >= /*running*/
+        ctx2[7].length
+      ) {
+        if (if_block1) {
+          if_block1.p(ctx2, dirty);
+        } else {
+          if_block1 = create_if_block_56(ctx2);
+          if_block1.c();
+          if_block1.m(div6, null);
+        }
+      } else if (if_block1) {
+        if_block1.d(1);
+        if_block1 = null;
+      }
+      if (
+        /*isLocked*/
+        ctx2[3]
+      ) {
+        if (if_block2) {
+          if_block2.p(ctx2, dirty);
+        } else {
+          if_block2 = create_if_block_46(ctx2);
+          if_block2.c();
+          if_block2.m(div7, null);
+        }
+      } else if (if_block2) {
+        if_block2.d(1);
+        if_block2 = null;
+      }
+      if (dirty[0] & /*sReview*/
+      32 && t23_value !== (t23_value = /*sReview*/
+      ctx2[5].name + ""))
+        set_data(t23, t23_value);
+      if (dirty[0] & /*review*/
+      65536 && t25_value !== (t25_value = /*review*/
+      ctx2[16].length + ""))
+        set_data(t25, t25_value);
+      if (dirty[0] & /*sReview*/
+      32) {
+        set_style(
+          h42,
+          "color",
+          /*sReview*/
+          ctx2[5].color
+        );
+      }
+      if (dirty[0] & /*dragId, review, handleDragStart, handleDragEnd, deleteTask, editTask, getCustomProps, dragHeight, dragOverStatus, sReview, dragOverIndex*/
+      824832032) {
+        each_value = ensure_array_like(
+          /*review*/
+          ctx2[16]
+        );
+        each_blocks = update_keyed_each(each_blocks, dirty, get_key_2, 1, ctx2, each_value, each2_lookup, div9, destroy_block, create_each_block6, t28, get_each_context6);
+      }
+      if (
+        /*dragOverStatus*/
+        ctx2[13] === /*sReview*/
+        ctx2[5].id && /*dragOverIndex*/
+        ctx2[14] >= /*review*/
+        ctx2[16].length
+      ) {
+        if (if_block3) {
+          if_block3.p(ctx2, dirty);
+        } else {
+          if_block3 = create_if_block_16(ctx2);
+          if_block3.c();
+          if_block3.m(div9, t29);
+        }
+      } else if (if_block3) {
+        if_block3.d(1);
+        if_block3 = null;
+      }
+      if (
+        /*review*/
+        ctx2[16].length > 0
+      ) {
+        if (if_block4) {
+          if_block4.p(ctx2, dirty);
+        } else {
+          if_block4 = create_if_block6(ctx2);
+          if_block4.c();
+          if_block4.m(div9, null);
+        }
+      } else if (if_block4) {
+        if_block4.d(1);
+        if_block4 = null;
+      }
+    },
+    i: noop,
+    o: noop,
+    d(detaching) {
+      if (detaching) {
+        detach(div1);
+        detach(t5);
+        detach(div12);
+      }
+      for (let i = 0; i < each_blocks_2.length; i += 1) {
+        each_blocks_2[i].d();
+      }
+      if (if_block0)
+        if_block0.d();
+      for (let i = 0; i < each_blocks_1.length; i += 1) {
+        each_blocks_1[i].d();
+      }
+      if (if_block1)
+        if_block1.d();
+      if (if_block2)
+        if_block2.d();
+      div7_resize_listener();
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        each_blocks[i].d();
+      }
+      if (if_block3)
+        if_block3.d();
+      if (if_block4)
+        if_block4.d();
+      mounted = false;
+      run_all(dispose);
+    }
+  };
+}
+function instance6($$self, $$props, $$invalidate) {
+  let projectTasks;
+  let statuses;
+  let sBacklog;
+  let sRunning;
+  let sReview;
+  let backlog;
+  let running;
+  let review;
+  let timeline;
+  let taskHeights;
+  let $projectsStore;
+  let $tasksStore;
+  component_subscribe($$self, projectsStore, ($$value) => $$invalidate(37, $projectsStore = $$value));
+  component_subscribe($$self, tasksStore, ($$value) => $$invalidate(38, $tasksStore = $$value));
+  let { app } = $$props;
+  let { fileManager } = $$props;
+  let { projectId } = $$props;
+  const sortTasks = (tasks) => tasks.sort((a, b) => {
+    const pA = a.properties && a.properties["priority"] ? parseInt(a.properties["priority"], 10) : 3;
+    const pB = b.properties && b.properties["priority"] ? parseInt(b.properties["priority"], 10) : 3;
+    return pA - pB || a.orderIndex - b.orderIndex;
+  });
+  function getCustomProps(task) {
+    if (!task.properties || !fileManager.plugin.settings.taskSchema)
+      return [];
+    const res = [];
+    fileManager.plugin.settings.taskSchema.forEach((schema) => {
+      var _a;
+      const val = task.properties[schema.id];
+      if (val === void 0 || val === null || val === "")
+        return;
+      if (Array.isArray(val) && val.length === 0)
+        return;
+      if (schema.type === "select") {
+        const opt = (_a = schema.options) == null ? void 0 : _a.find((o) => o.id === val);
+        if (opt)
+          res.push({
+            name: schema.name,
+            value: opt.name,
+            color: opt.color
+          });
+      } else if (schema.type === "multi-select") {
+        val.forEach((v) => {
+          var _a2;
+          const opt = (_a2 = schema.options) == null ? void 0 : _a2.find((o) => o.id === v);
+          res.push({
+            name: schema.name,
+            value: opt ? opt.name : v,
+            color: opt == null ? void 0 : opt.color
+          });
+        });
+      } else if (schema.type === "date") {
+        const d = new Date(val);
+        if (!isNaN(d.getTime()))
+          res.push({
+            name: schema.name,
+            value: d.toLocaleDateString()
+          });
+      } else if (schema.type === "checkbox") {
+        res.push({
+          name: schema.name,
+          value: val ? "Yes" : "No"
+        });
+      } else {
+        res.push({ name: schema.name, value: String(val) });
+      }
+    });
+    return res;
+  }
+  let deadline = /* @__PURE__ */ new Date();
+  deadline.setHours(17, 0, 0, 0);
+  let dDate = fmtDate(deadline.toISOString());
+  let dTime = fmtTime(deadline.toISOString());
+  let isLocked = false;
+  let lockAt = null;
+  let lockDeadline = null;
+  let lockedTimeline = [];
+  let now2 = Date.now();
+  let timer;
+  let runningWrapperHeight = 300;
+  let lockLineTop = 0;
+  let lockWipeHeight = 0;
+  function updateLockProgress() {
+    if (!isLocked || !lockAt || !lockDeadline)
+      return;
+    const start = new Date(lockAt).getTime();
+    const end = new Date(lockDeadline).getTime();
+    const p = Math.min(1, Math.max(0, (Date.now() - start) / (end - start)));
+    const totalHeight = runningWrapperHeight;
+    $$invalidate(10, lockLineTop = p * totalHeight);
+    $$invalidate(11, lockWipeHeight = lockLineTop);
+  }
+  onMount(() => {
+    timer = window.setInterval(
+      () => {
+        now2 = Date.now();
+        if (isLocked) {
+          updateLockProgress();
+        }
+      },
+      1e3
+    );
+  });
+  onDestroy(() => {
+    window.clearInterval(timer);
+  });
+  function createTask() {
+    new NewTaskModal(
+      app,
+      async (name) => {
+        await fileManager.createTask({
+          name,
+          project: projectId === "all" ? null : projectId
+        });
+      }
+    ).open();
+  }
+  function editTask(task) {
+    new QuickEditTaskModal(
+      app,
+      fileManager.plugin,
+      task,
+      async (updates) => {
+        await fileManager.updateTask(task.id, updates);
+      }
+    ).open();
+  }
+  function openTaskFile(taskId) {
+    const file = app.vault.getAbstractFileByPath(`tasks/${taskId}.md`);
+    if (file instanceof import_obsidian6.TFile) {
+      app.workspace.getLeaf().openFile(file);
+    }
+  }
+  async function updateStatus(task, status) {
+    await fileManager.updateTask(task.id, {
+      status,
+      isCompleted: status === sReview.id
+    });
+  }
+  async function toggleFixed(task, isFixed) {
+    await fileManager.updateTask(task.id, {
+      isFixedDuration: isFixed,
+      fixedDuration: isFixed ? task.fixedDuration || 30 : null
+    });
+  }
+  async function setFixed(task, duration) {
+    await fileManager.updateTask(task.id, {
+      isFixedDuration: true,
+      fixedDuration: duration
+    });
+  }
+  async function deleteTask(id) {
+    await fileManager.deleteTask(id);
+  }
+  function confirmRestoreAll() {
+    new ConfirmModal(
+      app,
+      "Restore All",
+      "Move all review tasks back to running?",
+      () => {
+        review.forEach((t) => fileManager.updateTask(t.id, { status: sRunning.id, isCompleted: false }));
+      }
+    ).open();
+  }
+  function confirmDeleteAll() {
+    new ConfirmModal(
+      app,
+      "Delete All",
+      "Permanently delete all tasks in review?",
+      () => {
+        review.forEach((t) => fileManager.deleteTask(t.id));
+      }
+    ).open();
+  }
+  function toggleLock() {
+    if (isLocked) {
+      $$invalidate(3, isLocked = false);
+      lockAt = null;
+      lockDeadline = null;
+      $$invalidate(34, lockedTimeline = []);
+    } else {
+      const dl = /* @__PURE__ */ new Date(`${dDate}T${dTime}`);
+      lockAt = (/* @__PURE__ */ new Date()).toISOString();
+      lockDeadline = dl.toISOString();
+      $$invalidate(34, lockedTimeline = calculateLiquidTimeline(running, /* @__PURE__ */ new Date(), dl));
+      $$invalidate(3, isLocked = true);
+      updateLockProgress();
+    }
+  }
+  let dragId = null;
+  let dragOverStatus = null;
+  let dragOverIndex = -1;
+  let dragHeight = 60;
+  function handleDragStart(e, id) {
+    const target = e.target.closest(".pos-card");
+    if (target) {
+      const rect = target.getBoundingClientRect();
+      $$invalidate(15, dragHeight = rect.height);
+      if (e.dataTransfer) {
+        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData("text/plain", id);
+        const clone = target.cloneNode(true);
+        clone.style.position = "absolute";
+        clone.style.top = "-9999px";
+        clone.style.left = "-9999px";
+        clone.style.width = rect.width + "px";
+        clone.style.height = rect.height + "px";
+        clone.style.opacity = "1";
+        clone.classList.remove("pos-dragging-source");
+        document.body.appendChild(clone);
+        e.dataTransfer.setDragImage(clone, e.clientX - rect.left, e.clientY - rect.top);
+        setTimeout(
+          () => {
+            if (clone.parentNode)
+              clone.parentNode.removeChild(clone);
+          },
+          50
+        );
+      }
+    } else {
+      if (e.dataTransfer)
+        e.dataTransfer.setData("text/plain", id);
+    }
+    setTimeout(
+      () => {
+        $$invalidate(12, dragId = id);
+      },
+      0
+    );
+  }
+  function handleDragEnd() {
+    $$invalidate(12, dragId = null);
+    $$invalidate(13, dragOverStatus = null);
+    $$invalidate(14, dragOverIndex = -1);
+  }
+  function handleDragOver(e, status) {
+    e.preventDefault();
+    if (!dragId)
+      return;
+    const task = $tasksStore.find((t) => t.id === dragId);
+    if (!task)
+      return;
+    if (isLocked && (task.status === sRunning.id || status === sRunning.id) && task.status !== status) {
+      if (e.dataTransfer)
+        e.dataTransfer.dropEffect = "none";
+      return;
+    }
+    const listEl = e.currentTarget.querySelector(".pos-list");
+    if (!listEl)
+      return;
+    const isPlaceholderInThisColumn = dragOverStatus === status && dragOverIndex !== -1;
+    const placeholderShift = dragHeight + 8;
+    const cards = Array.from(listEl.querySelectorAll(".pos-card"));
+    let index = 0;
+    for (let i = 0; i < cards.length; i++) {
+      const rect = cards[i].getBoundingClientRect();
+      let virtualTop = rect.top;
+      if (isPlaceholderInThisColumn && dragOverIndex <= i) {
+        virtualTop -= placeholderShift;
+      }
+      if (e.clientY < virtualTop + rect.height / 2) {
+        index = i;
+        break;
+      }
+      index = i + 1;
+    }
+    $$invalidate(13, dragOverStatus = status);
+    $$invalidate(14, dragOverIndex = index);
+  }
+  async function handleDrop(e, status) {
+    e.preventDefault();
+    if (!dragId)
+      return;
+    const task = $tasksStore.find((t) => t.id === dragId);
+    if (!task)
+      return;
+    const oldStatus = task.status;
+    const targetIndex = dragOverIndex;
+    $$invalidate(12, dragId = null);
+    $$invalidate(13, dragOverStatus = null);
+    $$invalidate(14, dragOverIndex = -1);
+    const allTasksOfProject = getProjectTasks($tasksStore, projectId, $projectsStore);
+    if (oldStatus === status) {
+      const colTasks = allTasksOfProject.filter((t) => t.status === status);
+      const cardToMove = colTasks.find((t) => t.id === task.id);
+      if (!cardToMove)
+        return;
+      const oldIndex = colTasks.indexOf(cardToMove);
+      if (oldIndex === targetIndex || oldIndex === targetIndex - 1)
+        return;
+      const newColTasks = [...colTasks];
+      newColTasks.splice(oldIndex, 1);
+      let adjustedTarget = targetIndex;
+      if (oldIndex < targetIndex)
+        adjustedTarget--;
+      newColTasks.splice(adjustedTarget, 0, cardToMove);
+      await Promise.all(newColTasks.map((t, idx) => fileManager.updateTask(t.id, { orderIndex: idx })));
+    } else {
+      if (isLocked && status === sRunning.id)
+        return;
+      const sourceCol = allTasksOfProject.filter((t) => t.status === oldStatus && t.id !== task.id);
+      const destCol = allTasksOfProject.filter((t) => t.status === status);
+      destCol.splice(targetIndex, 0, {
+        ...task,
+        status,
+        isCompleted: status === sReview.id
+      });
+      await Promise.all([
+        ...sourceCol.map((t, idx) => fileManager.updateTask(t.id, { orderIndex: idx })),
+        ...destCol.map((t, idx) => fileManager.updateTask(t.id, {
+          orderIndex: idx,
+          status: t.id === task.id ? status : t.status,
+          isCompleted: t.id === task.id ? status === sReview.id : t.isCompleted
+        }))
+      ]);
+    }
+  }
+  function click_handler_1(event) {
+    bubble.call(this, $$self, event);
+  }
+  function keydown_handler(event) {
+    bubble.call(this, $$self, event);
+  }
+  function keypress_handler(event) {
+    bubble.call(this, $$self, event);
+  }
+  function keyup_handler(event) {
+    bubble.call(this, $$self, event);
+  }
+  function click_handler(event) {
+    bubble.call(this, $$self, event);
+  }
+  function input0_input_handler() {
+    dDate = this.value;
+    $$invalidate(1, dDate);
+  }
+  function input1_input_handler() {
+    dTime = this.value;
+    $$invalidate(2, dTime);
+  }
+  const click_handler_2 = () => {
+    if (isLocked)
+      return;
+    $$invalidate(1, dDate);
+  };
+  const click_handler_3 = (task) => editTask(task);
+  const click_handler_4 = (task) => deleteTask(task.id);
+  const dragstart_handler = (task, e) => handleDragStart(e, task.id);
+  const dragover_handler = (e) => handleDragOver(e, sBacklog.id);
+  const drop_handler = (e) => handleDrop(e, sBacklog.id);
+  const click_handler_5 = (task) => editTask(task);
+  const click_handler_6 = (task) => fileManager.updateTask(task.id, { weight: Math.max(1, task.weight - 1) });
+  const click_handler_7 = (task) => fileManager.updateTask(task.id, { weight: task.weight + 1 });
+  const change_handler = (task, e) => toggleFixed(task, e.currentTarget.checked);
+  const change_handler_1 = (task, e) => setFixed(task, Number(e.currentTarget.value));
+  const click_handler_8 = (task) => deleteTask(task.id);
+  const dragstart_handler_1 = (task, e) => handleDragStart(e, task.id);
+  const func2 = (task, t) => t.id === task.id;
+  function div7_elementresize_handler() {
+    runningWrapperHeight = this.clientHeight;
+    $$invalidate(4, runningWrapperHeight);
+  }
+  const dragover_handler_1 = (e) => handleDragOver(e, sRunning.id);
+  const drop_handler_1 = (e) => handleDrop(e, sRunning.id);
+  const click_handler_9 = (task) => editTask(task);
+  const click_handler_10 = (task) => deleteTask(task.id);
+  const dragstart_handler_2 = (task, e) => handleDragStart(e, task.id);
+  const dragover_handler_2 = (e) => handleDragOver(e, sReview.id);
+  const drop_handler_2 = (e) => handleDrop(e, sReview.id);
+  $$self.$$set = ($$props2) => {
+    if ("app" in $$props2)
+      $$invalidate(32, app = $$props2.app);
+    if ("fileManager" in $$props2)
+      $$invalidate(0, fileManager = $$props2.fileManager);
+    if ("projectId" in $$props2)
+      $$invalidate(33, projectId = $$props2.projectId);
+  };
+  $$self.$$.update = () => {
+    if ($$self.$$.dirty[1] & /*$tasksStore, projectId, $projectsStore*/
+    196) {
+      $:
+        $$invalidate(35, projectTasks = getProjectTasks($tasksStore, projectId, $projectsStore));
+    }
+    if ($$self.$$.dirty[0] & /*fileManager*/
+    1) {
+      $:
+        $$invalidate(36, statuses = fileManager.plugin.settings.statuses || []);
+    }
+    if ($$self.$$.dirty[1] & /*statuses*/
+    32) {
+      $:
+        $$invalidate(9, sBacklog = statuses.find((s) => s.id === "backlog") || {
+          id: "backlog",
+          name: "Elastic Backlog",
+          color: "#636e72"
+        });
+    }
+    if ($$self.$$.dirty[1] & /*statuses*/
+    32) {
+      $:
+        $$invalidate(6, sRunning = statuses.find((s) => s.id === "running") || {
+          id: "running",
+          name: "Elastic Running",
+          color: "#00b894"
+        });
+    }
+    if ($$self.$$.dirty[1] & /*statuses*/
+    32) {
+      $:
+        $$invalidate(5, sReview = statuses.find((s) => s.id === "review") || {
+          id: "review",
+          name: "Finished",
+          color: "#fdcb6e"
+        });
+    }
+    if ($$self.$$.dirty[0] & /*sBacklog*/
+    512 | $$self.$$.dirty[1] & /*projectTasks*/
+    16) {
+      $:
+        $$invalidate(18, backlog = sortTasks(projectTasks.filter((t) => t.status === sBacklog.id)));
+    }
+    if ($$self.$$.dirty[0] & /*sRunning*/
+    64 | $$self.$$.dirty[1] & /*projectTasks*/
+    16) {
+      $:
+        $$invalidate(7, running = sortTasks(projectTasks.filter((t) => t.status === sRunning.id)));
+    }
+    if ($$self.$$.dirty[0] & /*sReview*/
+    32 | $$self.$$.dirty[1] & /*projectTasks*/
+    16) {
+      $:
+        $$invalidate(16, review = sortTasks(projectTasks.filter((t) => t.status === sReview.id)));
+    }
+    if ($$self.$$.dirty[0] & /*isLocked, running, dDate, dTime*/
+    142 | $$self.$$.dirty[1] & /*lockedTimeline*/
+    8) {
+      $:
+        $$invalidate(8, timeline = isLocked ? lockedTimeline : calculateLiquidTimeline(running, /* @__PURE__ */ new Date(), /* @__PURE__ */ new Date(`${dDate}T${dTime}`)));
+    }
+    if ($$self.$$.dirty[0] & /*runningWrapperHeight, running, timeline*/
+    400) {
+      $:
+        $$invalidate(17, taskHeights = (() => {
+          const H = runningWrapperHeight;
+          const heights = {};
+          if (running.length === 0)
+            return heights;
+          const tl = timeline;
+          const total = tl.reduce((s, t) => s + t.calculatedDuration, 0);
+          if (total <= 0 || H <= 0) {
+            const tw = running.reduce((s, t) => s + t.weight, 0) || 1;
+            running.forEach((t) => {
+              heights[t.id] = Math.max(65, t.weight / tw * Math.max(H, 300));
+            });
+            return heights;
+          }
+          running.forEach((t) => {
+            const ti = tl.find((item) => item.id === t.id);
+            const dur = ti ? ti.calculatedDuration : 0;
+            heights[t.id] = Math.max(65, dur / total * H);
+          });
+          return heights;
+        })());
+    }
+  };
+  return [
+    fileManager,
+    dDate,
+    dTime,
+    isLocked,
+    runningWrapperHeight,
+    sReview,
+    sRunning,
+    running,
+    timeline,
+    sBacklog,
+    lockLineTop,
+    lockWipeHeight,
+    dragId,
+    dragOverStatus,
+    dragOverIndex,
+    dragHeight,
+    review,
+    taskHeights,
+    backlog,
+    getCustomProps,
+    createTask,
+    editTask,
+    toggleFixed,
+    setFixed,
+    deleteTask,
+    confirmRestoreAll,
+    confirmDeleteAll,
+    toggleLock,
+    handleDragStart,
+    handleDragEnd,
+    handleDragOver,
+    handleDrop,
+    app,
+    projectId,
+    lockedTimeline,
+    projectTasks,
+    statuses,
+    $projectsStore,
+    $tasksStore,
+    click_handler_1,
+    keydown_handler,
+    keypress_handler,
+    keyup_handler,
+    click_handler,
+    input0_input_handler,
+    input1_input_handler,
+    click_handler_2,
+    click_handler_3,
+    click_handler_4,
+    dragstart_handler,
+    dragover_handler,
+    drop_handler,
+    click_handler_5,
+    click_handler_6,
+    click_handler_7,
+    change_handler,
+    change_handler_1,
+    click_handler_8,
+    dragstart_handler_1,
+    func2,
+    div7_elementresize_handler,
+    dragover_handler_1,
+    drop_handler_1,
+    click_handler_9,
+    click_handler_10,
+    dragstart_handler_2,
+    dragover_handler_2,
+    drop_handler_2
+  ];
+}
+var ElasticView = class extends SvelteComponent {
+  constructor(options) {
+    super();
+    init(this, options, instance6, create_fragment6, safe_not_equal, { app: 32, fileManager: 0, projectId: 33 }, null, [-1, -1, -1]);
+  }
+};
+var ElasticView_default = ElasticView;
+
+// src/ui/views/DeadlinesView.svelte
+function create_fragment7(ctx) {
+  let div2;
+  let projectdeadlines;
+  let current;
+  projectdeadlines = new ProjectDeadlines_default({
+    props: {
+      app: (
+        /*app*/
+        ctx[0]
+      ),
+      fileManager: (
+        /*fileManager*/
+        ctx[1]
+      ),
+      projectId: (
+        /*projectId*/
+        ctx[2]
+      ),
+      plugin: (
+        /*fileManager*/
+        ctx[1].plugin
+      )
+    }
+  });
+  return {
+    c() {
+      div2 = element("div");
+      create_component(projectdeadlines.$$.fragment);
+      set_style(div2, "height", "100%");
+      set_style(div2, "display", "flex");
+      set_style(div2, "flex-direction", "column");
+      set_style(div2, "overflow", "hidden");
+    },
+    m(target, anchor) {
+      insert(target, div2, anchor);
+      mount_component(projectdeadlines, div2, null);
+      current = true;
+    },
+    p(ctx2, [dirty]) {
+      const projectdeadlines_changes = {};
+      if (dirty & /*app*/
+      1)
+        projectdeadlines_changes.app = /*app*/
+        ctx2[0];
+      if (dirty & /*fileManager*/
+      2)
+        projectdeadlines_changes.fileManager = /*fileManager*/
+        ctx2[1];
+      if (dirty & /*projectId*/
+      4)
+        projectdeadlines_changes.projectId = /*projectId*/
+        ctx2[2];
+      if (dirty & /*fileManager*/
+      2)
+        projectdeadlines_changes.plugin = /*fileManager*/
+        ctx2[1].plugin;
+      projectdeadlines.$set(projectdeadlines_changes);
+    },
+    i(local) {
+      if (current)
+        return;
+      transition_in(projectdeadlines.$$.fragment, local);
+      current = true;
+    },
+    o(local) {
+      transition_out(projectdeadlines.$$.fragment, local);
+      current = false;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div2);
+      }
+      destroy_component(projectdeadlines);
+    }
+  };
+}
+function instance7($$self, $$props, $$invalidate) {
+  let { app } = $$props;
+  let { fileManager } = $$props;
+  let { projectId } = $$props;
+  $$self.$$set = ($$props2) => {
+    if ("app" in $$props2)
+      $$invalidate(0, app = $$props2.app);
+    if ("fileManager" in $$props2)
+      $$invalidate(1, fileManager = $$props2.fileManager);
+    if ("projectId" in $$props2)
+      $$invalidate(2, projectId = $$props2.projectId);
+  };
+  return [app, fileManager, projectId];
+}
+var DeadlinesView = class extends SvelteComponent {
+  constructor(options) {
+    super();
+    init(this, options, instance7, create_fragment7, safe_not_equal, { app: 0, fileManager: 1, projectId: 2 });
+  }
+};
+var DeadlinesView_default = DeadlinesView;
+
+// src/ui/App.svelte
+function get_each_context7(ctx, list, i) {
+  const child_ctx = ctx.slice();
+  child_ctx[13] = list[i];
+  return child_ctx;
+}
+function create_if_block_37(ctx) {
+  let div2;
+  let label;
+  let t0;
+  let select;
+  let option0;
+  let option1;
+  let each_blocks = [];
+  let each_1_lookup = /* @__PURE__ */ new Map();
+  let mounted;
+  let dispose;
+  let each_value = ensure_array_like(
+    /*activeProjects*/
+    ctx[5]
+  );
+  const get_key = (ctx2) => (
+    /*p*/
+    ctx2[13].id
+  );
+  for (let i = 0; i < each_value.length; i += 1) {
+    let child_ctx = get_each_context7(ctx, each_value, i);
+    let key = get_key(child_ctx);
+    each_1_lookup.set(key, each_blocks[i] = create_each_block7(key, child_ctx));
+  }
+  return {
+    c() {
+      div2 = element("div");
+      label = element("label");
+      t0 = text("Project:\n        ");
+      select = element("select");
+      option0 = element("option");
+      option0.textContent = "-- All Projects --";
+      option1 = element("option");
+      option1.textContent = "-- Uncategorized --";
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        each_blocks[i].c();
+      }
+      option0.__value = "all";
+      set_input_value(option0, option0.__value);
+      option1.__value = "";
+      set_input_value(option1, option1.__value);
+      attr(select, "class", "pos-project-selector");
+      if (
+        /*selectedProjectId*/
+        ctx[4] === void 0
+      )
+        add_render_callback(() => (
+          /*select_change_handler*/
+          ctx[9].call(select)
+        ));
+      attr(div2, "class", "pos-project-selector-row");
+    },
+    m(target, anchor) {
+      insert(target, div2, anchor);
+      append(div2, label);
+      append(label, t0);
+      append(label, select);
+      append(select, option0);
+      append(select, option1);
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        if (each_blocks[i]) {
+          each_blocks[i].m(select, null);
+        }
+      }
+      select_option(
+        select,
+        /*selectedProjectId*/
+        ctx[4],
+        true
+      );
+      if (!mounted) {
+        dispose = listen(
+          select,
+          "change",
+          /*select_change_handler*/
+          ctx[9]
+        );
+        mounted = true;
+      }
+    },
+    p(ctx2, dirty) {
+      if (dirty & /*activeProjects*/
+      32) {
+        each_value = ensure_array_like(
+          /*activeProjects*/
+          ctx2[5]
+        );
+        each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx2, each_value, each_1_lookup, select, destroy_block, create_each_block7, null, get_each_context7);
+      }
+      if (dirty & /*selectedProjectId, activeProjects*/
+      48) {
+        select_option(
+          select,
+          /*selectedProjectId*/
+          ctx2[4]
+        );
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div2);
+      }
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        each_blocks[i].d();
+      }
+      mounted = false;
+      dispose();
+    }
+  };
+}
+function create_each_block7(key_1, ctx) {
+  let option;
+  let t_value = (
+    /*p*/
+    ctx[13].name + ""
+  );
+  let t;
+  let option_value_value;
+  return {
+    key: key_1,
+    first: null,
+    c() {
+      option = element("option");
+      t = text(t_value);
+      option.__value = option_value_value = /*p*/
+      ctx[13].id;
+      set_input_value(option, option.__value);
+      this.first = option;
+    },
+    m(target, anchor) {
+      insert(target, option, anchor);
+      append(option, t);
+    },
+    p(new_ctx, dirty) {
+      ctx = new_ctx;
+      if (dirty & /*activeProjects*/
+      32 && t_value !== (t_value = /*p*/
+      ctx[13].name + ""))
+        set_data(t, t_value);
+      if (dirty & /*activeProjects*/
+      32 && option_value_value !== (option_value_value = /*p*/
+      ctx[13].id)) {
+        option.__value = option_value_value;
+        set_input_value(option, option.__value);
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(option);
+      }
+    }
+  };
+}
+function create_if_block_27(ctx) {
+  let deadlinesview;
+  let current;
+  deadlinesview = new DeadlinesView_default({
+    props: {
+      app: (
+        /*app*/
+        ctx[0]
+      ),
+      fileManager: (
+        /*fileManager*/
+        ctx[1]
+      ),
+      projectId: (
+        /*selectedProjectId*/
+        ctx[4]
+      )
+    }
+  });
+  return {
+    c() {
+      create_component(deadlinesview.$$.fragment);
+    },
+    m(target, anchor) {
+      mount_component(deadlinesview, target, anchor);
+      current = true;
+    },
+    p(ctx2, dirty) {
+      const deadlinesview_changes = {};
+      if (dirty & /*app*/
+      1)
+        deadlinesview_changes.app = /*app*/
+        ctx2[0];
+      if (dirty & /*fileManager*/
+      2)
+        deadlinesview_changes.fileManager = /*fileManager*/
+        ctx2[1];
+      if (dirty & /*selectedProjectId*/
+      16)
+        deadlinesview_changes.projectId = /*selectedProjectId*/
+        ctx2[4];
+      deadlinesview.$set(deadlinesview_changes);
+    },
+    i(local) {
+      if (current)
+        return;
+      transition_in(deadlinesview.$$.fragment, local);
+      current = true;
+    },
+    o(local) {
+      transition_out(deadlinesview.$$.fragment, local);
+      current = false;
+    },
+    d(detaching) {
+      destroy_component(deadlinesview, detaching);
+    }
+  };
+}
+function create_if_block_17(ctx) {
+  let elasticview;
+  let current;
+  elasticview = new ElasticView_default({
+    props: {
+      app: (
+        /*app*/
+        ctx[0]
+      ),
+      fileManager: (
+        /*fileManager*/
+        ctx[1]
+      ),
+      projectId: (
+        /*selectedProjectId*/
+        ctx[4]
+      )
+    }
+  });
+  return {
+    c() {
+      create_component(elasticview.$$.fragment);
+    },
+    m(target, anchor) {
+      mount_component(elasticview, target, anchor);
+      current = true;
+    },
+    p(ctx2, dirty) {
+      const elasticview_changes = {};
+      if (dirty & /*app*/
+      1)
+        elasticview_changes.app = /*app*/
+        ctx2[0];
+      if (dirty & /*fileManager*/
+      2)
+        elasticview_changes.fileManager = /*fileManager*/
+        ctx2[1];
+      if (dirty & /*selectedProjectId*/
+      16)
+        elasticview_changes.projectId = /*selectedProjectId*/
+        ctx2[4];
+      elasticview.$set(elasticview_changes);
+    },
+    i(local) {
+      if (current)
+        return;
+      transition_in(elasticview.$$.fragment, local);
+      current = true;
+    },
+    o(local) {
+      transition_out(elasticview.$$.fragment, local);
+      current = false;
+    },
+    d(detaching) {
+      destroy_component(elasticview, detaching);
+    }
+  };
+}
+function create_if_block7(ctx) {
+  let projectsview;
+  let updating_selectedProjectId;
+  let current;
+  function projectsview_selectedProjectId_binding(value) {
+    ctx[12](value);
+  }
+  let projectsview_props = {
+    app: (
+      /*app*/
+      ctx[0]
+    ),
+    fileManager: (
+      /*fileManager*/
+      ctx[1]
+    ),
+    plugin: (
+      /*plugin*/
+      ctx[2]
+    )
+  };
+  if (
+    /*selectedProjectId*/
+    ctx[4] !== void 0
+  ) {
+    projectsview_props.selectedProjectId = /*selectedProjectId*/
+    ctx[4];
+  }
+  projectsview = new ProjectsView_default({ props: projectsview_props });
+  binding_callbacks.push(() => bind(projectsview, "selectedProjectId", projectsview_selectedProjectId_binding));
+  return {
+    c() {
+      create_component(projectsview.$$.fragment);
+    },
+    m(target, anchor) {
+      mount_component(projectsview, target, anchor);
+      current = true;
+    },
+    p(ctx2, dirty) {
+      const projectsview_changes = {};
+      if (dirty & /*app*/
+      1)
+        projectsview_changes.app = /*app*/
+        ctx2[0];
+      if (dirty & /*fileManager*/
+      2)
+        projectsview_changes.fileManager = /*fileManager*/
+        ctx2[1];
+      if (dirty & /*plugin*/
+      4)
+        projectsview_changes.plugin = /*plugin*/
+        ctx2[2];
+      if (!updating_selectedProjectId && dirty & /*selectedProjectId*/
+      16) {
+        updating_selectedProjectId = true;
+        projectsview_changes.selectedProjectId = /*selectedProjectId*/
+        ctx2[4];
+        add_flush_callback(() => updating_selectedProjectId = false);
+      }
+      projectsview.$set(projectsview_changes);
+    },
+    i(local) {
+      if (current)
+        return;
+      transition_in(projectsview.$$.fragment, local);
+      current = true;
+    },
+    o(local) {
+      transition_out(projectsview.$$.fragment, local);
+      current = false;
+    },
+    d(detaching) {
+      destroy_component(projectsview, detaching);
+    }
+  };
+}
+function create_fragment8(ctx) {
+  let div3;
+  let div1;
+  let button0;
+  let t1;
+  let button1;
+  let t3;
+  let t4;
+  let div0;
+  let t5;
+  let button2;
+  let t7;
+  let button3;
+  let t9;
+  let div2;
+  let current_block_type_index;
+  let if_block1;
+  let current;
+  let mounted;
+  let dispose;
+  let if_block0 = (
+    /*mode*/
+    ctx[3] !== "projects" && create_if_block_37(ctx)
+  );
+  const if_block_creators = [create_if_block7, create_if_block_17, create_if_block_27];
+  const if_blocks = [];
+  function select_block_type(ctx2, dirty) {
+    if (
+      /*mode*/
+      ctx2[3] === "projects"
+    )
+      return 0;
+    if (
+      /*mode*/
+      ctx2[3] === "elastic"
+    )
+      return 1;
+    if (
+      /*mode*/
+      ctx2[3] === "deadlines"
+    )
+      return 2;
+    return -1;
+  }
+  if (~(current_block_type_index = select_block_type(ctx, -1))) {
+    if_block1 = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](ctx);
+  }
+  return {
+    c() {
+      div3 = element("div");
+      div1 = element("div");
+      button0 = element("button");
+      button0.textContent = "Elastic";
+      t1 = space();
+      button1 = element("button");
+      button1.textContent = "Deadlines";
+      t3 = space();
+      if (if_block0)
+        if_block0.c();
+      t4 = space();
+      div0 = element("div");
+      t5 = space();
+      button2 = element("button");
+      button2.textContent = "Project Hub";
+      t7 = space();
+      button3 = element("button");
+      button3.textContent = "[Settings]";
+      t9 = space();
+      div2 = element("div");
+      if (if_block1)
+        if_block1.c();
+      attr(button0, "class", "pos-mode-btn");
+      toggle_class(
+        button0,
+        "pos-mode-active",
+        /*mode*/
+        ctx[3] === "elastic"
+      );
+      attr(button1, "class", "pos-mode-btn");
+      toggle_class(
+        button1,
+        "pos-mode-active",
+        /*mode*/
+        ctx[3] === "deadlines"
+      );
+      set_style(div0, "flex", "1");
+      attr(button2, "class", "pos-mode-btn");
+      toggle_class(
+        button2,
+        "pos-mode-active",
+        /*mode*/
+        ctx[3] === "projects"
+      );
+      attr(button3, "class", "pos-settings-btn");
+      set_style(button3, "background", "transparent");
+      set_style(button3, "border", "none");
+      set_style(button3, "font-size", "1.2em");
+      set_style(button3, "cursor", "pointer");
+      set_style(button3, "color", "var(--text-muted)");
+      attr(button3, "title", "Settings");
+      attr(div1, "class", "pos-mode-bar");
+      attr(div2, "class", "pos-content");
+      attr(div3, "class", "pos-view");
+    },
+    m(target, anchor) {
+      insert(target, div3, anchor);
+      append(div3, div1);
+      append(div1, button0);
+      append(div1, t1);
+      append(div1, button1);
+      append(div1, t3);
+      if (if_block0)
+        if_block0.m(div1, null);
+      append(div1, t4);
+      append(div1, div0);
+      append(div1, t5);
+      append(div1, button2);
+      append(div1, t7);
+      append(div1, button3);
+      append(div3, t9);
+      append(div3, div2);
+      if (~current_block_type_index) {
+        if_blocks[current_block_type_index].m(div2, null);
+      }
+      current = true;
+      if (!mounted) {
+        dispose = [
+          listen(
+            button0,
+            "click",
+            /*click_handler*/
+            ctx[7]
+          ),
+          listen(
+            button1,
+            "click",
+            /*click_handler_1*/
+            ctx[8]
+          ),
+          listen(
+            button2,
+            "click",
+            /*click_handler_2*/
+            ctx[10]
+          ),
+          listen(
+            button3,
+            "click",
+            /*click_handler_3*/
+            ctx[11]
+          )
+        ];
+        mounted = true;
+      }
+    },
+    p(ctx2, [dirty]) {
+      if (!current || dirty & /*mode*/
+      8) {
+        toggle_class(
+          button0,
+          "pos-mode-active",
+          /*mode*/
+          ctx2[3] === "elastic"
+        );
+      }
+      if (!current || dirty & /*mode*/
+      8) {
+        toggle_class(
+          button1,
+          "pos-mode-active",
+          /*mode*/
+          ctx2[3] === "deadlines"
+        );
+      }
+      if (
+        /*mode*/
+        ctx2[3] !== "projects"
+      ) {
+        if (if_block0) {
+          if_block0.p(ctx2, dirty);
+        } else {
+          if_block0 = create_if_block_37(ctx2);
+          if_block0.c();
+          if_block0.m(div1, t4);
+        }
+      } else if (if_block0) {
+        if_block0.d(1);
+        if_block0 = null;
+      }
+      if (!current || dirty & /*mode*/
+      8) {
+        toggle_class(
+          button2,
+          "pos-mode-active",
+          /*mode*/
+          ctx2[3] === "projects"
+        );
+      }
+      let previous_block_index = current_block_type_index;
+      current_block_type_index = select_block_type(ctx2, dirty);
+      if (current_block_type_index === previous_block_index) {
+        if (~current_block_type_index) {
+          if_blocks[current_block_type_index].p(ctx2, dirty);
+        }
+      } else {
+        if (if_block1) {
+          group_outros();
+          transition_out(if_blocks[previous_block_index], 1, 1, () => {
+            if_blocks[previous_block_index] = null;
+          });
+          check_outros();
+        }
+        if (~current_block_type_index) {
+          if_block1 = if_blocks[current_block_type_index];
+          if (!if_block1) {
+            if_block1 = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](ctx2);
+            if_block1.c();
+          } else {
+            if_block1.p(ctx2, dirty);
+          }
+          transition_in(if_block1, 1);
+          if_block1.m(div2, null);
+        } else {
+          if_block1 = null;
+        }
+      }
+    },
+    i(local) {
+      if (current)
+        return;
+      transition_in(if_block1);
+      current = true;
+    },
+    o(local) {
+      transition_out(if_block1);
+      current = false;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div3);
+      }
+      if (if_block0)
+        if_block0.d();
+      if (~current_block_type_index) {
+        if_blocks[current_block_type_index].d();
+      }
+      mounted = false;
+      run_all(dispose);
+    }
+  };
+}
+function instance8($$self, $$props, $$invalidate) {
+  let activeProjects;
+  let $projectsStore;
+  component_subscribe($$self, projectsStore, ($$value) => $$invalidate(6, $projectsStore = $$value));
+  let { app } = $$props;
+  let { fileManager } = $$props;
+  let { plugin } = $$props;
+  let mode = "elastic";
+  let selectedProjectId = "all";
+  const click_handler = () => $$invalidate(3, mode = "elastic");
+  const click_handler_1 = () => $$invalidate(3, mode = "deadlines");
+  function select_change_handler() {
+    selectedProjectId = select_value(this);
+    $$invalidate(4, selectedProjectId);
+    $$invalidate(5, activeProjects), $$invalidate(6, $projectsStore);
+  }
+  const click_handler_2 = () => $$invalidate(3, mode = "projects");
+  const click_handler_3 = () => {
+    if (app.setting) {
+      app.setting.open();
+      app.setting.openTabById("proxima");
+    }
+  };
+  function projectsview_selectedProjectId_binding(value) {
+    selectedProjectId = value;
+    $$invalidate(4, selectedProjectId);
+  }
+  $$self.$$set = ($$props2) => {
+    if ("app" in $$props2)
+      $$invalidate(0, app = $$props2.app);
+    if ("fileManager" in $$props2)
+      $$invalidate(1, fileManager = $$props2.fileManager);
+    if ("plugin" in $$props2)
+      $$invalidate(2, plugin = $$props2.plugin);
+  };
+  $$self.$$.update = () => {
+    if ($$self.$$.dirty & /*$projectsStore*/
+    64) {
+      $:
+        $$invalidate(5, activeProjects = $projectsStore.filter((p) => p.status === "active"));
+    }
+  };
+  return [
+    app,
+    fileManager,
+    plugin,
+    mode,
+    selectedProjectId,
+    activeProjects,
+    $projectsStore,
+    click_handler,
+    click_handler_1,
+    select_change_handler,
+    click_handler_2,
+    click_handler_3,
+    projectsview_selectedProjectId_binding
+  ];
+}
+var App3 = class extends SvelteComponent {
+  constructor(options) {
+    super();
+    init(this, options, instance8, create_fragment8, safe_not_equal, { app: 0, fileManager: 1, plugin: 2 });
+  }
+};
+var App_default = App3;
 
 // src/settings.ts
 var import_obsidian7 = require("obsidian");
@@ -15960,6 +16385,7 @@ var DEFAULT_SETTINGS = {
     { id: "3", targetDate: "deadline", condition: "is relative to today", value: "next 3 days", color: "#FFD60A" },
     { id: "4", targetDate: "deadline", condition: "is relative to today", value: "next week", color: "#A7C957" }
   ],
+  projectFilters: {},
   taskSchema: [
     {
       id: "priority",

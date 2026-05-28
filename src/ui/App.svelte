@@ -1,7 +1,7 @@
 <script lang="ts">
   import { App as ObsidianApp } from 'obsidian';
   import type { FileManager } from '../data/FileManager';
-  import ProjectsHub from './views/AgingView.svelte';
+  import ProjectsView from './views/ProjectsView.svelte';
   import ElasticView from './views/ElasticView.svelte';
   import DeadlinesView from './views/DeadlinesView.svelte';
   import { projectsStore } from '../stores/data';
@@ -48,7 +48,7 @@
 
   <div class="pos-content">
     {#if mode === 'projects'}
-      <ProjectsHub {app} {fileManager} {plugin} onSelect={(id, m) => { selectedProjectId = id; mode = m; }} />
+      <ProjectsView {app} {fileManager} {plugin} bind:selectedProjectId={selectedProjectId} />
     {:else if mode === 'elastic'}
       <ElasticView {app} {fileManager} projectId={selectedProjectId} />
     {:else if mode === 'deadlines'}

@@ -1,6 +1,6 @@
 import { App, PluginSettingTab, Setting, TextComponent, DropdownComponent, ButtonComponent } from 'obsidian';
 import type ProximaPlugin from './main';
-import type { PropertySchema, PropertyType, SelectOption, ColorRule } from './types';
+import type { PropertySchema, PropertyType, SelectOption, ColorRule, FilterRule } from './types';
 
 export interface ProximaSettings {
   nearDeadlineDays: number;
@@ -10,6 +10,7 @@ export interface ProximaSettings {
   statuses: SelectOption[];
   colorRules: ColorRule[];
   taskSchema: PropertySchema[];
+  projectFilters: Record<string, FilterRule[]>;
 }
 
 export const DEFAULT_SETTINGS: ProximaSettings = {
@@ -30,6 +31,7 @@ export const DEFAULT_SETTINGS: ProximaSettings = {
     { id: '3', targetDate: 'deadline', condition: 'is relative to today', value: 'next 3 days', color: '#FFD60A' },
     { id: '4', targetDate: 'deadline', condition: 'is relative to today', value: 'next week', color: '#A7C957' }
   ],
+  projectFilters: {},
   taskSchema: [
     {
       id: 'priority',
