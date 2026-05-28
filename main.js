@@ -4868,7 +4868,11 @@ function instance($$self, $$props, $$invalidate) {
   let { fileManager } = $$props;
   let { projectId } = $$props;
   let { projectTasks } = $$props;
-  const sortTasks = (tasks) => tasks.sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0));
+  const sortTasks = (tasks) => tasks.sort((a, b) => {
+    const aVal = Number(a.orderIndex) || 0;
+    const bVal = Number(b.orderIndex) || 0;
+    return aVal - bVal;
+  });
   function getCustomProps(task) {
     if (!task.properties || !((fileManager.plugin.settings.projectSchemas || {})[projectId] || []))
       return [];
@@ -5141,7 +5145,7 @@ function instance($$self, $$props, $$invalidate) {
         if (pid === "-- All Projects --")
           pid = "";
         const colTasks = projectTasks.filter((t) => t.status === statusId);
-        const maxOrder = colTasks.length > 0 ? Math.max(...colTasks.map((t) => t.orderIndex)) + 1 : 0;
+        const maxOrder = colTasks.length > 0 ? Math.max(...colTasks.map((t) => Number(t.orderIndex) || 0)) + 1 : 0;
         await fileManager.createTask({
           name,
           project: pid,

@@ -12,7 +12,7 @@
   export let projectTasks: TaskData[];
   $: console.log('PROJECT TASKS UPDATED:', projectTasks.length, 'columns:', columns.length);
 
-  const sortTasks = (tasks: TaskData[]) => tasks.sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0));
+  const sortTasks = (tasks: TaskData[]) => tasks.sort((a, b) => { const aVal = Number(a.orderIndex) || 0; const bVal = Number(b.orderIndex) || 0; return aVal - bVal; });
 
   $: rawProjectStatuses = (fileManager.plugin.settings.projectStatuses || {})[projectId];
   $: statuses = (() => {
@@ -311,7 +311,7 @@
       let pid = projectId;
       if (pid === '-- All Projects --') pid = '';
       const colTasks = projectTasks.filter(t => t.status === statusId);
-        const maxOrder = colTasks.length > 0 ? Math.max(...colTasks.map(t => t.orderIndex)) + 1 : 0;
+        const maxOrder = colTasks.length > 0 ? Math.max(...colTasks.map(t => Number(t.orderIndex) || 0)) + 1 : 0;
         await fileManager.createTask({ name, project: pid, status: statusId, orderIndex: maxOrder });
         
     }).open();
