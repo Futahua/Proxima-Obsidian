@@ -435,9 +435,10 @@ export class ProjectSchemaModal extends Modal {
     schemaContainer.style.paddingRight = '10px';
 
     const renderSchema = () => {
+      try {
       schemaContainer.empty();
-      const schemaList = this.plugin.settings.projectSchemas[this.projectId];
-      const visibleList = this.plugin.settings.projectVisibleProps[this.projectId];
+      const schemaList = this.plugin.settings.projectSchemas[this.projectId] || [];
+      const visibleList = this.plugin.settings.projectVisibleProps[this.projectId] || [];
 
       schemaList.forEach((prop: any, index: number) => {
         const propDiv = schemaContainer.createDiv('pos-schema-prop');
@@ -604,6 +605,10 @@ export class ProjectSchemaModal extends Modal {
           await this.plugin.saveSettings();
           renderSchema();
         });
+      } catch (err) {
+        console.error("Proxima schema render error:", err);
+        schemaContainer.createEl('div', { text: "Error rendering schema: " + err.message, cls: 'pos-error-text' });
+      }
     };
     renderSchema();
   }

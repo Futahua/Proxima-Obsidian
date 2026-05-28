@@ -37,10 +37,10 @@
   }));
 
   function getCustomProps(task: TaskData) {
-    if (!task.properties || !(fileManager.plugin.settings.projectSchemas[selectedProjectId] || [])) return [];
+    if (!task.properties || !((fileManager.plugin.settings.projectSchemas || {})[projectId] || [])) return [];
     const res: { name: string, value: string, color?: string }[] = [];
-    const visibleIds = fileManager.plugin.settings.projectVisibleProps[selectedProjectId] || [];
-      (fileManager.plugin.settings.projectSchemas[selectedProjectId] || []).forEach(schema => {
+    const visibleIds = (fileManager.plugin.settings.projectVisibleProps || {})[projectId] || [];
+      ((fileManager.plugin.settings.projectSchemas || {})[projectId] || []).forEach(schema => {
         if (!visibleIds.includes(schema.id)) return;
       const val = task.properties[schema.id];
       if (val) {

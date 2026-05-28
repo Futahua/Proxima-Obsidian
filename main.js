@@ -3388,138 +3388,143 @@ var ProjectSchemaModal = class extends import_obsidian2.Modal {
     schemaContainer.style.overflowY = "auto";
     schemaContainer.style.paddingRight = "10px";
     const renderSchema = () => {
-      schemaContainer.empty();
-      const schemaList = this.plugin.settings.projectSchemas[this.projectId];
-      const visibleList = this.plugin.settings.projectVisibleProps[this.projectId];
-      schemaList.forEach((prop, index) => {
-        const propDiv = schemaContainer.createDiv("pos-schema-prop");
-        propDiv.style.border = "1px solid var(--background-modifier-border)";
-        propDiv.style.padding = "10px";
-        propDiv.style.borderRadius = "5px";
-        propDiv.style.display = "flex";
-        propDiv.style.flexDirection = "column";
-        propDiv.style.gap = "10px";
-        const row1 = propDiv.createDiv();
-        row1.style.display = "flex";
-        row1.style.gap = "10px";
-        row1.style.alignItems = "center";
-        const visBtn = new ButtonComponent(row1).setIcon(visibleList.includes(prop.id) ? "eye" : "eye-off").setTooltip("Toggle Visibility").onClick(async () => {
-          if (visibleList.includes(prop.id)) {
-            this.plugin.settings.projectVisibleProps[this.projectId] = visibleList.filter((id) => id !== prop.id);
-          } else {
-            this.plugin.settings.projectVisibleProps[this.projectId].push(prop.id);
-          }
-          await this.plugin.saveSettings();
-          renderSchema();
-        });
-        const nameInput = new TextComponent(row1).setValue(prop.name).setPlaceholder("Property Name").onChange(async (val) => {
-          prop.name = val;
-          const oldId = prop.id;
-          prop.id = val.toLowerCase().replace(/\s+/g, "-");
-          if (oldId !== prop.id) {
-            const vIdx = visibleList.indexOf(oldId);
-            if (vIdx > -1)
-              visibleList[vIdx] = prop.id;
-          }
-          await this.plugin.saveSettings();
-        });
-        nameInput.inputEl.style.flex = "1";
-        const typeDropdown = new import_obsidian3.DropdownComponent(row1).addOption("text", "Text").addOption("number", "Number").addOption("select", "Select").addOption("multi-select", "Multi-Select").addOption("date", "Date").addOption("checkbox", "Checkbox").addOption("relation", "Relation").addOption("rollup", "Rollup").addOption("formula", "Formula").setValue(prop.type).onChange(async (val) => {
-          prop.type = val;
-          if ((val === "select" || val === "multi-select") && !prop.options)
-            prop.options = [];
-          if (val === "relation")
-            prop.targetFolder = "";
-          if (val === "rollup") {
-            prop.relationProperty = "";
-            prop.targetProperty = "";
-            prop.aggregation = "sum";
-          }
-          if (val === "formula")
-            prop.expression = "";
-          await this.plugin.saveSettings();
-          renderSchema();
-        });
-        new ButtonComponent(row1).setIcon("trash").setWarning().onClick(async () => {
-          schemaList.splice(index, 1);
-          this.plugin.settings.projectVisibleProps[this.projectId] = visibleList.filter((id) => id !== prop.id);
-          await this.plugin.saveSettings();
-          renderSchema();
-        });
-        if (prop.type === "select" || prop.type === "multi-select") {
-          const optsDiv = propDiv.createDiv("pos-schema-options");
-          optsDiv.style.marginLeft = "30px";
-          if (!prop.options)
-            prop.options = [];
-          prop.options.forEach((opt, optIdx) => {
-            const optRow = optsDiv.createDiv();
-            optRow.style.display = "flex";
-            optRow.style.gap = "5px";
-            optRow.style.marginBottom = "5px";
-            new TextComponent(optRow).setValue(opt.name).setPlaceholder("Option Name").onChange(async (val) => {
-              opt.name = val;
-              opt.id = val.toLowerCase().replace(/\s+/g, "-");
-              await this.plugin.saveSettings();
-            });
-            const colorInp = optRow.createEl("input", { type: "color" });
-            colorInp.value = opt.color || "#cccccc";
-            colorInp.addEventListener("change", async (e) => {
-              opt.color = e.target.value;
-              await this.plugin.saveSettings();
-            });
-            new ButtonComponent(optRow).setIcon("trash").onClick(async () => {
-              prop.options.splice(optIdx, 1);
-              await this.plugin.saveSettings();
-              renderSchema();
-            });
-          });
-          new ButtonComponent(optsDiv).setButtonText("+ Option").onClick(async () => {
-            prop.options.push({ id: "new", name: "New Option", color: "#cccccc" });
+      try {
+        schemaContainer.empty();
+        const schemaList = this.plugin.settings.projectSchemas[this.projectId] || [];
+        const visibleList = this.plugin.settings.projectVisibleProps[this.projectId] || [];
+        schemaList.forEach((prop, index) => {
+          const propDiv = schemaContainer.createDiv("pos-schema-prop");
+          propDiv.style.border = "1px solid var(--background-modifier-border)";
+          propDiv.style.padding = "10px";
+          propDiv.style.borderRadius = "5px";
+          propDiv.style.display = "flex";
+          propDiv.style.flexDirection = "column";
+          propDiv.style.gap = "10px";
+          const row1 = propDiv.createDiv();
+          row1.style.display = "flex";
+          row1.style.gap = "10px";
+          row1.style.alignItems = "center";
+          const visBtn = new ButtonComponent(row1).setIcon(visibleList.includes(prop.id) ? "eye" : "eye-off").setTooltip("Toggle Visibility").onClick(async () => {
+            if (visibleList.includes(prop.id)) {
+              this.plugin.settings.projectVisibleProps[this.projectId] = visibleList.filter((id) => id !== prop.id);
+            } else {
+              this.plugin.settings.projectVisibleProps[this.projectId].push(prop.id);
+            }
             await this.plugin.saveSettings();
             renderSchema();
           });
-        }
-        if (prop.type === "rollup") {
-          const rDiv = propDiv.createDiv();
-          rDiv.style.marginLeft = "30px";
-          rDiv.style.display = "flex";
-          rDiv.style.gap = "5px";
-          new TextComponent(rDiv).setPlaceholder("Relation Property").setValue(prop.relationProperty || "").onChange(async (v) => {
-            prop.relationProperty = v;
+          const nameInput = new TextComponent(row1).setValue(prop.name).setPlaceholder("Property Name").onChange(async (val) => {
+            prop.name = val;
+            const oldId = prop.id;
+            prop.id = val.toLowerCase().replace(/\s+/g, "-");
+            if (oldId !== prop.id) {
+              const vIdx = visibleList.indexOf(oldId);
+              if (vIdx > -1)
+                visibleList[vIdx] = prop.id;
+            }
             await this.plugin.saveSettings();
           });
-          new TextComponent(rDiv).setPlaceholder("Target Property").setValue(prop.targetProperty || "").onChange(async (v) => {
-            prop.targetProperty = v;
+          nameInput.inputEl.style.flex = "1";
+          const typeDropdown = new import_obsidian3.DropdownComponent(row1).addOption("text", "Text").addOption("number", "Number").addOption("select", "Select").addOption("multi-select", "Multi-Select").addOption("date", "Date").addOption("checkbox", "Checkbox").addOption("relation", "Relation").addOption("rollup", "Rollup").addOption("formula", "Formula").setValue(prop.type).onChange(async (val) => {
+            prop.type = val;
+            if ((val === "select" || val === "multi-select") && !prop.options)
+              prop.options = [];
+            if (val === "relation")
+              prop.targetFolder = "";
+            if (val === "rollup") {
+              prop.relationProperty = "";
+              prop.targetProperty = "";
+              prop.aggregation = "sum";
+            }
+            if (val === "formula")
+              prop.expression = "";
             await this.plugin.saveSettings();
+            renderSchema();
           });
-          new import_obsidian3.DropdownComponent(rDiv).addOption("sum", "Sum").addOption("average", "Average").addOption("count", "Count").addOption("unique", "Unique").addOption("min", "Min").addOption("max", "Max").setValue(prop.aggregation || "sum").onChange(async (v) => {
-            prop.aggregation = v;
+          new ButtonComponent(row1).setIcon("trash").setWarning().onClick(async () => {
+            schemaList.splice(index, 1);
+            this.plugin.settings.projectVisibleProps[this.projectId] = visibleList.filter((id) => id !== prop.id);
             await this.plugin.saveSettings();
+            renderSchema();
           });
-        }
-        if (prop.type === "formula") {
-          const fDiv = propDiv.createDiv();
-          fDiv.style.marginLeft = "30px";
-          const expInput = new TextComponent(fDiv).setPlaceholder("Formula Expression").setValue(prop.expression || "").onChange(async (v) => {
-            prop.expression = v;
-            await this.plugin.saveSettings();
-          });
-          expInput.inputEl.style.width = "100%";
-        }
-      });
-      const btnRow = schemaContainer.createDiv();
-      btnRow.style.marginTop = "10px";
-      new ButtonComponent(btnRow).setButtonText("+ Add Property").setCta().onClick(async () => {
-        const newId = "prop-" + Date.now();
-        schemaList.push({
-          id: newId,
-          name: "New Property",
-          type: "text"
+          if (prop.type === "select" || prop.type === "multi-select") {
+            const optsDiv = propDiv.createDiv("pos-schema-options");
+            optsDiv.style.marginLeft = "30px";
+            if (!prop.options)
+              prop.options = [];
+            prop.options.forEach((opt, optIdx) => {
+              const optRow = optsDiv.createDiv();
+              optRow.style.display = "flex";
+              optRow.style.gap = "5px";
+              optRow.style.marginBottom = "5px";
+              new TextComponent(optRow).setValue(opt.name).setPlaceholder("Option Name").onChange(async (val) => {
+                opt.name = val;
+                opt.id = val.toLowerCase().replace(/\s+/g, "-");
+                await this.plugin.saveSettings();
+              });
+              const colorInp = optRow.createEl("input", { type: "color" });
+              colorInp.value = opt.color || "#cccccc";
+              colorInp.addEventListener("change", async (e) => {
+                opt.color = e.target.value;
+                await this.plugin.saveSettings();
+              });
+              new ButtonComponent(optRow).setIcon("trash").onClick(async () => {
+                prop.options.splice(optIdx, 1);
+                await this.plugin.saveSettings();
+                renderSchema();
+              });
+            });
+            new ButtonComponent(optsDiv).setButtonText("+ Option").onClick(async () => {
+              prop.options.push({ id: "new", name: "New Option", color: "#cccccc" });
+              await this.plugin.saveSettings();
+              renderSchema();
+            });
+          }
+          if (prop.type === "rollup") {
+            const rDiv = propDiv.createDiv();
+            rDiv.style.marginLeft = "30px";
+            rDiv.style.display = "flex";
+            rDiv.style.gap = "5px";
+            new TextComponent(rDiv).setPlaceholder("Relation Property").setValue(prop.relationProperty || "").onChange(async (v) => {
+              prop.relationProperty = v;
+              await this.plugin.saveSettings();
+            });
+            new TextComponent(rDiv).setPlaceholder("Target Property").setValue(prop.targetProperty || "").onChange(async (v) => {
+              prop.targetProperty = v;
+              await this.plugin.saveSettings();
+            });
+            new import_obsidian3.DropdownComponent(rDiv).addOption("sum", "Sum").addOption("average", "Average").addOption("count", "Count").addOption("unique", "Unique").addOption("min", "Min").addOption("max", "Max").setValue(prop.aggregation || "sum").onChange(async (v) => {
+              prop.aggregation = v;
+              await this.plugin.saveSettings();
+            });
+          }
+          if (prop.type === "formula") {
+            const fDiv = propDiv.createDiv();
+            fDiv.style.marginLeft = "30px";
+            const expInput = new TextComponent(fDiv).setPlaceholder("Formula Expression").setValue(prop.expression || "").onChange(async (v) => {
+              prop.expression = v;
+              await this.plugin.saveSettings();
+            });
+            expInput.inputEl.style.width = "100%";
+          }
         });
-        this.plugin.settings.projectVisibleProps[this.projectId].push(newId);
-        await this.plugin.saveSettings();
-        renderSchema();
-      });
+        const btnRow = schemaContainer.createDiv();
+        btnRow.style.marginTop = "10px";
+        new ButtonComponent(btnRow).setButtonText("+ Add Property").setCta().onClick(async () => {
+          const newId = "prop-" + Date.now();
+          schemaList.push({
+            id: newId,
+            name: "New Property",
+            type: "text"
+          });
+          this.plugin.settings.projectVisibleProps[this.projectId].push(newId);
+          await this.plugin.saveSettings();
+          renderSchema();
+        });
+      } catch (err) {
+        console.error("Proxima schema render error:", err);
+        schemaContainer.createEl("div", { text: "Error rendering schema: " + err.message, cls: "pos-error-text" });
+      }
     };
     renderSchema();
   }
@@ -4589,11 +4594,11 @@ function instance($$self, $$props, $$invalidate) {
     return pA - pB || a.orderIndex - b.orderIndex;
   });
   function getCustomProps(task) {
-    if (!task.properties || !(fileManager.plugin.settings.projectSchemas[selectedProjectId] || []))
+    if (!task.properties || !((fileManager.plugin.settings.projectSchemas || {})[projectId] || []))
       return [];
     const res = [];
-    const visibleIds = fileManager.plugin.settings.projectVisibleProps[selectedProjectId] || [];
-    (fileManager.plugin.settings.projectSchemas[selectedProjectId] || []).forEach((schema) => {
+    const visibleIds = (fileManager.plugin.settings.projectVisibleProps || {})[projectId] || [];
+    ((fileManager.plugin.settings.projectSchemas || {})[projectId] || []).forEach((schema) => {
       if (!visibleIds.includes(schema.id))
         return;
       const val = task.properties[schema.id];
@@ -7423,33 +7428,33 @@ function instance2($$self, $$props, $$invalidate) {
   function select0_change_handler(each_value_2, filter_index) {
     each_value_2[filter_index].property = select_value(this);
     $$invalidate(7, projectFilters), $$invalidate(0, fileManager), $$invalidate(24, projectId);
-    $$invalidate(8, schema), $$invalidate(0, fileManager);
+    $$invalidate(8, schema), $$invalidate(0, fileManager), $$invalidate(24, projectId);
   }
   function select1_change_handler(each_value_2, filter_index) {
     each_value_2[filter_index].operator = select_value(this);
     $$invalidate(7, projectFilters), $$invalidate(0, fileManager), $$invalidate(24, projectId);
-    $$invalidate(8, schema), $$invalidate(0, fileManager);
+    $$invalidate(8, schema), $$invalidate(0, fileManager), $$invalidate(24, projectId);
   }
   function select_change_handler(each_value_2, filter_index) {
     each_value_2[filter_index].value = select_value(this);
     $$invalidate(7, projectFilters), $$invalidate(0, fileManager), $$invalidate(24, projectId);
-    $$invalidate(8, schema), $$invalidate(0, fileManager);
+    $$invalidate(8, schema), $$invalidate(0, fileManager), $$invalidate(24, projectId);
   }
   function select_change_handler_1(each_value_2, filter_index) {
     each_value_2[filter_index].value = select_value(this);
     $$invalidate(7, projectFilters), $$invalidate(0, fileManager), $$invalidate(24, projectId);
-    $$invalidate(8, schema), $$invalidate(0, fileManager);
+    $$invalidate(8, schema), $$invalidate(0, fileManager), $$invalidate(24, projectId);
   }
   const func_2 = (filter, s) => s.id === filter.property;
   function select_change_handler_2(each_value_2, filter_index) {
     each_value_2[filter_index].value = select_value(this);
     $$invalidate(7, projectFilters), $$invalidate(0, fileManager), $$invalidate(24, projectId);
-    $$invalidate(8, schema), $$invalidate(0, fileManager);
+    $$invalidate(8, schema), $$invalidate(0, fileManager), $$invalidate(24, projectId);
   }
   function input_input_handler(each_value_2, filter_index) {
     each_value_2[filter_index].value = this.value;
     $$invalidate(7, projectFilters), $$invalidate(0, fileManager), $$invalidate(24, projectId);
-    $$invalidate(8, schema), $$invalidate(0, fileManager);
+    $$invalidate(8, schema), $$invalidate(0, fileManager), $$invalidate(24, projectId);
   }
   const click_handler_2 = (filter) => removeFilter(filter.id);
   const click_handler_3 = () => toggleSort("name");
@@ -7473,10 +7478,10 @@ function instance2($$self, $$props, $$invalidate) {
       $$invalidate(24, projectId = $$props2.projectId);
   };
   $$self.$$.update = () => {
-    if ($$self.$$.dirty[0] & /*fileManager*/
-    1) {
+    if ($$self.$$.dirty[0] & /*fileManager, projectId*/
+    16777217) {
       $:
-        $$invalidate(8, schema = fileManager.plugin.settings.projectSchemas[selectedProjectId] || []);
+        $$invalidate(8, schema = (fileManager.plugin.settings.projectSchemas || {})[projectId] || []);
     }
     if ($$self.$$.dirty[0] & /*fileManager, projectId*/
     16777217) {
@@ -13331,7 +13336,7 @@ function instance5($$self, $$props, $$invalidate) {
   let { app } = $$props;
   let { fileManager } = $$props;
   let { plugin } = $$props;
-  let { selectedProjectId: selectedProjectId2 = null } = $$props;
+  let { selectedProjectId = null } = $$props;
   let { isFullPage = false } = $$props;
   let selectedProject = null;
   let projectContent = "";
@@ -13414,15 +13419,15 @@ tags: [excalidraw]
     }
   }
   const func2 = (id, m) => {
-    $$invalidate(0, selectedProjectId2 = id);
+    $$invalidate(0, selectedProjectId = id);
   };
-  const click_handler = () => $$invalidate(0, selectedProjectId2 = null);
+  const click_handler = () => $$invalidate(0, selectedProjectId = null);
   const click_handler_1 = () => $$invalidate(9, projectTab = "notes");
   const click_handler_2 = () => $$invalidate(9, projectTab = "board");
   const click_handler_3 = () => $$invalidate(9, projectTab = "grid");
   const click_handler_4 = () => $$invalidate(9, projectTab = "deadlines");
   const click_handler_5 = () => {
-    new ProjectSchemaModal(app, plugin, selectedProjectId2).open();
+    new ProjectSchemaModal(app, plugin, selectedProjectId).open();
   };
   function div1_binding($$value) {
     binding_callbacks[$$value ? "unshift" : "push"](() => {
@@ -13443,7 +13448,7 @@ tags: [excalidraw]
     if ("plugin" in $$props2)
       $$invalidate(3, plugin = $$props2.plugin);
     if ("selectedProjectId" in $$props2)
-      $$invalidate(0, selectedProjectId2 = $$props2.selectedProjectId);
+      $$invalidate(0, selectedProjectId = $$props2.selectedProjectId);
     if ("isFullPage" in $$props2)
       $$invalidate(4, isFullPage = $$props2.isFullPage);
   };
@@ -13456,12 +13461,12 @@ tags: [excalidraw]
     if ($$self.$$.dirty[0] & /*selectedProjectId, activeProjects*/
     32769) {
       $: {
-        if (selectedProjectId2) {
-          const proj = activeProjects.find((p) => p.id === selectedProjectId2);
+        if (selectedProjectId) {
+          const proj = activeProjects.find((p) => p.id === selectedProjectId);
           if (proj) {
             $$invalidate(5, selectedProject = proj);
-            loadProjectContent(selectedProjectId2);
-            refreshProjectFiles(selectedProjectId2);
+            loadProjectContent(selectedProjectId);
+            refreshProjectFiles(selectedProjectId);
           } else {
             $$invalidate(5, selectedProject = null);
             $$invalidate(14, projectContent = "");
@@ -13486,7 +13491,7 @@ tags: [excalidraw]
     }
   };
   return [
-    selectedProjectId2,
+    selectedProjectId,
     app,
     fileManager,
     plugin,
@@ -17225,12 +17230,12 @@ function instance8($$self, $$props, $$invalidate) {
   let { fileManager } = $$props;
   let { plugin } = $$props;
   let mode = "elastic";
-  let selectedProjectId2 = "all";
+  let selectedProjectId = "all";
   const click_handler = () => $$invalidate(3, mode = "elastic");
   const click_handler_1 = () => $$invalidate(3, mode = "deadlines");
   function select_change_handler() {
-    selectedProjectId2 = select_value(this);
-    $$invalidate(4, selectedProjectId2);
+    selectedProjectId = select_value(this);
+    $$invalidate(4, selectedProjectId);
     $$invalidate(5, activeProjects), $$invalidate(6, $projectsStore);
   }
   const click_handler_2 = () => $$invalidate(3, mode = "projects");
@@ -17241,8 +17246,8 @@ function instance8($$self, $$props, $$invalidate) {
     }
   };
   function projectsview_selectedProjectId_binding(value) {
-    selectedProjectId2 = value;
-    $$invalidate(4, selectedProjectId2);
+    selectedProjectId = value;
+    $$invalidate(4, selectedProjectId);
   }
   $$self.$$set = ($$props2) => {
     if ("app" in $$props2)
@@ -17264,7 +17269,7 @@ function instance8($$self, $$props, $$invalidate) {
     fileManager,
     plugin,
     mode,
-    selectedProjectId2,
+    selectedProjectId,
     activeProjects,
     $projectsStore,
     click_handler,

@@ -11,7 +11,7 @@
   import type { FilterRule } from '../../../types';
   
   // Dynamic Filters
-  $: schema = (fileManager.plugin.settings.projectSchemas[selectedProjectId] || []) || [];
+  $: schema = ((fileManager.plugin.settings.projectSchemas || {})[projectId] || []) || [];
   $: projectFilters = (fileManager.plugin.settings.projectFilters || {})[projectId] || [];
   
   async function saveFilters() {
