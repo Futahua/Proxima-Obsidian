@@ -4962,18 +4962,24 @@ function instance($$self, $$props, $$invalidate) {
     const settings = await ensureProjectStatuses();
     let ps = settings.projectStatuses[projectId];
     const fromIndex = ps.findIndex((s) => s.id === dragColId);
+    let movedItem;
     if (fromIndex !== -1) {
-      const [movedItem] = ps.splice(fromIndex, 1);
+      [movedItem] = ps.splice(fromIndex, 1);
+    } else {
+      movedItem = columns.find((c) => c.id === dragColId);
+    }
+    if (movedItem) {
+      const [movedItem2] = ps.splice(fromIndex, 1);
       let insertIndex = dragOverColIndex;
       if (insertIndex < columns.length) {
         const targetColId = columns[insertIndex].id;
         let toIndex = ps.findIndex((s) => s.id === targetColId);
         if (toIndex !== -1)
-          ps.splice(toIndex, 0, movedItem);
+          ps.splice(toIndex, 0, movedItem2);
         else
-          ps.push(movedItem);
+          ps.push(movedItem2);
       } else {
-        ps.push(movedItem);
+        ps.push(movedItem2);
       }
       await fileManager.plugin.saveSettings();
       $$invalidate(0, fileManager.plugin.settings = settings, fileManager);
@@ -5245,8 +5251,8 @@ function instance($$self, $$props, $$invalidate) {
       $:
         $$invalidate(31, rawProjectStatuses = (fileManager.plugin.settings.projectStatuses || {})[projectId]);
     }
-    if ($$self.$$.dirty[0] & /*fileManager, projectTasks*/
-    536870913 | $$self.$$.dirty[1] & /*rawProjectStatuses*/
+    if ($$self.$$.dirty[0] & /*projectTasks*/
+    536870912 | $$self.$$.dirty[1] & /*rawProjectStatuses*/
     1) {
       $:
         $$invalidate(30, statuses = (() => {
@@ -5265,35 +5271,22 @@ function instance($$self, $$props, $$invalidate) {
             ];
           }
           const cols = [];
-          const coreIds = ["backlog", "running", "review"];
-          const g = fileManager.plugin.settings.globalStatuses || {};
-          ps.forEach((s) => {
-            if (coreIds.includes(s.id)) {
-              let defName = s.id === "backlog" ? "Elastic Backlog" : s.id === "running" ? "Elastic Running" : "Finished";
-              let defColor = s.id === "backlog" ? "#636e72" : s.id === "running" ? "#00b894" : "#fdcb6e";
-              const gs = g[s.id] || {};
-              cols.push({
-                id: s.id,
-                name: gs.name || defName,
-                color: gs.color || defColor,
-                isCore: true
-              });
-            } else {
-              cols.push({
-                ...s,
-                name: s.name || s.id,
-                color: s.color || "#a29bfe",
-                isCore: false
-              });
-            }
-          });
-          if (!cols.find((c) => c.id === "backlog"))
-            cols.unshift({
+          const hasBacklog = ps.find((s) => s.id === "backlog");
+          if (!hasBacklog)
+            cols.push({
               id: "backlog",
               name: ((_a = g["backlog"]) == null ? void 0 : _a.name) || "Elastic Backlog",
               color: ((_b = g["backlog"]) == null ? void 0 : _b.color) || "#636e72",
               isCore: true
             });
+          ps.forEach((s) => {
+            cols.push({
+              ...s,
+              name: s.name || s.id,
+              color: s.color || "#a29bfe",
+              isCore: s.id === "backlog" || s.id === "running" || s.id === "review"
+            });
+          });
           if (!cols.find((c) => c.id === "running"))
             cols.push({
               id: "running",
@@ -8131,13 +8124,13 @@ function instance2($$self, $$props, $$invalidate) {
   }
   function getStatusName(statusId) {
     if (["backlog", "running", "review"].includes(statusId)) {
-      const g = (fileManager.plugin.settings.globalStatuses || {})[statusId] || {};
+      const g2 = (fileManager.plugin.settings.globalStatuses || {})[statusId] || {};
       if (statusId === "backlog")
-        return g.name || "Elastic Backlog";
+        return g2.name || "Elastic Backlog";
       if (statusId === "running")
-        return g.name || "Elastic Running";
+        return g2.name || "Elastic Running";
       if (statusId === "review")
-        return g.name || "Finished";
+        return g2.name || "Finished";
     }
     const ps = (fileManager.plugin.settings.projectStatuses || {})[projectId] || [];
     const col = ps.find((s) => s.id === statusId);
@@ -8145,13 +8138,13 @@ function instance2($$self, $$props, $$invalidate) {
   }
   function getStatusColor(statusId) {
     if (["backlog", "running", "review"].includes(statusId)) {
-      const g = (fileManager.plugin.settings.globalStatuses || {})[statusId] || {};
+      const g2 = (fileManager.plugin.settings.globalStatuses || {})[statusId] || {};
       if (statusId === "backlog")
-        return g.color || "#636e72";
+        return g2.color || "#636e72";
       if (statusId === "running")
-        return g.color || "#00b894";
+        return g2.color || "#00b894";
       if (statusId === "review")
-        return g.color || "#fdcb6e";
+        return g2.color || "#fdcb6e";
     }
     if (statusId === "planned")
       return "#0984e3";
@@ -11660,7 +11653,7 @@ function instance3($$self, $$props, $$invalidate) {
             else
               groups[4].tasks.push(t);
           }
-          return groups.filter((g) => g.tasks.length > 0);
+          return groups.filter((g2) => g2.tasks.length > 0);
         })());
     }
   };

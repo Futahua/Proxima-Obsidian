@@ -27,22 +27,15 @@
     }
     
     const cols = [];
-    const coreIds = ['backlog', 'running', 'review'];
-    const g = fileManager.plugin.settings.globalStatuses || {};
     
+    // Core columns first, if they don't exist in ps, add them in default order
+    const hasBacklog = ps.find(s => s.id === 'backlog');
+    if (!hasBacklog) cols.push({ id: 'backlog', name: g['backlog']?.name || 'Elastic Backlog', color: g['backlog']?.color || '#636e72', isCore: true });
+
     ps.forEach(s => {
-      if (coreIds.includes(s.id)) {
-         let defName = s.id === 'backlog' ? 'Elastic Backlog' : (s.id === 'running' ? 'Elastic Running' : 'Finished');
-         let defColor = s.id === 'backlog' ? '#636e72' : (s.id === 'running' ? '#00b894' : '#fdcb6e');
-         const gs = g[s.id] || {};
-         cols.push({ id: s.id, name: gs.name || defName, color: gs.color || defColor, isCore: true });
-      } else {
-         cols.push({ ...s, name: s.name || s.id, color: s.color || '#a29bfe', isCore: false });
-      }
+      cols.push({ ...s, name: s.name || s.id, color: s.color || '#a29bfe', isCore: s.id === 'backlog' || s.id === 'running' || s.id === 'review' });
     });
 
-    // Fallbacks just in case
-    if (!cols.find(c => c.id === 'backlog')) cols.unshift({ id: 'backlog', name: g['backlog']?.name || 'Elastic Backlog', color: g['backlog']?.color || '#636e72', isCore: true });
     if (!cols.find(c => c.id === 'running')) cols.push({ id: 'running', name: g['running']?.name || 'Elastic Running', color: g['running']?.color || '#00b894', isCore: true });
     if (!cols.find(c => c.id === 'review')) cols.push({ id: 'review', name: g['review']?.name || 'Finished', color: g['review']?.color || '#fdcb6e', isCore: true });
 
@@ -146,7 +139,13 @@
     let ps = settings.projectStatuses[projectId];
     
     const fromIndex = ps.findIndex(s => s.id === dragColId);
-    if (fromIndex !== -1) {
+      let movedItem;
+      if (fromIndex !== -1) {
+        [movedItem] = ps.splice(fromIndex, 1);
+      } else {
+        movedItem = columns.find(c => c.id === dragColId);
+      }
+      if (movedItem) {
       const [movedItem] = ps.splice(fromIndex, 1);
       let insertIndex = dragOverColIndex;
       if (insertIndex < columns.length) {
