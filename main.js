@@ -5255,8 +5255,8 @@ function instance($$self, $$props, $$invalidate) {
       $:
         $$invalidate(31, rawProjectStatuses = (fileManager.plugin.settings.projectStatuses || {})[projectId]);
     }
-    if ($$self.$$.dirty[0] & /*projectTasks*/
-    536870912 | $$self.$$.dirty[1] & /*rawProjectStatuses*/
+    if ($$self.$$.dirty[0] & /*fileManager, projectTasks*/
+    536870913 | $$self.$$.dirty[1] & /*rawProjectStatuses*/
     1) {
       $:
         $$invalidate(30, statuses = (() => {
@@ -5274,6 +5274,7 @@ function instance($$self, $$props, $$invalidate) {
               { id: "review" }
             ];
           }
+          const g = fileManager.plugin.settings.globalStatuses || {};
           const cols = [];
           const hasBacklog = ps.find((s) => s.id === "backlog");
           if (!hasBacklog)
@@ -8128,13 +8129,13 @@ function instance2($$self, $$props, $$invalidate) {
   }
   function getStatusName(statusId) {
     if (["backlog", "running", "review"].includes(statusId)) {
-      const g2 = (fileManager.plugin.settings.globalStatuses || {})[statusId] || {};
+      const g = (fileManager.plugin.settings.globalStatuses || {})[statusId] || {};
       if (statusId === "backlog")
-        return g2.name || "Elastic Backlog";
+        return g.name || "Elastic Backlog";
       if (statusId === "running")
-        return g2.name || "Elastic Running";
+        return g.name || "Elastic Running";
       if (statusId === "review")
-        return g2.name || "Finished";
+        return g.name || "Finished";
     }
     const ps = (fileManager.plugin.settings.projectStatuses || {})[projectId] || [];
     const col = ps.find((s) => s.id === statusId);
@@ -8142,13 +8143,13 @@ function instance2($$self, $$props, $$invalidate) {
   }
   function getStatusColor(statusId) {
     if (["backlog", "running", "review"].includes(statusId)) {
-      const g2 = (fileManager.plugin.settings.globalStatuses || {})[statusId] || {};
+      const g = (fileManager.plugin.settings.globalStatuses || {})[statusId] || {};
       if (statusId === "backlog")
-        return g2.color || "#636e72";
+        return g.color || "#636e72";
       if (statusId === "running")
-        return g2.color || "#00b894";
+        return g.color || "#00b894";
       if (statusId === "review")
-        return g2.color || "#fdcb6e";
+        return g.color || "#fdcb6e";
     }
     if (statusId === "planned")
       return "#0984e3";
@@ -11657,7 +11658,7 @@ function instance3($$self, $$props, $$invalidate) {
             else
               groups[4].tasks.push(t);
           }
-          return groups.filter((g2) => g2.tasks.length > 0);
+          return groups.filter((g) => g.tasks.length > 0);
         })());
     }
   };

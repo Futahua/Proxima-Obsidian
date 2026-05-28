@@ -27,6 +27,7 @@
       ];
     }
     
+    const g = fileManager.plugin.settings.globalStatuses || {};
     const cols = [];
     
     // Core columns first, if they don't exist in ps, add them in default order
